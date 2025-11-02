@@ -6,6 +6,7 @@
   <title>JARED • HERO2</title>
   <meta name="theme-color" content="#0c1611" />
   <link rel="stylesheet" href="./style.css" />
+
   <style>
     /* Floating control overlay */
     #uiOverlay {
@@ -20,6 +21,8 @@
       text-align: center;
       box-shadow: 0 0 20px rgba(0,255,179,0.25);
       z-index: 999;
+      width: 90%;
+      max-width: 420px;
     }
     #uiOverlay h3 {
       margin: 0 0 .75rem;
@@ -78,8 +81,11 @@
   </footer>
 
   <script>
-    // ✅ Correct backend connection
-    window.API_BASE = "https://jared-hero2-backend.onrender.com";
+    // ✅ Dynamically choose backend (local or Render)
+    window.API_BASE =
+      window.location.hostname.includes("localhost") || window.location.hostname.includes("127.0.0.1")
+        ? "http://localhost:3001"
+        : "https://jared-hero2-backend.onrender.com";
     console.log("Backend base URL:", window.API_BASE);
 
     const statusText = document.getElementById("statusText");
@@ -163,4 +169,5 @@
   <script src="./canvas.js"></script>
 </body>
 </html>
+
 
