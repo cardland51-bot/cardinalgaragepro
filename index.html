@@ -79,29 +79,47 @@
   let lastFile = null;
   const photo = { img:null, url:null, w:0,h:0, show:false, glow:0.35 };
 
-  // ===== Icons =====
-  const defs = [
-    { id:'upload',  label:'Upload = Estimate',  desc:'Choose a yard photo to estimate.', icon:'⬆️' },
-    { id:'analyze', label:'Estimate',           desc:'Run pricing logic + AI tips.',     icon:'🧮' },
-    { id:'talk',    label:'Talk to JARED',      desc:'Hold to speak, release to send.',  icon:'🎤' },
-    { id:'export',  label:'Export Insights',    desc:'Save notes & estimates to file.',  icon:'📤' },
-    { id:'school',  label:'Sales University',   desc:'Playbooks & tips to close faster.',icon:'🎓' },
-    { id:'full',    label:'Fullscreen',         desc:'Toggle fullscreen HUD.',           icon:'⛶' },
-  ];
-  const ICONS = [];
-  function layoutIcons(){
-    ICONS.length=0;
-    const sodH = Math.max(120, Math.min(220, S.h*0.22));
-    const baseY = S.h - sodH + 8;
-    const pad = 24;
-    const gap = (S.w - pad*2) / (defs.length-1);
-    defs.forEach((d,i)=>{
-      ICONS.push({ ...d, x: pad + i*gap, y:S.h+120, targetY: baseY-88, r:46, pop:0, hover:false, bubble:0 });
-    });
-  }
-  layoutIcons();
+  // ===== Canvas =====
+const cvs = document.getElementById('hud');
+const ctx = cvs.getContext('2d', { alpha:false });
+let DPR = Math.max(1, Math.min(3, devicePixelRatio||1));
+const S = { w:0,h:0,t:0, tiltX:0,tiltY:0, tx:0,ty:0 };
 
-  // ===== Drawing =====
+// ===== Icons (declare before layoutIcons) =====
+const defs = [
+  { id:'upload',  label:'Upload = Estimate',  desc:'Choose a yard photo to estimate.', icon:'⬆️' },
+  { id:'analyze', label:'Estimate',           desc:'Run pricing logic + AI tips.',     icon:'🧮' },
+  { id:'talk',    label:'Talk to JARED',      desc:'Hold to speak, release to send.',  icon:'🎤' },
+  { id:'export',  label:'Export Insights',    desc:'Save notes & estimates to file.',  icon:'📤' },
+  { id:'school',  label:'Sales University',   desc:'Playbooks & tips to close faster.',icon:'🎓' },
+  { id:'full',    label:'Fullscreen',         desc:'Toggle fullscreen HUD.',           icon:'⛶' },
+];
+const ICONS = [];
+
+// ===== Layout & resize =====
+function layoutIcons(){
+  ICONS.length=0;
+  const sodH = Math.max(120, Math.min(220, S.h*0.22));
+  const baseY = S.h - sodH + 8;
+  const pad = 24;
+  const gap = (S.w - pad*2) / (defs.length-1);
+  defs.forEach((d,i)=>{
+    ICONS.push({ ...d, x: pad + i*gap, y:S.h+120, targetY: baseY-88, r:46, pop:0, hover:false, bubble:0 });
+  });
+}
+
+function resize(){
+  DPR = Math.max(1, Math.min(3, devicePixelRatio||1));
+  S.w = innerWidth; S.h = innerHeight;
+  cvs.width = Math.floor(S.w*DPR); cvs.height = Math.floor(S.h*DPR);
+  cvs.style.width = S.w+'px'; cvs.style.height = S.h+'px';
+  ctx.setTransform(DPR,0,0,DPR,0,0);
+  layoutIcons();
+}
+addEventListener('resize', resize, {passive:true});
+resize();
+
+ // ===== Drawing =====
   function drawBackground(t){
     const g = ctx.createLinearGradient(0,0,0,S.h);
     g.addColorStop(0, BRAND.bgTop); g.addColorStop(1, BRAND.bgBot);
