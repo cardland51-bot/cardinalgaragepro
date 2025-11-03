@@ -237,7 +237,7 @@
   async function greet(){
     if(greeted) return; greeted=true;
     await new Promise(r=>setTimeout(r,600));
-    await speak("Hi there! Jared here. Hold the mic and tell me what you’d like to do.");
+    await speak("We're rich now!!..landscape photos only.");
   }
   addEventListener('load',()=>greet(),{once:true});
 
@@ -258,6 +258,42 @@
       speechAudio=new Audio(u); await speechAudio.play();
     }catch(e){ console.log('TTS error:',e); }
   }
+// ===== File Input =====
+const fileInput = document.createElement("input");
+fileInput.type = "file";
+fileInput.accept = "image/*";
+fileInput.style.display = "none";
+document.body.appendChild(fileInput);
+
+let lastFile = null;
+const photo = { img: null, url: null, w: 0, h: 0, show: false, glow: 0.4 };
+
+// ✅ Upload Helper
+function chooseFile() {
+  fileInput.value = ""; // reset old file
+  fileInput.click();
+}
+
+// ✅ Handle Selected File
+fileInput.onchange = () => {
+  const f = fileInput.files[0];
+  if (!f) return;
+
+  lastFile = f;
+
+  // Load preview
+  if (photo.url) URL.revokeObjectURL(photo.url);
+  photo.url = URL.createObjectURL(f);
+  photo.img = new Image();
+  photo.img.onload = () => {
+    photo.w = photo.img.width;
+    photo.h = photo.img.height;
+    photo.show = true;
+    photo.glow = 0.7;
+    toast("✅ Photo loaded. Tap Estimate to analyze.");
+  };
+  photo.img.src = photo.url;
+};
 
   // ====== Toast ======
   function toast(msg,ms=1600){ bubbles.push({msg,t:performance.now(),ms}); }
