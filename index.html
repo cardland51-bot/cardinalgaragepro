@@ -2,14 +2,20 @@
 <html lang="en">
 <head>
 <meta charset="utf-8" />
-<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,maximum-scale=1,user-scalable=no" />
+<meta name="viewport"
+  content="width=device-width,initial-scale=1,viewport-fit=cover,maximum-scale=1,user-scalable=no" />
 <title>JARED • HERO2 (Sod HUD)</title>
 <meta name="theme-color" content="#0b1b16" />
 <style>
-  html,body {
-    margin:0; height:100%; background:#0b1b16; overflow:hidden;
-    touch-action:none; -webkit-user-select:none; user-select:none;
-    -webkit-tap-highlight-color:transparent;
+  html, body {
+    margin: 0;
+    height: 100%;
+    background: #0b1b16;
+    overflow: hidden;
+    touch-action: none;
+    -webkit-user-select: none;
+    user-select: none;
+    -webkit-tap-highlight-color: transparent;
   }
 </style>
 </head>
@@ -19,78 +25,84 @@
 <script>
 (() => {
   // ===== API base =====
-  const API = (location.hostname.includes("localhost")||location.hostname.includes("127.0.0.1"))
+  const API = (location.hostname.includes("localhost") || location.hostname.includes("127.0.0.1"))
     ? "http://localhost:3001"
     : "https://jared-hero2-backend.onrender.com";
 
-  // ===== Brand =====
+  // ===== Theme =====
   const BRAND = {
-    bgTop:'#0b1b16', bgBot:'#07100d',
-    mintL:'#77FFCE', mintB:'#34D1A0', text:'#E9FFF6', textDim:'rgba(233,255,246,.85)',
-    auraS:'rgba(119,255,206,.15)', auraM:'rgba(119,255,206,.35)', auraH:'rgba(119,255,206,.55)'
+    bgTop: "#0b1b16",
+    bgBot: "#07100d",
+    mintL: "#77FFCE",
+    mintB: "#34D1A0",
+    text: "#E9FFF6",
+    textDim: "rgba(233,255,246,.85)",
+    auraS: "rgba(119,255,206,.15)",
+    auraM: "rgba(119,255,206,.35)",
+    auraH: "rgba(119,255,206,.55)"
   };
 
-  // ===== Icons =====
+  // ===== Icon defs =====
   const defs = [
-    { id:'upload', label:'Upload = Estimate', desc:'Choose a yard photo to estimate.', icon:'⬆️' },
-    { id:'analyze', label:'Estimate', desc:'Run pricing logic + AI tips.', icon:'🧮' },
-    { id:'talk', label:'Talk to JARED', desc:'Hold to speak, release to send.', icon:'🎤' },
-    { id:'export', label:'Export Insights', desc:'Save notes & estimates to file.', icon:'📤' },
-    { id:'school', label:'Sales University', desc:'Playbooks & tips to close faster.', icon:'🎓' },
-    { id:'full', label:'Fullscreen', desc:'Toggle fullscreen HUD.', icon:'⛶' },
+    { id: "analyze", label: "Estimate", icon: "🧮" },
+    { id: "talk", label: "Talk", icon: "🎤" },
+    { id: "export", label: "Export", icon: "📤" },
+    { id: "school", label: "Sales U", icon: "🎓" },
+    { id: "full", label: "Full", icon: "⛶" },
   ];
   const ICONS = [];
 
   // ===== Canvas Setup =====
-  const cvs = document.getElementById('hud');
-  const ctx = cvs.getContext('2d', { alpha:false });
-  let DPR = Math.max(1, Math.min(3, devicePixelRatio||1));
-  const S = { w:0,h:0,t:0, tiltX:0,tiltY:0, tx:0,ty:0 };
+  const cvs = document.getElementById("hud");
+  const ctx = cvs.getContext("2d", { alpha: false });
+  let DPR = Math.max(1, Math.min(3, devicePixelRatio || 1));
+  const S = { w: 0, h: 0, t: 0, tx: 0, ty: 0 };
 
-  function layoutIcons(){
-    ICONS.length=0;
-    const sodH=Math.max(120, Math.min(220,S.h*0.22));
-    const baseY=S.h - sodH + 8;
-    const pad=24;
-    const gap=(S.w - pad*2)/(defs.length-1);
-    defs.forEach((d,i)=>{
-      ICONS.push({ ...d, x: pad+i*gap, y:S.h+120, targetY:baseY-88, r:46, pop:0, hover:false, bubble:0 });
+  function layoutIcons() {
+    ICONS.length = 0;
+    const sodH = Math.max(120, Math.min(220, S.h * 0.22));
+    const baseY = S.h - sodH + 10;
+    const pad = 80;
+    const gap = (S.w - pad * 2) / (defs.length - 1);
+    defs.forEach((d, i) => {
+      ICONS.push({
+        ...d,
+        x: pad + i * gap,
+        y: S.h + 120,
+        targetY: baseY - 70,
+        r: 42,
+        hover: false
+      });
     });
   }
 
-  function resize(){
-    DPR = Math.max(1, Math.min(3, devicePixelRatio||1));
-    S.w = innerWidth; S.h = innerHeight;
-    cvs.width = Math.floor(S.w*DPR);
-    cvs.height = Math.floor(S.h*DPR);
-    cvs.style.width = S.w+'px';
-    cvs.style.height = S.h+'px';
-    ctx.setTransform(DPR,0,0,DPR,0,0);
+  function resize() {
+    DPR = Math.max(1, Math.min(3, devicePixelRatio || 1));
+    S.w = innerWidth;
+    S.h = innerHeight;
+    cvs.width = Math.floor(S.w * DPR);
+    cvs.height = Math.floor(S.h * DPR);
+    cvs.style.width = S.w + "px";
+    cvs.style.height = S.h + "px";
+    ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
     layoutIcons();
   }
-  addEventListener('resize', resize, {passive:true});
+  addEventListener("resize", resize, { passive: true });
   resize();
 
-  // ====== State ======
-  const bubbles = [];
-  const savedInsights = [];
-  let talkState = 'idle';
-  let rec=null, canListen=true, speechAudio=null, micPrimed=false, greeted=false;
-  let lastFile=null;
-  const photo={img:null,url:null,w:0,h:0,show:false,glow:0.4};
-
-  // ====== File Input ======
+  // ===== File Input =====
   const fileInput = document.createElement("input");
   fileInput.type = "file";
   fileInput.accept = "image/*";
   fileInput.style.display = "none";
   document.body.appendChild(fileInput);
 
+  let lastFile = null;
+  const photo = { img: null, url: null, w: 0, h: 0, show: false, glow: 0.4 };
   function chooseFile() {
     fileInput.value = "";
     fileInput.click();
   }
-
   fileInput.onchange = () => {
     const f = fileInput.files[0];
     if (!f) return;
@@ -102,45 +114,70 @@
       photo.w = photo.img.width;
       photo.h = photo.img.height;
       photo.show = true;
-      photo.glow = 0.7;
+      photo.glow = 0.9;
       toast("✅ Photo loaded. Tap Estimate to analyze.");
     };
     photo.img.src = photo.url;
   };
 
-  // ===== Drawing Helpers =====
-  function roundRect(g,x,y,w,h,r){
-    const rr=Math.min(r,w/2,h/2);
+  // ===== Drawing =====
+  function roundRect(g, x, y, w, h, r) {
+    const rr = Math.min(r, w / 2, h / 2);
     g.beginPath();
-    g.moveTo(x+rr,y);
-    g.arcTo(x+w,y,x+w,y+h,rr);
-    g.arcTo(x+w,y+h,x,y+h,rr);
-    g.arcTo(x,y+h,x,y,rr);
-    g.arcTo(x,y,x+w,y,rr);
+    g.moveTo(x + rr, y);
+    g.arcTo(x + w, y, x + w, y + h, rr);
+    g.arcTo(x + w, y + h, x, y + h, rr);
+    g.arcTo(x, y + h, x, y, rr);
+    g.arcTo(x, y, x + w, y, rr);
     g.closePath();
   }
 
-  function halo(r,color,blur){
+  function halo(r, color, blur) {
     ctx.save();
-    ctx.shadowColor=color; ctx.shadowBlur=blur;
-    ctx.beginPath(); ctx.arc(0,0,r,0,Math.PI*2);
-    ctx.strokeStyle='transparent'; ctx.stroke();
+    ctx.shadowColor = color;
+    ctx.shadowBlur = blur;
+    ctx.beginPath();
+    ctx.arc(0, 0, r, 0, Math.PI * 2);
+    ctx.strokeStyle = "transparent";
+    ctx.stroke();
     ctx.restore();
   }
 
-  // ===== Background =====
-  function drawBackground(t){
-    const g=ctx.createLinearGradient(0,0,0,S.h);
-    g.addColorStop(0,BRAND.bgTop);
-    g.addColorStop(1,BRAND.bgBot);
-    ctx.fillStyle=g; ctx.fillRect(0,0,S.w,S.h);
-    const rg=ctx.createRadialGradient(S.w/2,S.h*0.85,0,S.w/2,S.h*0.85,Math.max(S.w,S.h)*0.55);
-    rg.addColorStop(0,BRAND.auraM); rg.addColorStop(1,'transparent');
-    ctx.fillStyle=rg; ctx.fillRect(0,0,S.w,S.h);
+  function drawBackground(t) {
+    const g = ctx.createLinearGradient(0, 0, 0, S.h);
+    g.addColorStop(0, BRAND.bgTop);
+    g.addColorStop(1, BRAND.bgBot);
+    ctx.fillStyle = g;
+    ctx.fillRect(0, 0, S.w, S.h);
+    const rg = ctx.createRadialGradient(S.w / 2, S.h * 0.85, 0, S.w / 2, S.h * 0.85, Math.max(S.w, S.h) * 0.55);
+    rg.addColorStop(0, BRAND.auraM);
+    rg.addColorStop(1, "transparent");
+    ctx.fillStyle = rg;
+    ctx.fillRect(0, 0, S.w, S.h);
   }
 
-  // ===== Photo Display =====
-  function drawPhoto(){
+  function drawSod(t) {
+    const sodTop = S.h - Math.max(120, Math.min(220, S.h * 0.22));
+    const grd = ctx.createLinearGradient(0, sodTop, 0, S.h);
+    grd.addColorStop(0, "#0e241c");
+    grd.addColorStop(1, "#08130f");
+    ctx.fillStyle = grd;
+    ctx.fillRect(0, sodTop, S.w, S.h - sodTop);
+    const blades = Math.floor(S.w / 9);
+    for (let i = 0; i < blades; i++) {
+      const x = (i / (blades - 1)) * S.w;
+      const h = 22 + Math.sin((i * 0.6) + t * 0.002) * 6;
+      const sway = Math.sin(t * 0.003 + i) * 2 + S.tx * 1.2;
+      ctx.strokeStyle = i % 7 === 0 ? BRAND.mintL : BRAND.mintB;
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.moveTo(x, sodTop + 2);
+      ctx.quadraticCurveTo(x + sway, sodTop - h * 0.6, x + sway * 0.8, sodTop - h);
+      ctx.stroke();
+    }
+  }
+
+  function drawPhoto() {
     if (!photo.show || !photo.img) return;
     const maxW = S.w * 0.9;
     const maxH = S.h * 0.45;
@@ -155,217 +192,141 @@
     ctx.restore();
   }
 
-  // ====== AI Actions ======
-  async function analyze() {
-    if (!lastFile) { toast("Upload a photo first."); return; }
-    const formData = new FormData();
-    formData.append("file", lastFile);
-    toast("Analyzing image...");
-    try {
-      const resp = await fetch(`${API}/analyze-image`, { method: "POST", body: formData });
-      const data = await resp.json();
-      toast(data.summary || "No summary.");
-      await speak(data.summary);
-      savedInsights.push(`PHOTO ANALYSIS:\n${data.summary}\n`);
-    } catch (e) {
-      toast("❌ Analysis failed.");
-    }
-  }
-
-  function exportInsights() {
-    if (!savedInsights.length) { toast("No insights to export."); return; }
-    const blob = new Blob([savedInsights.join("\n\n")], { type: "text/plain" });
-    const a = document.createElement("a");
-    a.href = URL.createObjectURL(blob);
-    a.download = "jared_estimates.txt";
-    a.click();
-    toast("Insights exported!");
-  }
-
-  function openSchool() {
-    window.open("https://cardland51-bot.github.io/sales-university/", "_blank");
-  }
-
-  function toggleFull() {
-    if (!document.fullscreenElement) cvs.requestFullscreen();
-    else document.exitFullscreen();
-  }
-
-  // ====== Mic + Greeting ======
-  function initRecognition(){
-    if(!('webkitSpeechRecognition' in window)) return null;
-    const r=new webkitSpeechRecognition();
-    r.lang='en-US'; r.interimResults=false; r.continuous=false;
-    r.onstart=()=>{ talkState='listening'; };
-    r.onend=()=>{ if(talkState==='listening') talkState='thinking'; canListen=true; };
-    r.onresult=async(e)=>{
-      const text=e.results[0][0].transcript;
-      try{
-        const resp=await fetch(`${API}/inference`,{
-          method:'POST', headers:{'Content-Type':'application/json'},
-          body:JSON.stringify({ text })
-        });
-        const data=await resp.json(); const content=data.content||'No response';
-        savedInsights.push(`[${new Date().toLocaleString()}]\nVOICE: "${text}"\n${content}\n`);
-        toast(content); await speak(content);
-      }catch(err){ toast('JARED unavailable.'); }
-      talkState='idle';
-    };
-    return r;
-  }
-  rec=initRecognition();
-
-  function primeMic(){
-    if(micPrimed||!rec) return;
-    try{ rec.start(); rec.abort(); micPrimed=true; console.log('🎤 Mic primed'); }
-    catch(e){ console.log('Mic primer failed:',e); }
-  }
-  addEventListener('touchstart',()=>primeMic(),{once:true,passive:true});
-  addEventListener('click',()=>primeMic(),{once:true,passive:true});
-
-  async function greet(){
-    if(greeted) return; greeted=true;
-    await new Promise(r=>setTimeout(r,600));
-    await speak("hola! por fa, kiiiiiiiiiiiiiiiidding, Jared here, upload a LANDSCAPE photo ");
-  }
-  addEventListener('load',()=>greet(),{once:true});
-
-  function startListening(){ if(!rec){ toast('Speech not supported.'); return; } if(!canListen) return; canListen=false; rec.start(); }
-  function stopListening(){ if(rec) rec.stop(); }
-
-  // ====== Speak (TTS) ======
-  async function speak(text){
-    if(!text) return;
-    try{
-      if(speechAudio){ speechAudio.pause(); speechAudio=null; }
-      const r=await fetch(`${API}/speak`,{
-        method:'POST', headers:{'Content-Type':'application/json'},
-        body:JSON.stringify({ text })
-      });
-      if(!r.ok) throw new Error('TTS failed');
-      const b=await r.blob(); const u=URL.createObjectURL(b);
-      speechAudio=new Audio(u); await speechAudio.play();
-    }catch(e){ console.log('TTS error:',e); }
-  }
-
-  // ====== Toast ======
-  function toast(msg,ms=1600){ bubbles.push({msg,t:performance.now(),ms}); }
-  function drawToasts(){
-    const now=performance.now();
-    bubbles.forEach((b,i)=>{
-      const age=now-b.t; if(age>b.ms) return;
-      const a=age<200?age/200:age>b.ms-250?(b.ms-age)/250:1;
-      const w=Math.min(460,S.w*0.9),h=46,x=(S.w-w)/2,y=S.h-90-i*56;
-      ctx.save(); ctx.globalAlpha=a*.95;
-      ctx.fillStyle='rgba(10,26,20,.92)';
-      ctx.strokeStyle=BRAND.auraM; ctx.lineWidth=2;
-      roundRect(ctx,x,y,w,h,12); ctx.fill(); ctx.stroke();
-      ctx.fillStyle=BRAND.text; ctx.font='600 14px system-ui,sans-serif';
-      ctx.textAlign='center'; ctx.textBaseline='middle'; ctx.fillText(b.msg,x+w/2,y+h/2+1);
-      ctx.restore();
-    });
-    for(let i=bubbles.length-1;i>=0;i--) if(performance.now()-bubbles[i].t>bubbles[i].ms) bubbles.splice(i,1);
-  }
-
-  // ====== Animation ======
-  function drawIcon(it,t){
-    it.pop=Math.min(1,it.pop+0.02);
-    const bob=Math.sin(t*0.003+it.x)*4;
-    it.y+=(it.targetY+bob-(it.hover?6:0)-it.y)*0.12;
-    const x=it.x,y=it.y,r=it.r;
-    ctx.save(); ctx.translate(x,y-S.ty*5);
-    if(it.id==='talk'){
-      if(talkState==='listening') halo(r+18,BRAND.auraH,22);
-      else if(talkState==='thinking') halo(r+10,'rgba(119,255,206,.75)',14);
-      else halo(r+12,BRAND.auraS,14);
-    } else halo(r+12,it.hover?BRAND.auraM:BRAND.auraS,14);
-    const grd=ctx.createRadialGradient(-r*.5,-r*.6,r*.2,0,0,r*1.2);
-    grd.addColorStop(0,'#10281f'); grd.addColorStop(1,'#0a1a14');
-    ctx.fillStyle=grd; roundRect(ctx,-r,-r,r*2,r*2,r*.42); ctx.fill();
-    ctx.strokeStyle=it.hover?BRAND.mintL:BRAND.mintB;
-    ctx.lineWidth=3; ctx.beginPath(); ctx.arc(0,0,r-3,0,Math.PI*2); ctx.stroke();
-    ctx.font=Math.floor(r*.95)+'px serif'; ctx.textAlign='center'; ctx.textBaseline='middle';
-    ctx.fillText(it.icon,0,2);
-    ctx.font='600 13px system-ui,sans-serif'; ctx.fillStyle=BRAND.textDim;
-    ctx.fillText(it.label,0,r+18);
+  // ===== Center Button with Pulse =====
+  function drawUploadButton(t) {
+    const r = 72;
+    const x = S.w / 2;
+    const y = S.h * 0.65;
+    const pulse = 0.8 + Math.sin(t * 0.004) * 0.2;
+    ctx.save();
+    ctx.translate(x, y);
+    halo(r + 20, `rgba(119,255,206,${0.4 + 0.3 * pulse})`, 28);
+    const grd = ctx.createRadialGradient(-r * .3, -r * .5, r * .2, 0, 0, r * 1.3);
+    grd.addColorStop(0, "#103524");
+    grd.addColorStop(1, "#0b1b16");
+    ctx.fillStyle = grd;
+    roundRect(ctx, -r, -r, r * 2, r * 2, r * .45);
+    ctx.fill();
+    ctx.strokeStyle = BRAND.mintL;
+    ctx.lineWidth = 4;
+    ctx.beginPath();
+    ctx.arc(0, 0, r - 3, 0, Math.PI * 2);
+    ctx.stroke();
+    ctx.font = Math.floor(r * 0.9) + "px serif";
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+    ctx.fillText("⬆️", 0, 4);
+    ctx.font = "700 16px system-ui";
+    ctx.fillStyle = BRAND.text;
+    ctx.shadowColor = BRAND.auraM;
+    ctx.shadowBlur = 20;
+    ctx.fillText("Upload = Estimate", 0, r + 26);
     ctx.restore();
   }
 
-  // ====== Sod ======
-  function drawSod(t){
-    const sodTop=S.h - Math.max(120, Math.min(220,S.h*0.22));
-    const grd=ctx.createLinearGradient(0,sodTop,0,S.h);
-    grd.addColorStop(0,'#0e241c'); grd.addColorStop(1,'#08130f');
-    ctx.fillStyle=grd; ctx.fillRect(0,sodTop,S.w,S.h-sodTop);
-    const blades=Math.floor(S.w/9);
-    for(let i=0;i<blades;i++){
-      const x=(i/(blades-1))*S.w;
-      const h=22+Math.sin((i*0.6)+t*0.002)*6;
-      const sway=Math.sin(t*0.003+i)*2+S.tx*1.2;
-      ctx.strokeStyle=i%7===0?BRAND.mintL:BRAND.mintB;
-      ctx.lineWidth=2; ctx.beginPath();
-      ctx.moveTo(x,sodTop+2);
-      ctx.quadraticCurveTo(x+sway,sodTop-h*0.6,x+sway*0.8,sodTop-h);
-      ctx.stroke();
+  // ===== Icon Drawing =====
+  function drawIcon(it, t) {
+    it.y += (it.targetY - it.y) * 0.1;
+    const x = it.x, y = it.y, r = it.r;
+    ctx.save();
+    ctx.translate(x, y);
+    halo(r + 14, it.hover ? BRAND.auraH : BRAND.auraM, 18);
+    const grd = ctx.createRadialGradient(-r * .5, -r * .6, r * .2, 0, 0, r * 1.2);
+    grd.addColorStop(0, "#10281f");
+    grd.addColorStop(1, "#0a1a14");
+    ctx.fillStyle = grd;
+    roundRect(ctx, -r, -r, r * 2, r * 2, r * .42);
+    ctx.fill();
+    ctx.strokeStyle = it.hover ? BRAND.mintL : BRAND.mintB;
+    ctx.lineWidth = 3;
+    ctx.beginPath();
+    ctx.arc(0, 0, r - 3, 0, Math.PI * 2);
+    ctx.stroke();
+    ctx.font = Math.floor(r * 0.9) + "px serif";
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+    ctx.fillText(it.icon, 0, 2);
+    ctx.font = "700 13px system-ui,sans-serif";
+    ctx.fillStyle = BRAND.text;
+    ctx.shadowColor = BRAND.auraM;
+    ctx.shadowBlur = 14;
+    ctx.fillText(it.label, 0, r + 18);
+    ctx.restore();
+  }
+
+  // ===== Interaction =====
+  function dist2(x1, y1, x2, y2) {
+    const dx = x2 - x1, dy = y2 - y1;
+    return dx * dx + dy * dy;
+  }
+  function handlePress(x, y) {
+    if (dist2(x, y, S.w / 2, S.h * 0.65) < 90 * 90) return chooseFile();
+    let best = null;
+    for (const it of ICONS) {
+      const R = it.r + 12;
+      const d2 = dist2(x, y, it.x, it.y);
+      if (d2 < R * R) best = it.id;
+    }
+    if (!best) return;
+    if (best === "analyze") toast("Analyzing... (stub)");
+    if (best === "export") toast("Exporting... (stub)");
+    if (best === "school") window.open("https://cardland51-bot.github.io/sales-university/");
+    if (best === "full") {
+      if (!document.fullscreenElement) cvs.requestFullscreen();
+      else document.exitFullscreen();
     }
   }
+  cvs.addEventListener("pointerdown", (e) => {
+    const r = cvs.getBoundingClientRect();
+    handlePress(e.clientX - r.left, e.clientY - r.top);
+  });
 
-  // ====== Input ======
-  const ptr={x:S.w/2,y:S.h/2,down:false};
-  function dist2(x1,y1,x2,y2){const dx=x2-x1,dy=y2-y1;return dx*dx+dy*dy;}
-  function pickIcon(x,y){
-    let best=null,bestD=Infinity;
-    for(const it of ICONS){
-      const R=(it.id==='talk')?it.r+18:it.r+10;
-      const d2=dist2(x,y,it.x,it.y);
-      if(d2<R*R&&d2<bestD){best=it.id;bestD=d2;}
-      it.hover=(best===it.id);
-    } return best;
+  // ===== Toasts =====
+  const bubbles = [];
+  function toast(msg, ms = 1600) {
+    bubbles.push({ msg, t: performance.now(), ms });
+  }
+  function drawToasts() {
+    const now = performance.now();
+    bubbles.forEach((b, i) => {
+      const age = now - b.t;
+      if (age > b.ms) return;
+      const a = age < 200 ? age / 200 : age > b.ms - 250 ? (b.ms - age) / 250 : 1;
+      const w = Math.min(460, S.w * 0.9),
+        h = 46,
+        x = (S.w - w) / 2,
+        y = S.h - 90 - i * 56;
+      ctx.save();
+      ctx.globalAlpha = a * 0.95;
+      ctx.fillStyle = "rgba(10,26,20,.92)";
+      ctx.strokeStyle = BRAND.auraM;
+      ctx.lineWidth = 2;
+      roundRect(ctx, x, y, w, h, 12);
+      ctx.fill();
+      ctx.stroke();
+      ctx.fillStyle = BRAND.text;
+      ctx.font = "600 14px system-ui,sans-serif";
+      ctx.textAlign = "center";
+      ctx.textBaseline = "middle";
+      ctx.fillText(b.msg, x + w / 2, y + h / 2 + 1);
+      ctx.restore();
+    });
+    for (let i = bubbles.length - 1; i >= 0; i--)
+      if (performance.now() - bubbles[i].t > bubbles[i].ms) bubbles.splice(i, 1);
   }
 
-  let pressedIcon=null;
-  function handlePress(x,y){
-    S.tx=((x/S.w)*2-1)*6; S.ty=((y/S.h)*2-1)*4;
-    const id=pickIcon(x,y); if(!id) return;
-    pressedIcon=id;
-    if(id==='talk') startListening();
-    if(id==='upload') chooseFile();
-  }
-  function handleRelease(){
-    if(!pressedIcon) return;
-    const id=pressedIcon; pressedIcon=null;
-    if(id==='talk') stopListening();
-    if(id==='analyze') analyze();
-    if(id==='export') exportInsights();
-    if(id==='school') openSchool();
-    if(id==='full') toggleFull();
-  }
-
-  function getXY(e){
-    const r=cvs.getBoundingClientRect();
-    if(e.touches&&e.touches[0]) return {x:e.touches[0].clientX-r.left,y:e.touches[0].clientY-r.top};
-    return {x:e.clientX-r.left,y:e.clientY-r.top};
-  }
-  function onDown(e){const p=getXY(e);handlePress(p.x,p.y);e.preventDefault();}
-  function onUp(e){handleRelease();e.preventDefault();}
-  cvs.addEventListener('pointerdown',onDown,{passive:false});
-  addEventListener('pointerup',onUp,{passive:false});
-  cvs.addEventListener('touchstart',onDown,{passive:false});
-  addEventListener('touchend',onUp,{passive:false});
-
-  // ====== Main Loop ======
-  function tick(t){
-    S.t=t;
+  // ===== Main Loop =====
+  function tick(t) {
     drawBackground(t);
-    drawPhoto(t);
+    drawPhoto();
     drawSod(t);
-        ICONS.forEach(it => drawIcon(it, t));
+    drawUploadButton(t);
+    ICONS.forEach((it) => drawIcon(it, t));
     drawToasts();
     requestAnimationFrame(tick);
   }
   requestAnimationFrame(tick);
-
-})(); // ✅ close IIFE
+})();
 </script>
 </body>
 </html>
