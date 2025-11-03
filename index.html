@@ -1,484 +1,93 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="utf-8" />
-<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,maximum-scale=1,user-scalable=no" />
-<title>JARED • HERO2 (Sod HUD)</title>
-<meta name="theme-color" content="#0b1b16" />
-<style>
-  html,body{margin:0;height:100%;background:#0b1b16;overflow:hidden;touch-action:none;-webkit-user-select:none;user-select:none;-webkit-tap-highlight-color:transparent;}
-  /* canvas draws everything */
-</style>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+  <title>JARED • HERO2</title>
+  <meta name="theme-color" content="#0c1611" />
+  <link rel="stylesheet" href="./style.css" />
+  <style>
+    html, body {
+      margin: 0;
+      padding: 0;
+      background: #0c1611;
+      color: #e9f3ee;
+      height: 100%;
+      overflow: hidden;
+      font-family: system-ui, sans-serif;
+    }
+    header.topbar {
+      position: fixed;
+      top: 0;
+      width: 100%;
+      background: #0f1b16;
+      border-bottom: 1px solid #124d3b;
+      text-align: center;
+      padding: 0.6rem 0;
+      z-index: 1000;
+    }
+    header .brand {
+      color: #00ffb3;
+      font-weight: 700;
+      letter-spacing: 1px;
+    }
+    canvas#stage {
+      display: block;
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: radial-gradient(circle at center, #10251c 0%, #07110d 100%);
+    }
+    footer.footer {
+      position: fixed;
+      bottom: 0;
+      width: 100%;
+      background: #0f1b16;
+      border-top: 1px solid #124d3b;
+      text-align: center;
+      padding: 0.75rem 0;
+      z-index: 1000;
+    }
+    footer .btn {
+      background: #00b37a;
+      border: none;
+      color: #fff;
+      padding: 0.5rem 1.2rem;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: background 0.3s;
+      font-weight: 600;
+    }
+    footer .btn:hover {
+      background: #00ffb3;
+      color: #00281a;
+    }
+  </style>
 </head>
+
 <body>
-<canvas id="hud"></canvas>
+  <header class="topbar">
+    <div class="brand">JARED • HERO2</div>
+  </header>
 
-<script>
-(() => {
-  // ===== API base =====
-  const API = (location.hostname.includes("localhost")||location.hostname.includes("127.0.0.1"))
-    ? "http://localhost:3001"
-    : "https://jared-hero2-backend.onrender.com";
+  <canvas id="stage"></canvas>
 
-  // ===== Brand =====
-  const BRAND = {
-    bgTop:'#0b1b16', bgBot:'#07100d',
-    mintL:'#77FFCE', mintB:'#34D1A0', text:'#E9FFF6', textDim:'rgba(233,255,246,.85)',
-    auraS:'rgba(119,255,206,.15)', auraM:'rgba(119,255,206,.35)', auraH:'rgba(119,255,206,.55)'
-  };
+  <footer class="footer">
+    <button class="btn" id="downloadDeck">Download Pitch Deck</button>
+  </footer>
 
-  // ===== Canvas =====
-  const ctx = cvs.getContext('2d', { alpha:false });
-  let DPR = Math.max(1, Math.min(3, devicePixelRatio||1));
-  const S = { w:0,h:0,t:0, tiltX:0,tiltY:0, tx:0,ty:0 };
+  <!-- ✅ Backend base URL helper -->
+  <script>
+    window.API_BASE =
+      window.location.hostname.includes("localhost") || window.location.hostname.includes("127.0.0.1")
+        ? "http://localhost:3001"
+        : "https://jared-hero2-backend.onrender.com";
+    console.log("Backend base URL:", window.API_BASE);
+  </script>
 
-  function resize(){
-    DPR = Math.max(1, Math.min(3, devicePixelRatio||1));
-    S.w = innerWidth; S.h = innerHeight;
-    cvs.width = Math.floor(S.w*DPR); cvs.height = Math.floor(S.h*DPR);
-    cvs.style.width = S.w+'px'; cvs.style.height = S.h+'px';
-    ctx.setTransform(DPR,0,0,DPR,0,0);
-    layoutIcons();
-  }
-  addEventListener('resize', resize, {passive:true});
-  resize();
-
-  // ===== Input =====
-  const ptr = { x:S.w/2, y:S.h/2, down:false };
-  function getXY(e){
-    const r = cvs.getBoundingClientRect();
-    if (e.touches && e.touches[0]) return { x:e.touches[0].clientX-r.left, y:e.touches[0].clientY-r.top };
-    return { x:e.clientX-r.left, y:e.clientY-r.top };
-  }
-  let pressStart = 0;
-  function onDown(e){ const p=getXY(e); ptr.x=p.x; ptr.y=p.y; ptr.down=true; pressStart=performance.now(); handlePress(ptr.x,ptr.y); e.preventDefault(); }
-  function onMove(e){ const p=getXY(e); ptr.x=p.x; ptr.y=p.y; e.preventDefault(); }
-  function onUp(e){ ptr.down=false; handleRelease(); e.preventDefault(); }
-
-  cvs.addEventListener('pointerdown', onDown, {passive:false});
-  cvs.addEventListener('pointermove', onMove, {passive:false});
-  addEventListener('pointerup', onUp, {passive:false});
-  cvs.addEventListener('touchstart', onDown, {passive:false});
-  cvs.addEventListener('touchmove', onMove, {passive:false});
-  addEventListener('touchend', onUp, {passive:false});
-
-  // ===== Hidden file input =====
-  const fileInput = document.createElement('input');
-  fileInput.type='file'; fileInput.accept='image/*'; fileInput.style.display='none';
-  document.body.appendChild(fileInput);
-
-  // ===== State =====
-  const bubbles = []; // toasts
-  const savedInsights = [];
-  let pressedIcon = null;
-  let talkState = 'idle'; // idle | listening | thinking
-  let rec = null, canListen = true, speechAudio = null, micPrimed = false, greeted = false;
-
-  // Photo preview state
-  let lastFile = null;
-  const photo = { img:null, url:null, w:0,h:0, show:false, glow:0.35 };
-
-  // ===== Canvas =====
-const cvs = document.getElementById('hud');
-const ctx = cvs.getContext('2d', { alpha:false });
-let DPR = Math.max(1, Math.min(3, devicePixelRatio||1));
-const S = { w:0,h:0,t:0, tiltX:0,tiltY:0, tx:0,ty:0 };
-
-// ===== Icons (declare before layoutIcons) =====
-const defs = [
-  { id:'upload',  label:'Upload = Estimate',  desc:'Choose a yard photo to estimate.', icon:'⬆️' },
-  { id:'analyze', label:'Estimate',           desc:'Run pricing logic + AI tips.',     icon:'🧮' },
-  { id:'talk',    label:'Talk to JARED',      desc:'Hold to speak, release to send.',  icon:'🎤' },
-  { id:'export',  label:'Export Insights',    desc:'Save notes & estimates to file.',  icon:'📤' },
-  { id:'school',  label:'Sales University',   desc:'Playbooks & tips to close faster.',icon:'🎓' },
-  { id:'full',    label:'Fullscreen',         desc:'Toggle fullscreen HUD.',           icon:'⛶' },
-];
-const ICONS = [];
-
-// ===== Layout & resize =====
-function layoutIcons(){
-  ICONS.length=0;
-  const sodH = Math.max(120, Math.min(220, S.h*0.22));
-  const baseY = S.h - sodH + 8;
-  const pad = 24;
-  const gap = (S.w - pad*2) / (defs.length-1);
-  defs.forEach((d,i)=>{
-    ICONS.push({ ...d, x: pad + i*gap, y:S.h+120, targetY: baseY-88, r:46, pop:0, hover:false, bubble:0 });
-  });
-}
-
-function resize(){
-  DPR = Math.max(1, Math.min(3, devicePixelRatio||1));
-  S.w = innerWidth; S.h = innerHeight;
-  cvs.width = Math.floor(S.w*DPR); cvs.height = Math.floor(S.h*DPR);
-  cvs.style.width = S.w+'px'; cvs.style.height = S.h+'px';
-  ctx.setTransform(DPR,0,0,DPR,0,0);
-  layoutIcons();
-}
-addEventListener('resize', resize, {passive:true});
-resize();
-
- // ===== Drawing =====
-  function drawBackground(t){
-    const g = ctx.createLinearGradient(0,0,0,S.h);
-    g.addColorStop(0, BRAND.bgTop); g.addColorStop(1, BRAND.bgBot);
-    ctx.fillStyle=g; ctx.fillRect(0,0,S.w,S.h);
-    // Horizon glow
-    const rg = ctx.createRadialGradient(S.w/2,S.h*0.85,0,S.w/2,S.h*0.85, Math.max(S.w,S.h)*0.55);
-    rg.addColorStop(0, BRAND.auraM); rg.addColorStop(1,'transparent');
-    ctx.fillStyle=rg; ctx.fillRect(0,0,S.w,S.h);
-  }
-  function drawSod(t){
-    const sodTop = S.h - Math.max(120, Math.min(220, S.h*0.22));
-    const grd = ctx.createLinearGradient(0, sodTop, 0, S.h);
-    grd.addColorStop(0, '#0e241c'); grd.addColorStop(1, '#08130f');
-    ctx.fillStyle = grd; ctx.fillRect(0, sodTop, S.w, S.h-sodTop);
-    // blades
-    const blades = Math.floor(S.w/9);
-    for(let i=0;i<blades;i++){
-      const x = (i/(blades-1))*S.w;
-      const h = 22 + Math.sin((i*0.6)+t*0.002)*6;
-      const sway = Math.sin(t*0.003 + i)*2 + S.tx*1.2;
-      ctx.strokeStyle = i%7===0 ? BRAND.mintL : BRAND.mintB;
-      ctx.lineWidth=2;
-      ctx.beginPath();
-      ctx.moveTo(x, sodTop+2);
-      ctx.quadraticCurveTo(x+sway, sodTop-h*0.6, x+sway*0.8, sodTop-h);
-      ctx.stroke();
-    }
-    ctx.fillStyle = 'rgba(119,255,206,.18)';
-    ctx.fillRect(0, sodTop-1, S.w, 2);
-  }
-  function roundRect(g,x,y,w,h,r){
-    const rr=Math.min(r,w/2,h/2);
-    g.beginPath();
-    g.moveTo(x+rr,y);
-    g.arcTo(x+w,y,x+w,y+h,rr);
-    g.arcTo(x+w,y+h,x,y+h,rr);
-    g.arcTo(x,y+h,x,y,rr);
-    g.arcTo(x,y,x+w,y,rr);
-    g.closePath();
-  }
-  function halo(radius,color,blur){
-    ctx.save();
-    ctx.shadowColor=color; ctx.shadowBlur=blur;
-    ctx.beginPath(); ctx.arc(0,0,radius,0,Math.PI*2); ctx.strokeStyle='transparent'; ctx.stroke();
-    ctx.restore();
-  }
-  function wrap(text, font, maxW){
-    ctx.font=font;
-    const words=text.split(/\s+/), lines=[]; let line='', longest=0;
-    for(const w of words){
-      const test=line?(line+' '+w):w;
-      const width=ctx.measureText(test).width;
-      if(width>maxW && line){ lines.push(line); longest=Math.max(longest, ctx.measureText(line).width); line=w; }
-      else line=test;
-    }
-    if(line){ lines.push(line); longest=Math.max(longest, ctx.measureText(line).width); }
-    return { lines, longest };
-  }
-  function drawBubble(cx, baseY, title, text, a){
-    const maxW=Math.min(340, S.w*0.85), pad=10;
-    const lines=wrap(text,'400 13px system-ui, sans-serif', maxW-pad*2);
-    const h=pad*2 + 18 + lines.lines.length*16 + 10;
-    const w=Math.min(maxW, Math.max(180, lines.longest+pad*2));
-    const x=Math.max(10, Math.min(S.w-w-10, cx-w/2)), y=baseY-h;
-    ctx.save();
-    ctx.globalAlpha = Math.pow(a,1.1);
-    ctx.fillStyle='rgba(7,27,22,.92)'; ctx.strokeStyle=BRAND.auraM; ctx.lineWidth=2;
-    roundRect(ctx,x,y,w,h,12); ctx.fill(); ctx.stroke();
-    ctx.fillStyle=BRAND.mintL; ctx.font='700 13px system-ui, sans-serif';
-    ctx.textAlign='left'; ctx.textBaseline='alphabetic';
-    ctx.fillText(title,x+pad,y+pad+12);
-    ctx.fillStyle=BRAND.text; ctx.font='400 13px system-ui, sans-serif';
-    let ty=y+pad+12+10; for(const ln of lines.lines){ ctx.fillText(ln,x+pad,ty); ty+=16; }
-    // tail
-    ctx.beginPath(); ctx.moveTo(cx-10, y+h); ctx.lineTo(cx, y+h+10); ctx.lineTo(cx+10, y+h); ctx.closePath();
-    ctx.fillStyle='rgba(7,27,22,.92)'; ctx.fill(); ctx.strokeStyle=BRAND.auraM; ctx.stroke();
-    ctx.restore();
-  }
-  function drawIcon(it,t){
-    it.pop=Math.min(1, it.pop+0.02);
-    const bob=Math.sin(t*0.003+it.x)*4;
-    it.y += (it.targetY + bob - (it.hover?6:0) - it.y)*0.12;
-    const x=it.x, y=it.y, r=it.r;
-
-    ctx.save(); ctx.translate(x, y - S.ty*5);
-
-    // talk halo stateful
-    if (it.id==='talk'){
-      if (talkState==='listening') halo(r+18, BRAND.auraH, 22);
-      else if (talkState==='thinking') halo(r+10, 'rgba(119,255,206,.75)', 14);
-      else halo(r+12, BRAND.auraS, 14);
-    } else halo(r+12, it.hover?BRAND.auraM:BRAND.auraS, 14);
-
-    // plate
-    const grd=ctx.createRadialGradient(-r*.5,-r*.6,r*.2, 0,0,r*1.2);
-    grd.addColorStop(0,'#10281f'); grd.addColorStop(1,'#0a1a14');
-    ctx.fillStyle=grd; roundRect(ctx, -r,-r, r*2,r*2, r*.42); ctx.fill();
-
-    // ring
-    ctx.strokeStyle = it.hover?BRAND.mintL:BRAND.mintB; ctx.lineWidth=3;
-    ctx.beginPath(); ctx.arc(0,0,r-3,0,Math.PI*2); ctx.stroke();
-
-    // emoji
-    ctx.font = Math.floor(r*.95)+'px serif'; ctx.textAlign='center'; ctx.textBaseline='middle';
-    ctx.fillText(it.icon, 0, 2);
-
-    // label
-    ctx.font='600 13px system-ui, sans-serif'; ctx.fillStyle=BRAND.textDim;
-    ctx.fillText(it.label, 0, r+18);
-
-    if (it.bubble>0.001){ it.bubble=Math.min(1, it.bubble+0.12); drawBubble(x, y-r-18, it.label, it.desc, it.bubble); }
-    ctx.restore();
-  }
-
-  function drawTitle(){
-    ctx.save();
-    ctx.textAlign='center'; ctx.fillStyle=BRAND.text;
-    ctx.font='800 '+Math.max(18, Math.min(34, S.w*0.06))+'px system-ui, sans-serif';
-    ctx.fillText('JARED • HERO2', S.w/2, 54);
-    ctx.font='500 '+Math.max(12, Math.min(16, S.w*0.035))+'px system-ui, sans-serif';
-    ctx.fillStyle=BRAND.textDim;
-    ctx.fillText('Upload = Estimate • Talk • Export • Sales University', S.w/2, 80);
-    ctx.restore();
-  }
-
-  function drawPhoto(t){
-    if (!photo.show||!photo.img) return;
-    const maxW=Math.min(S.w*0.78, 560), maxH=Math.min(S.h*0.5, 360);
-    const scale=Math.min(maxW/photo.w, maxH/photo.h);
-    const w=Math.floor(photo.w*scale), h=Math.floor(photo.h*scale);
-    const x=Math.floor((S.w-w)/2), y=Math.floor(S.h*0.36 - h/2);
-
-    const glow=ctx.createRadialGradient(S.w/2, y+h/2, 0, S.w/2, y+h/2, Math.max(w,h)*0.8);
-    glow.addColorStop(0, `rgba(119,255,206,${0.25 + 0.25*Math.abs(Math.sin(t*0.005)) * photo.glow})`);
-    glow.addColorStop(1,'transparent');
-    ctx.fillStyle=glow; ctx.fillRect(x-80,y-80,w+160,h+160);
-
-    ctx.save(); roundRect(ctx, x-6,y-6, w+12,h+12, 14); ctx.fillStyle='rgba(9,21,17,.85)'; ctx.fill();
-    ctx.drawImage(photo.img, x,y,w,h);
-    ctx.strokeStyle=BRAND.mintB; ctx.lineWidth=2; roundRect(ctx, x-6,y-6, w+12,h+12,14); ctx.stroke();
-    ctx.restore();
-  }
-
-  // ===== Toasts =====
-  function toast(msg, ms=1600){ bubbles.push({msg, t:performance.now(), ms}); }
-  function drawToasts(){
-    const now=performance.now();
-    bubbles.forEach((b,i)=>{
-      const age=now-b.t; if (age>b.ms) return;
-      const a = age<200 ? age/200 : age>b.ms-250 ? (b.ms-age)/250 : 1;
-      const w=Math.min(460, S.w*0.9), h=46, x=(S.w-w)/2, y=S.h-90-i*56;
-      ctx.save(); ctx.globalAlpha=a*.95;
-      ctx.fillStyle='rgba(10,26,20,.92)'; ctx.strokeStyle=BRAND.auraM; ctx.lineWidth=2;
-      roundRect(ctx,x,y,w,h,12); ctx.fill(); ctx.stroke();
-      ctx.fillStyle=BRAND.text; ctx.font='600 14px system-ui, sans-serif';
-      ctx.textAlign='center'; ctx.textBaseline='middle'; ctx.fillText(b.msg, x+w/2, y+h/2+1);
-      ctx.restore();
-    });
-    for(let i=bubbles.length-1;i>=0;i--) if (performance.now()-bubbles[i].t>bubbles[i].ms) bubbles.splice(i,1);
-  }
-
-  // ===== HUD message =====
-  let hudMsg=null;
-  function showHUD(title,text){ hudMsg={title,text,a:0}; }
-  function drawHUD(){
-    if(!hudMsg) return; hudMsg.a=Math.min(1, hudMsg.a+0.12);
-    const maxW=Math.min(420, S.w*0.9), pad=12;
-    const lines=wrap(hudMsg.text,'400 14px system-ui, sans-serif', maxW-pad*2);
-    const h=pad*2+18+lines.lines.length*18+10, w=Math.min(maxW, Math.max(220, lines.longest+pad*2));
-    const x=(S.w-w)/2, y=S.h*0.2;
-    ctx.save(); ctx.globalAlpha=Math.pow(hudMsg.a,1.1);
-    ctx.fillStyle='rgba(6,22,18,.92)'; ctx.strokeStyle=BRAND.auraM; ctx.lineWidth=2;
-    roundRect(ctx,x,y,w,h,14); ctx.fill(); ctx.stroke();
-    ctx.fillStyle=BRAND.mintL; ctx.font='700 14px system-ui, sans-serif'; ctx.textAlign='left'; ctx.textBaseline='alphabetic';
-    ctx.fillText(hudMsg.title,x+pad,y+pad+12);
-    ctx.fillStyle=BRAND.text; ctx.font='400 14px system-ui, sans-serif';
-    let ty=y+pad+12+10; for(const ln of lines.lines){ ctx.fillText(ln,x+pad,ty); ty+=18; }
-    ctx.restore();
-  }
-
-  // ===== Picking =====
-  function dist2(x1,y1,x2,y2){ const dx=x2-x1, dy=y2-y1; return dx*dx+dy*dy; }
-  function pickIcon(x,y){
-    let best=null, bestD=Infinity;
-    for(const it of ICONS){
-      const R = (it.id==='talk')? it.r+18 : it.r+10;
-      const d2=dist2(x,y,it.x, it.y);
-      if (d2<R*R && d2<bestD){ best=it.id; bestD=d2; }
-      it.hover = (best===it.id);
-    }
-    return best;
-  }
-
-  function handlePress(x,y){
-    S.tx=((x/S.w)*2-1)*6; S.ty=((y/S.h)*2-1)*4;
-    const id=pickIcon(x,y); if(!id) return;
-    pressedIcon=id;
-    const it=ICONS.find(i=>i.id===id); if(it) it.bubble=0.001;
-    if (id==='talk') startListening();
-    if (id==='upload') chooseFile();
-  }
-  function handleRelease(){
-    if(!pressedIcon) return;
-    const id=pressedIcon; pressedIcon=null;
-    const it=ICONS.find(i=>i.id===id); if(!it) return;
-
-    const dt=performance.now()-pressStart;
-    if (dt<350){ it.bubble=1; setTimeout(()=>it.bubble=0, 1100); routeAction(id); }
-    else it.bubble = it.bubble>0.5 ? 0 : 1;
-
-    if (id==='talk') stopListening();
-  }
-
-  function routeAction(id){
-    switch(id){
-      case 'analyze': analyze(); break;
-      case 'export': exportInsights(); break;
-      case 'school': openSchool(); break;
-      case 'full': toggleFull(); break;
-      // 'upload' handled on press; 'talk' handled by press/release
-    }
-  }
-
-  // ===== Actions =====
-  function openSchool(){ window.open('https://cardland51-bot.github.io/sales-university/','_blank'); }
-  function toggleFull(){ if (!document.fullscreenElement) document.documentElement.requestFullscreen(); else document.exitFullscreen(); }
-
-  function exportInsights(){
-    if (!savedInsights.length){ toast('No saved insights yet.'); return; }
-    const blob=new Blob(savedInsights,{type:'text/plain'});
-    const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download='JARED_Saved_Insights.txt'; a.click();
-    toast('Insights exported.');
-  }
-
-  // ===== Upload & Analyze =====
-  function chooseFile(){ fileInput.value=''; fileInput.click(); }
-  fileInput.onchange = () => {
-    const f=fileInput.files[0]; if(!f) return;
-    lastFile=f;
-    if (photo.url) URL.revokeObjectURL(photo.url);
-    photo.url=URL.createObjectURL(f);
-    photo.img=new Image();
-    photo.img.onload=()=>{ photo.w=photo.img.width; photo.h=photo.img.height; photo.show=true; photo.glow=0.6; toast('Photo loaded. Tap "Estimate".'); };
-    photo.img.src=photo.url;
-  };
-
-  async function analyze(){
-    if (!lastFile){ toast('Please upload a photo first.'); return; }
-    photo.glow=1.0; talkState=(talkState==='listening')?'listening':'thinking';
-    bubbles.splice(0,bubbles.length); toast('Analyzing image...');
-    try{
-      const fd=new FormData(); fd.append('file', lastFile);
-      const r=await fetch(`${API}/analyze-image`, { method:'POST', body:fd });
-      const d=await r.json();
-      const summary=d.summary||'No summary returned.';
-      savedInsights.push(`[${new Date().toLocaleString()}]\n${summary}\n`);
-      showHUD('Estimate', summary);
-      await speak(summary);
-    }catch(e){
-      showHUD('Error','Could not analyze the image.');
-    }
-    talkState='idle'; photo.glow=0.4;
-  }
-
-  // ===== Voice (hold = listen, release = send) =====
-  function initRecognition(){
-    if (!('webkitSpeechRecognition' in window)) return null;
-    const r=new webkitSpeechRecognition();
-    r.lang='en-US'; r.interimResults=false; r.continuous=false;
-    r.onstart=()=>{ talkState='listening'; };
-    r.onend=()=>{ if(talkState==='listening') talkState='thinking'; canListen=true; };
-    r.onresult=async (e)=>{
-      const text=e.results[0][0].transcript;
-      try{
-        const resp=await fetch(`${API}/inference`, {
-          method:'POST', headers:{'Content-Type':'application/json'},
-          body: JSON.stringify({ text })
-        });
-        const data=await resp.json();
-        const content=data.content||'No response';
-        savedInsights.push(`[${new Date().toLocaleString()}]\nVOICE: "${text}"\n${content}\n`);
-        showHUD('JARED says', content);
-        await speak(content);
-      }catch(err){
-        showHUD('JARED','Unavailable right now.');
-      }
-      talkState='idle';
-    };
-    return r;
-  }
-  rec = initRecognition();
-
-  // --- Mobile mic permission primer (first tap/click) ---
-  function primeMic(){
-    if (micPrimed || !rec) return;
-    try { rec.start(); rec.abort(); micPrimed=true; console.log('🎤 Mic primed'); }
-    catch(e){ console.log('Mic primer failed:', e); }
-  }
-  addEventListener('touchstart', ()=>primeMic(), { once:true, passive:true });
-  addEventListener('click', ()=>primeMic(), { once:true, passive:true });
-
-  function startListening(){
-    if (!rec){ toast('Speech not supported in this browser.'); return; }
-    if (!canListen) return;
-    canListen=false; rec.start();
-  }
-  function stopListening(){ if(rec) rec.stop(); }
-
-  // ===== Speak (TTS) =====
-  async function speak(text){
-    if (!text) return;
-    try{
-      if (speechAudio){ speechAudio.pause(); speechAudio=null; }
-      const r=await fetch(`${API}/speak`, {
-        method:'POST', headers:{'Content-Type':'application/json'},
-        body: JSON.stringify({ text })
-      });
-      if (!r.ok) throw new Error('TTS failed');
-      const b=await r.blob(); const u=URL.createObjectURL(b);
-      speechAudio=new Audio(u); await speechAudio.play();
-    }catch(e){ /* silent */ }
-  }
-
-  // ===== Greeting (after first interaction if mobile blocks autoplay) =====
-  async function greet(){
-    if (greeted) return; greeted=true;
-    await new Promise(r=>setTimeout(r, 500));
-    await speak("Hi there! Jared here. Hold the mic and tell me what you’d like to do.");
-  }
-  // On load, try once (desktop will work; mobile will speak after first tap due to primer)
-  addEventListener('load', ()=>greet(), { once:true });
-
-  // ===== Animation Loop =====
-  function tick(t){
-    S.t=t;
-    S.tiltX += (S.tx - S.tiltX)*0.08;
-    S.tiltY += (S.ty - S.tiltY)*0.08;
-
-    drawBackground(t);
-    drawSod(t);
-    drawTitle();
-    drawPhoto(t);
-    ICONS.forEach(it=>drawIcon(it,t));
-    drawHUD();
-    drawToasts();
-    requestAnimationFrame(tick);
-  }
-  requestAnimationFrame(tick);
-
-  // Hover tracking & parallax
-  setInterval(()=>{
-    const hit=pickIcon(ptr.x,ptr.y);
-    ICONS.forEach(i=>i.hover=(i.id===hit));
-    S.tx=((ptr.x/S.w)*2-1)*6; S.ty=((ptr.y/S.h)*2-1)*4;
-  }, 60);
-
-  // ===== Bind hold-to-talk to canvas (so the mic is the 🎤 icon) =====
-  // Users already press on icons; keep global as is.
-
-})();
-</script>
+  <!-- ✅ Main interactive canvas logic -->
+  <script src="./canvas.js"></script>
 </body>
 </html>
