@@ -2,475 +2,284 @@
 <html lang="en">
 <head>
 <meta charset="utf-8" />
-<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,maximum-scale=1,user-scalable=no" />
-<title>JARED • HERO2 | Cardinal Systems</title>
-<meta name="theme-color" content="#0b1b16" />
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+<title>JARED • HERO2</title>
+<meta name="theme-color" content="#0c1611" />
 <style>
-  html,body{margin:0;height:100%;background:#0b1b16;overflow:hidden;touch-action:none;-webkit-user-select:none;user-select:none}
-  canvas{display:block;width:100%;height:100%}
+  html,body {
+    margin:0;padding:0;
+    background:#0c1611;color:#e9f3ee;
+    height:100%;overflow:hidden;
+    font-family:system-ui,sans-serif;
+    -webkit-user-select:none;user-select:none;
+    -webkit-tap-highlight-color:transparent;
+  }
+  header.topbar {
+    position:fixed;top:0;width:100%;
+    background:#0f1b16;border-bottom:1px solid #124d3b;
+    text-align:center;padding:0.6rem 0;z-index:1000;
+  }
+  header .brand { color:#00ffb3;font-weight:700;letter-spacing:1px; }
+
+  main {
+    position:absolute;top:50%;left:50%;
+    transform:translate(-50%,-50%);
+    text-align:center;color:#00ffb3;
+  }
+  h1 { margin-bottom:1rem; }
+
+  button {
+    background:#00b37a;border:none;color:#fff;
+    padding:0.6rem 1.2rem;border-radius:8px;
+    font-size:1rem;font-weight:600;cursor:pointer;
+    margin:0.3rem;transition:background .3s;
+  }
+  button:hover { background:#00ffb3;color:#00281a; }
+
+  #preview {
+    display:none;margin-top:1rem;width:260px;
+    border-radius:12px;border:2px solid #00b37a;
+    box-shadow:0 0 20px rgba(0,255,179,.25);
+  }
+  .ai-tip {
+    display:none;margin-top:.7rem;font-size:.9rem;
+    background:rgba(0,255,179,.12);
+    border:1px solid rgba(0,255,179,.3);
+    color:#b7fff0;border-radius:10px;
+    padding:.6rem 1rem;
+    box-shadow:0 0 18px rgba(0,255,179,.15);
+  }
+  .saveInsight {
+    display:none;background:transparent;
+    color:#00ffb3;border:1px solid #00ffb3;
+    border-radius:8px;margin-top:.5rem;
+    padding:.4rem .8rem;font-size:.85rem;
+    cursor:pointer;transition:background .3s;
+  }
+  .saveInsight:hover { background:rgba(0,255,179,.1); }
+
+  .talk-zone {
+    position:fixed;bottom:90px;
+    left:50%;transform:translateX(-50%);
+    text-align:center;z-index:900;
+  }
+  .talk-zone h3 {
+    margin-bottom:.5rem;font-size:1rem;color:#00ffb3;
+  }
+  #talkBtn {
+    background:#00b37a;border:none;border-radius:50%;
+    width:90px;height:90px;cursor:pointer;
+    box-shadow:0 0 15px rgba(0,255,179,.4);
+    transition:all .25s ease;
+  }
+  #talkBtn.listening {
+    background:#00ffb3;
+    transform:scale(1.12);
+    box-shadow:0 0 40px rgba(0,255,179,.9);
+  }
+  .talk-zone p { margin-top:.6rem;font-size:.9rem;color:#9decd5; }
+
+  footer.footer {
+    position:fixed;bottom:0;width:100%;
+    background:#0f1b16;border-top:1px solid #124d3b;
+    text-align:center;padding:.75rem 0;z-index:1000;
+  }
+
+  .sales-link {
+    display:inline-block;margin-top:1rem;
+    color:#00ffb3;font-weight:500;text-decoration:underline;
+  }
+
+  #fullscreenBtn {
+    position:fixed;top:10px;right:10px;
+    background:rgba(0,255,179,.15);
+    border:1px solid #00ffb3;color:#00ffb3;
+    border-radius:6px;padding:6px 10px;
+    font-size:.9rem;cursor:pointer;z-index:2000;
+  }
 </style>
 </head>
+
 <body>
-<canvas id="hud"></canvas>
+  <header class="topbar"><div class="brand">JARED • HERO2</div></header>
+  <button id="fullscreenBtn">⛶ Full Screen</button>
+
+  <main>
+    <h1 id="headline">Upload = Estimate</h1>
+    <button id="uploadBtn">Upload Photo</button>
+    <button id="analyzeBtn" style="display:none;">Estimate</button>
+    <img id="preview" alt="Preview" />
+    <div class="ai-tip" id="aiTip"></div>
+    <button class="saveInsight" id="saveInsight">Save Insight</button>
+    <a href="https://cardland51-bot.github.io/sales-university/" target="_blank" class="sales-link">Visit Sales University →</a>
+  </main>
+
+  <div class="talk-zone">
+    <h3>Hold to Talk</h3>
+    <button id="talkBtn" aria-label="Talk"></button>
+    <p>landscaping advice from JARED</p>
+  </div>
+
+  <footer class="footer">
+    <button id="exportLogs">Export Saved Insights</button>
+    <button id="downloadDeck">Download Pitch Deck</button>
+  </footer>
+
 <script>
 (() => {
-  // ===== Theme (Corporate Neo Mint, subtle) =====
-  const BRAND = {
-    bgTop:'#0b1b16', bgBot:'#07100d',
-    mintL:'#9CFFE0', mintB:'#34D1A0', mintD:'#0E8B67',
-    text:'#E9FFF6', textDim:'rgba(233,255,246,.85)',
-    auraSoft:'rgba(156,255,224,.14)', auraMed:'rgba(156,255,224,.24)', auraHard:'rgba(156,255,224,.42)'
+  const API = window.location.hostname.includes("localhost") ? "http://localhost:3001" : "https://jared-hero2-backend.onrender.com";
+
+  const uploadBtn = document.getElementById("uploadBtn");
+  const analyzeBtn = document.getElementById("analyzeBtn");
+  const preview = document.getElementById("preview");
+  const aiTip = document.getElementById("aiTip");
+  const saveInsight = document.getElementById("saveInsight");
+  const talkBtn = document.getElementById("talkBtn");
+  const fullscreenBtn = document.getElementById("fullscreenBtn");
+  const exportBtn = document.getElementById("exportLogs");
+  const downloadBtn = document.getElementById("downloadDeck");
+
+  const hidden = document.createElement("input");
+  hidden.type = "file"; hidden.accept = "image/*"; hidden.style.display = "none";
+  document.body.appendChild(hidden);
+
+  let lastFile = null;
+  let recognition = null;
+  let canListen = true;
+  let speechAudio = null;
+  const savedInsights = [];
+
+  // --- Upload ---
+  uploadBtn.onclick = () => hidden.click();
+  hidden.onchange = () => {
+    const file = hidden.files[0];
+    if (!file) return;
+    lastFile = file;
+    const url = URL.createObjectURL(file);
+    preview.src = url;
+    preview.style.display = "block";
+    analyzeBtn.style.display = "inline-block";
+    aiTip.style.display = "none";
+    saveInsight.style.display = "none";
   };
 
-  // ===== Canvas & Size =====
-  const cvs = document.getElementById('hud');
-  const ctx = cvs.getContext('2d', { alpha:false });
-  let DPR = Math.max(1, Math.min(3, window.devicePixelRatio || 1));
-  const S = { w:0, h:0, t:0, tiltX:0, tiltY:0, targetTiltX:0, targetTiltY:0 };
-
-  function resize(){
-    DPR = Math.max(1, Math.min(3, window.devicePixelRatio || 1));
-    S.w = innerWidth; S.h = innerHeight;
-    cvs.width = Math.floor(S.w*DPR); cvs.height = Math.floor(S.h*DPR);
-    cvs.style.width = S.w+'px'; cvs.style.height = S.h+'px';
-    ctx.setTransform(DPR,0,0,DPR,0,0);
-    layoutIcons();
-  }
-  addEventListener('resize', resize, {passive:true});
-
-  // ===== Pointer =====
-  const ptr = { x:0, y:0, down:false };
-  const getXY = (e)=>{ const r=cvs.getBoundingClientRect(); return e.touches?.[0]
-    ? { x:e.touches[0].clientX-r.left, y:e.touches[0].clientY-r.top }
-    : { x:e.clientX-r.left, y:e.clientY-r.top } };
-
-  let pressStart = 0, pressedIcon = null;
-  function onDown(e){ const p=getXY(e); ptr.x=p.x; ptr.y=p.y; ptr.down=true; pressStart=performance.now(); handlePress(ptr.x,ptr.y); e.preventDefault(); }
-  function onMove(e){ const p=getXY(e); ptr.x=p.x; ptr.y=p.y; e.preventDefault(); }
-  function onUp(e){ ptr.down=false; handleRelease(); e.preventDefault(); }
-
-  cvs.addEventListener('pointerdown', onDown, {passive:false});
-  cvs.addEventListener('pointermove', onMove, {passive:false});
-  addEventListener('pointerup', onUp, {passive:false});
-  cvs.addEventListener('touchstart', onDown, {passive:false});
-  cvs.addEventListener('touchmove', onMove, {passive:false});
-  addEventListener('touchend', onUp, {passive:false});
-  document.body.addEventListener('touchstart', ()=>{}, {passive:true}); // prime mobile gesture
-
-  // ===== Utils =====
-  const lerp=(a,b,t)=>a+(b-a)*t, clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
-  const dist2=(x1,y1,x2,y2)=>{const dx=x2-x1,dy=y2-y1;return dx*dx+dy*dy;};
-  function roundRect(g,x,y,w,h,r){const rr=Math.min(r,w/2,h/2);g.beginPath();g.moveTo(x+rr,y);
-    g.arcTo(x+w,y,x+w,y+h,rr);g.arcTo(x+w,y+h,x,y+h,rr);g.arcTo(x,y+h,x,y,rr);g.arcTo(x,y,x+w,y,rr);g.closePath();}
-
-  // ===== Hidden File Input =====
-  const fileInput = document.createElement('input');
-  fileInput.type='file'; fileInput.accept='image/*'; fileInput.style.display='none';
-  document.body.appendChild(fileInput);
-
-  // ===== State =====
-  const API = "https://jared-hero2-backend.onrender.com";
-  const ICONS = [], bubbles = [], savedInsights=[];
-  let talkState='idle'; // 'idle' | 'listening' | 'thinking'
-  let rec=null, canListen=true, speechAudio=null;
-
-  // Hero photo preview
-  const photo = { img:null, url:null, w:0, h:0, glow:0, show:false };
-
-  // Icons timing
-  let cockpitRevealAt = 0;
-  let iconsRevealed = false;
-
-  // Analysis limit
-  let uploadCount = 0;
-  const MAX_UPLOADS = 3;
-
-  // ===== Icons =====
-  const defsFull = [
-    { id:'upload',  label:'Upload',            desc:'Add a yard photo for itemized estimates.', icon:'⬆️' },
-    { id:'analyze', label:'Estimate',          desc:'Run pricing logic + AI tips on this photo.', icon:'🧮' },
-    { id:'talk',    label:'Talk to JARED',     desc:'Hold to speak; release to hear reply.',      icon:'🎤' },
-    { id:'export',  label:'Export Insights',   desc:'Save your notes and estimates as a file.',   icon:'📤' },
-    { id:'school',  label:'Sales University',  desc:'Open playbooks to close deals faster.',      icon:'🎓' }
-  ];
-  let defsActive = [
-    { id:'upload', label:'Upload', icon:'⬆️', desc:'Add a yard photo for itemized estimates.' },
-    { id:'talk',   label:'Talk to JARED', icon:'🎤', desc:'Hold to speak; release to hear reply.' }
-  ];
-
-  function layoutIcons(){
-    ICONS.length=0;
-    const sodH = Math.max(120, Math.min(220, S.h*0.22));
-    const baseY = S.h - sodH + 8;
-    const pad = 28, gap = (S.w - pad*2) / (defsActive.length - 1 || 1);
-    defsActive.forEach((d,i)=>ICONS.push({ ...d, x: pad + (defsActive.length>1? i*gap : S.w/2), y: S.h+140, targetY: baseY-88, r:44, pop:0, hover:false, bubble:0 }));
-  }
-
-  function softstep(t){ return t<0?0:t>1?1:(t*t*(3-2*t)); }
-
-  function haloRing(radius,color,blur,pulse=false){
-    ctx.save();
-    ctx.shadowColor = color;
-    ctx.shadowBlur  = pulse ? blur*((Math.sin(S.t*0.006)*0.25)+0.75) : blur;
-    ctx.beginPath(); ctx.arc(0,0,radius,0,Math.PI*2); ctx.strokeStyle='transparent'; ctx.stroke();
-    ctx.restore();
-  }
-
-  function wrapText(text,font,maxWidth){
-    ctx.font=font; const words=(''+text).split(/\s+/); const lines=[]; let line=''; let longest=0;
-    for(let i=0;i<words.length;i++){ const test=(line?line+' ':'')+words[i];
-      if(ctx.measureText(test).width>maxWidth && line){ lines.push(line); longest=Math.max(longest, ctx.measureText(line).width); line=words[i]; }
-      else line=test;
+  // --- Analyze ---
+  analyzeBtn.onclick = async () => {
+    if (!lastFile) return alert("Please upload a photo first.");
+    aiTip.style.display = "block";
+    aiTip.textContent = "Analyzing image... please wait.";
+    const fd = new FormData();
+    fd.append("file", lastFile);
+    try {
+      const res = await fetch(`${API}/analyze-image`, { method: "POST", body: fd });
+      const data = await res.json();
+      const summary = data.summary || "No summary returned.";
+      aiTip.textContent = summary;
+      saveInsight.style.display = "inline-block";
+      saveInsight.onclick = () => {
+        savedInsights.push(`[${new Date().toLocaleString()}]\n${summary}\n`);
+        alert("Insight saved!");
+        saveInsight.style.display = "none";
+      };
+      await speak(summary);
+    } catch {
+      aiTip.textContent = "Error analyzing image.";
     }
-    if(line){ lines.push(line); longest=Math.max(longest, ctx.measureText(line).width); }
-    return {lines,longest};
-  }
-
-  // ===== Background + Sod (with subtle breathing) =====
-  function drawBackground(t){
-    const g=ctx.createLinearGradient(0,0,0,S.h); g.addColorStop(0,BRAND.bgTop); g.addColorStop(1,BRAND.bgBot);
-    ctx.fillStyle=g; ctx.fillRect(0,0,S.w,S.h);
-
-    // subtle pulse  (0.85± ~0.02) & opacity mod
-    const pulse = 0.85 + Math.sin(t*0.0012)*0.02;
-    const strength = 0.22 + Math.abs(Math.sin(t*0.0016))*0.06;
-
-    const rg=ctx.createRadialGradient(S.w/2,S.h*pulse,0,S.w/2,S.h*pulse,Math.max(S.w,S.h)*0.55);
-    rg.addColorStop(0,`rgba(156,255,224,${strength})`);
-    rg.addColorStop(1,'transparent');
-    ctx.fillStyle=rg; ctx.fillRect(0,0,S.w,S.h);
-
-    const mist=ctx.createLinearGradient(0,0,0,S.h*0.36);
-    mist.addColorStop(0,BRAND.auraSoft); mist.addColorStop(1,'transparent');
-    ctx.fillStyle=mist; ctx.fillRect(0,0,S.h*0.36?S.w:0,S.h*0.36);
-  }
-
-  function drawSod(t){
-    const sodTop = S.h - Math.max(120, Math.min(220, S.h*0.22));
-    const grd=ctx.createLinearGradient(0,sodTop,0,S.h); grd.addColorStop(0,'#0e241c'); grd.addColorStop(1,'#08130f');
-    ctx.fillStyle=grd; ctx.fillRect(0,sodTop,S.w,S.h-sodTop);
-
-    const blades=Math.floor(S.w/9);
-    for(let i=0;i<blades;i++){
-      const x=(i/(blades-1))*S.w, h=20+Math.sin(i*0.55+t*0.002)*5, sway=Math.sin(t*0.003+i)*1.6+S.tiltX*1.0;
-      ctx.strokeStyle = i%7===0 ? BRAND.mintL : BRAND.mintB; ctx.lineWidth=2;
-      ctx.beginPath(); ctx.moveTo(x,sodTop+2); ctx.quadraticCurveTo(x+sway,sodTop-h*0.6,x+sway*0.8,sodTop-h); ctx.stroke();
-    }
-    ctx.fillStyle='rgba(140,255,220,.14)'; ctx.fillRect(0,sodTop-1,S.w,2);
-  }
-
-  // ===== Title & Mic Anchor =====
-  function drawTitleAndMicAnchor(){
-    ctx.save(); ctx.textAlign='center'; ctx.fillStyle=BRAND.text;
-    ctx.font = '800 ' + Math.max(18, Math.min(34, S.w*0.06)) + 'px system-ui, sans-serif';
-    ctx.fillText('JARED • HERO2 | Cardinal Systems', S.w/2, 54);
-    ctx.font = '500 ' + Math.max(12, Math.min(16, S.w*0.035)) + 'px system-ui, sans-serif';
-    ctx.fillStyle=BRAND.textDim;
-    ctx.fillText('Upload = Estimate • Analyze • Talk • Export • Sales University', S.w/2, 80);
-    ctx.restore();
-
-    if(!photo.show){
-      ctx.save();
-      ctx.textAlign='center';
-      ctx.font='700 ' + Math.max(16, Math.min(28, S.w*0.05)) + 'px system-ui, sans-serif';
-      ctx.fillStyle=BRAND.mintL;
-      ctx.fillText('Upload = Estimate', S.w/2, Math.max(120, S.h*0.22));
-      ctx.font='500 13px system-ui, sans-serif'; ctx.fillStyle=BRAND.textDim;
-      ctx.fillText('Tap ⬆️ Upload below to begin', S.w/2, Math.max(140, S.h*0.22)+22);
-      ctx.restore();
-    }
-
-    // Mic HUD arc & positioning (~20% up from bottom)
-    const micY = S.h * 0.80;
-    const cx = S.w/2, r = Math.min(S.w, S.h)*0.085;
-    ctx.save(); ctx.strokeStyle='rgba(156,255,224,.10)'; ctx.lineWidth=8;
-    ctx.beginPath(); ctx.arc(cx, micY, r+26, Math.PI*0.1, Math.PI*0.9); ctx.stroke(); ctx.restore();
-
-    // Tie talk icon center to this anchor
-    const talk = ICONS.find(i=>i.id==='talk');
-    if(talk){ talk.x = cx; talk.targetY = micY; }
-  }
-
-  // ===== Toasts & HUD Messages =====
-  function toast(msg,ms=1700){ bubbles.push({msg,t:performance.now(),ms}); }
-  function drawToasts(){
-    const now=performance.now();
-    for(let i=bubbles.length-1;i>=0;i--){
-      const b=bubbles[i], age=now-b.t; if(age>b.ms){ bubbles.splice(i,1); continue; }
-      const a = age<200? age/200 : age>b.ms-250? (b.ms-age)/250 : 1;
-      const w=Math.min(460,S.w*0.9), h=46, x=(S.w-w)/2, y=S.h-90-(bubbles.length-1-i)*56;
-      ctx.save(); ctx.globalAlpha=a*0.95;
-      ctx.fillStyle='rgba(10,26,20,.92)'; ctx.strokeStyle=BRAND.auraMed; ctx.lineWidth=2; roundRect(ctx,x,y,w,h,12); ctx.fill(); ctx.stroke();
-      ctx.fillStyle=BRAND.text; ctx.font='600 14px system-ui, sans-serif'; ctx.textAlign='center'; ctx.textBaseline='middle';
-      ctx.fillText(b.msg, x+w/2, y+h/2+1);
-      ctx.restore();
-    }
-  }
-  let hudMsg=null;
-  function showHUDMessage(title,text){ hudMsg={title,text,a:0}; }
-  function drawHUDMessage(){
-    if(!hudMsg) return; hudMsg.a=Math.min(1,hudMsg.a+0.12);
-    const maxW=Math.min(420,S.w*0.9), pad=12;
-    const lines=wrapText(hudMsg.text,'400 14px system-ui, sans-serif', maxW-pad*2);
-    const h=pad*2+18+lines.lines.length*18+10, w=Math.min(maxW, Math.max(220, lines.longest+pad*2));
-    const x=(S.w-w)/2, y=S.h*0.2;
-    ctx.save(); ctx.globalAlpha=Math.pow(hudMsg.a,1.06);
-    ctx.fillStyle='rgba(6,22,18,.94)'; ctx.strokeStyle=BRAND.auraMed; ctx.lineWidth=2; roundRect(ctx,x,y,w,h,14); ctx.fill(); ctx.stroke();
-    ctx.fillStyle=BRAND.mintL; ctx.font='700 14px system-ui, sans-serif'; ctx.textAlign='left'; ctx.textBaseline='alphabetic';
-    ctx.fillText(hudMsg.title,x+pad,y+pad+12);
-    ctx.fillStyle=BRAND.text; ctx.font='400 14px system-ui, sans-serif'; let ty=y+pad+12+10;
-    lines.lines.forEach(line=>{ ctx.fillText(line,x+pad,ty); ty+=18; });
-    ctx.restore();
-  }
-
-  // ===== Photo (center) =====
-  function drawPhoto(t){
-    if(!photo.show || !photo.img) return;
-    const maxW=Math.min(S.w*0.78, 560), maxH=Math.min(S.h*0.5, 360);
-    const scale=Math.min(maxW/photo.w, maxH/photo.h);
-    const w=Math.floor(photo.w*scale), h=Math.floor(photo.h*scale);
-    const x=Math.floor((S.w-w)/2), y=Math.floor(S.h*0.36 - h/2);
-
-    const phase = 0.18 + 0.14*Math.abs(Math.sin(t*0.005));
-    const glow=ctx.createRadialGradient(S.w/2, y+h/2, 0, S.w/2, y+h/2, Math.max(w,h)*0.8);
-    glow.addColorStop(0, `rgba(156,255,224,${phase * photo.glow})`); glow.addColorStop(1,'transparent');
-    ctx.fillStyle=glow; ctx.fillRect(x-80,y-80,w+160,h+160);
-
-    ctx.save(); roundRect(ctx,x-6,y-6,w+12,h+12,14); ctx.fillStyle='rgba(9,21,17,.9)'; ctx.fill();
-    ctx.drawImage(photo.img, x, y, w, h);
-    ctx.strokeStyle=BRAND.mintB; ctx.lineWidth=2; roundRect(ctx,x-6,y-6,w+12,h+12,14); ctx.stroke(); ctx.restore();
-  }
-
-  // ===== Icon Drawing =====
-  function drawBubble(cx, baseY, title, text, a){
-    const maxW=Math.min(320,S.w*0.8), pad=10; ctx.save(); ctx.globalAlpha=Math.pow(a,1.05);
-    ctx.fillStyle='rgba(7,27,22,.94)'; ctx.strokeStyle=BRAND.auraMed; ctx.lineWidth=2;
-    const lines=wrapText(text,'400 13px system-ui, sans-serif', maxW-pad*2);
-    const h=pad*2+18+lines.lines.length*16+10, w=Math.min(maxW, Math.max(160, lines.longest+pad*2));
-    const x=clamp(cx-w/2,10,S.w-w-10), y=baseY-h;
-    roundRect(ctx,x,y,w,h,12); ctx.fill(); ctx.stroke();
-    ctx.fillStyle=BRAND.mintL; ctx.font='700 13px system-ui, sans-serif'; ctx.textAlign='left'; ctx.textBaseline='alphabetic';
-    ctx.fillText(title,x+pad,y+pad+12);
-    ctx.fillStyle=BRAND.text; ctx.font='400 13px system-ui, sans-serif'; let ty=y+pad+12+10;
-    lines.lines.forEach(line=>{ ctx.fillText(line,x+pad,ty); ty+=16; });
-    ctx.beginPath(); ctx.moveTo(cx-10,y+h); ctx.lineTo(cx,y+h+10); ctx.lineTo(cx+10,y+h); ctx.closePath();
-    ctx.fillStyle='rgba(7,27,22,.94)'; ctx.fill(); ctx.strokeStyle=BRAND.auraMed; ctx.stroke();
-    ctx.restore();
-  }
-
-  function drawIcon(it,t,index=0){
-    it.pop=Math.min(1,it.pop+0.035);
-    const bob=Math.sin(t*0.003+it.x)*3.5;
-
-    // staggered reveal after analysis starts
-    let eased = 1;
-    if(iconsRevealed && cockpitRevealAt){
-      const elapsed = Math.max(0, t - cockpitRevealAt - index*90);
-      eased = softstep(Math.min(1, elapsed/450));
-    } else if (defsActive.length>2) {
-      // if already in full set due to prior analysis
-      eased = 1;
-    }
-
-    const targetY = (it.id==='talk' ? it.targetY : it.targetY - (1-eased)*60);
-    it.y = lerp(it.y, targetY + bob - (it.hover?5:0), 0.15);
-
-    const x=it.x, y=it.y, r=it.r; const isTalk=it.id==='talk';
-    ctx.save(); ctx.translate(x, y - S.tiltY*4);
-    ctx.globalAlpha = eased;
-
-    // glow states
-    if(isTalk){
-      if(talkState==='listening') haloRing(r+18, BRAND.auraHard, 18);
-      else if(talkState==='thinking') haloRing(r-6, 'rgba(156,255,224,.68)', 11, true);
-      else haloRing(r+12, BRAND.auraSoft, 10);
-    } else {
-      haloRing(r+12, it.hover?BRAND.auraMed:BRAND.auraSoft, 10);
-    }
-
-    // plate
-    const grd=ctx.createRadialGradient(-r*0.5,-r*0.6,r*0.2,0,0,r*1.2);
-    grd.addColorStop(0,'#10281f'); grd.addColorStop(1,'#0a1a14'); ctx.fillStyle=grd;
-    roundRect(ctx,-r,-r,r*2,r*2,r*0.42); ctx.fill();
-
-    // ring
-    ctx.strokeStyle = it.hover?BRAND.mintL:BRAND.mintB; ctx.lineWidth=3;
-    ctx.beginPath(); ctx.arc(0,0,r-3,0,Math.PI*2); ctx.stroke();
-
-    // emoji
-    ctx.font = Math.floor(r*0.95)+'px serif'; ctx.textAlign='center'; ctx.textBaseline='middle'; ctx.fillText(it.icon,0,2);
-
-    // label
-    ctx.font='600 13px system-ui, sans-serif'; ctx.fillStyle=BRAND.textDim; ctx.fillText(it.label,0,r+18);
-
-    // bubble
-    if(it.bubble>0.001){ it.bubble=Math.min(1,it.bubble+0.12); drawBubble(x,y-r-18,it.label,it.desc||'',it.bubble); }
-    ctx.restore();
-  }
-
-  // ===== Pick & Actions =====
-  function pickIcon(x,y){
-    let best=null, bestD=Infinity;
-    for(const it of ICONS){
-      const R=(it.id==='talk')? it.r+22 : it.r+12;
-      const d2=dist2(x,y,it.x,it.y);
-      if(d2<R*R && d2<bestD){ best=it.id; bestD=d2; }
-      it.hover=(best===it.id);
-    }
-    return best;
-  }
-
-  function handlePress(x,y){
-    S.targetTiltX=((x/S.w)*2-1)*6; S.targetTiltY=((y/S.h)*2-1)*4;
-    const hit=pickIcon(x,y); if(!hit) return; pressedIcon=hit;
-    const it=ICONS.find(i=>i.id===hit); if(it) it.bubble=0.001;
-
-    if(hit==='talk'){ try{ startListening(); }catch(e){} }
-    if(hit==='upload'){ chooseFile(); }
-  }
-
-  function handleRelease(){
-    if(!pressedIcon) return; const id=pressedIcon; pressedIcon=null;
-    const dt=performance.now()-pressStart; const it=ICONS.find(i=>i.id===id);
-    if(it){
-      if(dt<350){ it.bubble=1; setTimeout(()=>it.bubble=0,1100); routeAction(id); }
-      else { it.bubble = it.bubble>0.5 ? 0 : 1; }
-    }
-    if(id==='talk') stopListening();
-  }
-
-  function routeAction(id){
-    switch(id){
-      case 'analyze': analyze(); break;
-      case 'export':  exportInsights(); break;
-      case 'school':  window.open('https://cardland51-bot.github.io/sales-university/','_blank'); break;
-      // 'upload' handled on press; 'talk' by press/release
-    }
-  }
-
-  // ===== Upload & Analyze =====
-  let lastFile=null;
-
-  function chooseFile(){
-    if(uploadCount>=MAX_UPLOADS){ showHUDMessage('Limit reached','You’ve reached 3 photo analyses.'); toast('3-analysis limit reached.'); return; }
-    fileInput.value=''; fileInput.click();
-  }
-
-  fileInput.onchange=()=>{
-    const f=fileInput.files[0]; if(!f) return;
-    lastFile=f; if(photo.url) URL.revokeObjectURL(photo.url);
-    photo.url=URL.createObjectURL(f); photo.img=new Image();
-    photo.img.onload=()=>{ photo.w=photo.img.width; photo.h=photo.img.height; photo.show=true; photo.glow=0.65; toast('Photo loaded. Tap 🧮 Estimate to analyze.'); };
-    photo.img.src=photo.url;
-
-    // keep minimal (Upload + Talk) until analyze starts
-    if(defsActive.length<2){ defsActive = defsFull.slice(0,2); layoutIcons(); }
   };
 
-  async function analyze(){
-    if(!lastFile){ toast('Please upload a photo first.'); return; }
-    if(uploadCount>=MAX_UPLOADS){ showHUDMessage('Limit reached','You’ve reached 3 photo analyses.'); toast('3-analysis limit reached.'); return; }
-
-    photo.glow=1.0;
-    talkState = (talkState==='listening')? 'listening' : 'thinking';
-    bubbles.splice(0,bubbles.length); toast('Analyzing image...');
-
-    // Schedule cockpit icon roll-up (~5s)
-    cockpitRevealAt = performance.now();
-    setTimeout(()=>{ if(!iconsRevealed){ defsActive = defsFull.slice(); layoutIcons(); iconsRevealed=true; } }, 5000);
-
-    try{
-      const fd=new FormData(); fd.append('file', lastFile);
-      const r=await fetch(API+'/analyze-image',{method:'POST', body:fd});
-      const d=await r.json(); const summary=d.summary||'No summary returned.';
-      savedInsights.push(`[${new Date().toLocaleString()}]\n${summary}\n`);
-      showHUDMessage('Estimate', summary); await speak(summary);
-      uploadCount++; if(uploadCount>=MAX_UPLOADS){ toast('You’ve reached 3 analyses.'); }
-    }catch(e){ showHUDMessage('Error','Could not analyze the image.'); }
-    talkState='idle'; photo.glow=0.45;
-  }
-
-  function exportInsights(){
-    if(!savedInsights.length){ toast('No saved insights yet.'); return; }
-    const blob=new Blob(savedInsights,{type:'text/plain'}); const a=document.createElement('a');
-    a.href=URL.createObjectURL(blob); a.download='JARED_Saved_Insights.txt'; a.click(); toast('Insights exported.');
-  }
-
-  // ===== Voice (Hold to talk) =====
-  if('webkitSpeechRecognition' in window){
-    rec=new webkitSpeechRecognition();
-    rec.lang='en-US'; rec.interimResults=false; rec.continuous=false;
-    rec.onstart=()=>{ talkState='listening'; };
-    rec.onend=()=>{ if(talkState==='listening') talkState='thinking'; canListen=true; };
-    rec.onresult=async (e)=>{
-      const text=e.results[0][0].transcript;
-      try{
-        const r=await fetch(API+'/inference',{method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({text})});
-        const d=await r.json(); const content=d.content||'No response';
-        savedInsights.push(`[${new Date().toLocaleString()}]\nVOICE: "${text}"\n${content}\n`);
-        showHUDMessage('JARED says', content); await speak(content);
-      }catch(err){ showHUDMessage('JARED','Unavailable right now.'); }
-      talkState='idle';
+  // --- Speech Recognition ---
+  if ("webkitSpeechRecognition" in window) {
+    recognition = new webkitSpeechRecognition();
+    recognition.lang = "en-US";
+    recognition.continuous = false;
+    recognition.interimResults = false;
+    recognition.onstart = () => talkBtn.classList.add("listening");
+    recognition.onend = () => { talkBtn.classList.remove("listening"); canListen = true; };
+    recognition.onresult = async (e) => {
+      const text = e.results[0][0].transcript;
+      try {
+        const r = await fetch(`${API}/inference`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ text })
+        });
+        const data = await r.json();
+        aiTip.style.display = "block";
+        aiTip.textContent = data.content || "No response";
+        saveInsight.style.display = "inline-block";
+        saveInsight.onclick = () => {
+          savedInsights.push(`[${new Date().toLocaleString()}]\nVOICE: "${text}"\n${data.content}\n`);
+          alert("Insight saved!");
+          saveInsight.style.display = "none";
+        };
+        await speak(data.content);
+      } catch {
+        await speak("JARED unavailable right now.");
+      }
     };
   }
 
-  function startListening(){
-    if(!rec){ toast('Speech not supported in this browser.'); return; }
-    if(!canListen) return; canListen=false; rec.start();
+  function startSpeech() {
+    if (!recognition) return alert("Speech not supported in this browser.");
+    if (!canListen) return;
+    canListen = false;
+    recognition.start();
   }
-  function stopListening(){ if(rec){ rec.stop(); setTimeout(()=>{canListen=true;},600); } }
+  function stopSpeech() { if (recognition) recognition.stop(); }
 
-  // ===== TTS =====
-  async function speak(text){
-    if(!text) return;
-    try{
-      if(speechAudio){ speechAudio.pause(); speechAudio=null; }
-      const r=await fetch(API+'/speak',{method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({text})});
-      if(!r.ok) throw new Error('TTS failed');
-      const b=await r.blob(); const u=URL.createObjectURL(b);
-      speechAudio=new Audio(u); await speechAudio.play();
-    }catch(e){ /* ignore */ }
-  }
+  // Touch/hold events
+  talkBtn.addEventListener("mousedown", startSpeech);
+  talkBtn.addEventListener("mouseup", stopSpeech);
+  talkBtn.addEventListener("mouseleave", stopSpeech);
+  talkBtn.addEventListener("touchstart", e => { e.preventDefault(); startSpeech(); }, { passive:false });
+  talkBtn.addEventListener("touchend", e => { e.preventDefault(); stopSpeech(); }, { passive:false });
+  talkBtn.addEventListener("touchcancel", e => { e.preventDefault(); stopSpeech(); }, { passive:false });
 
-  // ===== Draw Loop =====
-  function drawTitle(){
-    // separated out if needed elsewhere; we draw via drawTitleAndMicAnchor()
-  }
-
-  function drawIcons(t){
-    for(let i=0;i<ICONS.length;i++){ drawIcon(ICONS[i], t, i); }
-  }
-
-  function tick(t){
-    S.t=t;
-    S.tiltX += (S.targetTiltX - S.tiltX)*0.08;
-    S.tiltY += (S.targetTiltY - S.tiltY)*0.08;
-
-    drawBackground(t);
-    drawSod(t);
-    drawTitleAndMicAnchor();
-    drawPhoto(t);
-    drawIcons(t);
-    drawHUDMessage();
-    drawToasts();
-
-    requestAnimationFrame(tick);
+  // --- Speak (TTS) ---
+  async function speak(text) {
+    if (!text) return;
+    try {
+      if (speechAudio) { speechAudio.pause(); speechAudio = null; }
+      const r = await fetch(`${API}/speak`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ text })
+      });
+      if (!r.ok) throw new Error("TTS failed");
+      const b = await r.blob();
+      const u = URL.createObjectURL(b);
+      speechAudio = new Audio(u);
+      speechAudio.play();
+    } catch (err) {
+      console.log("TTS error:", err);
+    }
   }
 
-  // ===== Init order (stable) =====
-  resize();
-  ptr.x = S.w/2; ptr.y = S.h/2;
-  layoutIcons();
-  requestAnimationFrame(tick);
+  // --- Export ---
+  exportBtn.onclick = () => {
+    if (!savedInsights.length) return alert("No saved insights yet.");
+    const blob = new Blob(savedInsights, { type: "text/plain" });
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = "JARED_Saved_Insights.txt";
+    a.click();
+  };
 
-  // gentle hover/tilt tracking
-  setInterval(()=>{ const hit=pickIcon(ptr.x,ptr.y); ICONS.forEach(i=>i.hover=(i.id===hit));
-    S.targetTiltX=((ptr.x/S.w)*2-1)*6; S.targetTiltY=((ptr.y/S.h)*2-1)*4; }, 60);
+  // --- Download Pitch Deck ---
+  downloadBtn.onclick = () => {
+    const a = document.createElement("a");
+    a.href = "https://cardland51-bot.github.io/jared-hero2-frontend/JARED(HERO1)_Mission_Strategy.pdf";
+    a.target = "_blank";
+    a.download = "JARED(HERO1)_Mission_Strategy.pdf";
+    a.click();
+  };
 
+  // --- Fullscreen ---
+  fullscreenBtn.onclick = () => {
+    if (!document.fullscreenElement) document.documentElement.requestFullscreen();
+    else document.exitFullscreen();
+  };
 })();
 </script>
 </body>
 </html>
-
-
-
