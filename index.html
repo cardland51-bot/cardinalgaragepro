@@ -1,301 +1,229 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
-  <title>JARED • HERO2</title>
-  <meta name="theme-color" content="#0c1611" />
-  <style>
-    html, body {
-      margin: 0;
-      padding: 0;
-      background: #0c1611;
-      color: #e9f3ee;
-      height: 100%;
-      overflow: hidden;
-      font-family: system-ui, sans-serif;
-    }
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"/>
+<title>JARED • HERO2</title>
+<meta name="theme-color" content="#0c1611"/>
+<style>
+  :root{
+    --bg-1:#07110d;
+    --bg-2:#0c1611;
+    --mint:#00ffb3;
+    --aqua:#69f0ff;
+    --mag:#ff4ddb;
+    --deep:#0f1b16;
+    --line:#124d3b;
+  }
 
-    header.topbar {
-      position: fixed;
-      top: 0;
-      width: 100%;
-      background: #0f1b16;
-      border-bottom: 1px solid #124d3b;
-      text-align: center;
-      padding: 0.6rem 0;
-      z-index: 1000;
-    }
-    header .brand {
-      color: #00ffb3;
-      font-weight: 700;
-      letter-spacing: 1px;
-    }
+  html,body{
+    margin:0; padding:0; height:100%;
+    background:var(--bg-2); color:#e9f3ee;
+    font-family:system-ui,Segoe UI,Roboto,Ubuntu,"Helvetica Neue",Arial,sans-serif;
+    overflow:hidden;
+  }
 
-    canvas#stage {
-      display: block;
-      position: absolute;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background: radial-gradient(circle at center, #10251c 0%, #07110d 100%);
-      touch-action: manipulation;
-      z-index: 1;
-    }
+  header.topbar{
+    position:fixed; top:0; left:0; right:0;
+    background:#0f1b16; border-bottom:1px solid var(--line);
+    text-align:center; padding:.6rem 0; z-index:1000;
+  }
+  header .brand{ color:var(--mint); font-weight:800; letter-spacing:.08em; }
 
-    /* TALK AREA */
-    .talk-area {
-      position: fixed;
-      bottom: 60px; /* moved down */
-      left: 50%;
-      transform: translateX(-50%);
-      text-align: center;
-      color: #00ffb3;
-      z-index: 50;
-      font-family: system-ui, sans-serif;
-    }
-    .talk-area h2 {
-      margin: 0;
-      font-size: 1.2rem;
-      font-weight: 700;
-      letter-spacing: 0.5px;
-    }
-    .talk-area p {
-      margin: 2px 0 12px 0;
-      font-size: 0.9rem;
-      color: #85f3d5;
-      opacity: 0.9;
-    }
-    #talkBtn {
-      background: #00b37a;
-      color: #fff;
-      border: none;
-      border-radius: 50%;
-      width: 80px;
-      height: 80px;
-      font-size: 1.5rem;
-      line-height: 0;
-      cursor: pointer;
-      box-shadow: 0 0 20px rgba(0,255,179,0.4);
-      transition: transform 0.3s, background 0.3s, box-shadow 0.3s;
-    }
-    #talkBtn.listening {
-      background: #00ffb3;
-      color: #00281a;
-      transform: scale(1.1);
-      box-shadow: 0 0 25px rgba(0,255,179,0.8);
-    }
-    #talkBtn:hover { transform: scale(1.05); }
+  #stage{
+    position:absolute; inset:0;
+    width:100%; height:100%;
+    background:radial-gradient(1200px 800px at 50% 45%, #10251c 0%, var(--bg-1) 70%, #030706 100%);
+    display:block; z-index:1; touch-action:manipulation;
+  }
 
-    /* MAIN UI */
-    main#centerUI {
-      position: absolute;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      text-align: center;
-      z-index: 10;
-      color: #00ffb3;
-      transition: opacity 0.4s ease;
-    }
-    main#centerUI h1.coreText {
-      font-size: 2rem;
-      font-weight: 700;
-      margin-bottom: 1rem;
-      color: #00ffb3;
-      text-shadow: 0 0 8px rgba(0,255,179,0.3);
-    }
-    main#centerUI button {
-      background: #00b37a;
-      border: none;
-      color: #fff;
-      padding: 0.6rem 1.4rem;
-      border-radius: 8px;
-      font-size: 1rem;
-      font-weight: 600;
-      cursor: pointer;
-      transition: background 0.3s, transform 0.2s;
-    }
-    main#centerUI button:hover {
-      background: #00ffb3;
-      color: #00281a;
-      transform: scale(1.03);
-    }
-    img#preview {
-      width: 260px;
-      border-radius: 12px;
-      border: 2px solid #00b37a;
-      margin-top: 1rem;
-      box-shadow: 0 0 20px rgba(0,255,179,0.2);
-    }
+  main#centerUI{
+    position:absolute; left:50%; top:50%;
+    transform:translate(-50%,-52%); z-index:10; text-align:center; color:var(--mint);
+    width:min(92vw,520px);
+  }
+  h1.coreText{
+    margin:0 0 .9rem; font-size:clamp(1.3rem,4.6vw,2rem);
+    text-shadow:0 0 10px rgba(0,255,179,.35);
+  }
+  .btn{
+    background:#00b37a; color:#fff; border:none; border-radius:12px;
+    padding:.7rem 1.4rem; font-weight:700; cursor:pointer;
+    transition:transform .18s ease, box-shadow .25s ease, background .25s ease;
+  }
+  .btn:hover{ transform:translateY(-1px); background:var(--mint); color:#00281a;
+    box-shadow:0 6px 24px rgba(0,255,179,.18); }
+  .btn:disabled{ opacity:.55; cursor:not-allowed; }
 
-    footer.footer {
-      position: fixed;
-      bottom: 0;
-      width: 100%;
-      background: #0f1b16;
-      border-top: 1px solid #124d3b;
-      text-align: center;
-      padding: 0.75rem 0;
-      z-index: 1000;
-    }
-    footer .btn {
-      background: #00b37a;
-      border: none;
-      color: #fff;
-      padding: 0.5rem 1.2rem;
-      border-radius: 8px;
-      cursor: pointer;
-      font-weight: 600;
-      font-size: 1rem;
-    }
-  </style>
+  #analyzeBtn{ display:none; margin-left:.6rem; }
+
+  #preview{
+    display:none; width:100%; max-height:42vh; object-fit:contain;
+    margin:.9rem 0 0; border-radius:14px; border:2px solid #00b37a;
+    box-shadow:0 0 24px rgba(0,255,179,.18);
+    background:#05110d;
+    transition:box-shadow 0.5s ease;
+  }
+
+  /* ✅ Pulsing glow while processing */
+  @keyframes pulseGlow {
+    0%, 100% { box-shadow: 0 0 20px rgba(0,255,179,0.3), 0 0 50px rgba(0,255,179,0.1); }
+    50% { box-shadow: 0 0 50px rgba(0,255,179,0.7), 0 0 90px rgba(255,77,219,0.25); }
+  }
+  #preview.processing {
+    animation: pulseGlow 3s ease-in-out infinite;
+  }
+
+  .panel{
+    position:fixed; left:50%; bottom:110px; transform:translateX(-50%);
+    width:min(92vw,680px);
+    background:linear-gradient(180deg, rgba(10,24,20,.88), rgba(6,14,11,.88));
+    border:1px solid rgba(0,255,179,.25);
+    box-shadow:0 20px 60px rgba(0,0,0,.45), inset 0 0 40px rgba(105,240,255,.06);
+    border-radius:16px; z-index:60; backdrop-filter:blur(8px);
+    display:none;
+  }
+  .panel header{
+    display:flex; align-items:center; justify-content:space-between;
+    padding:.75rem .9rem; border-bottom:1px solid rgba(0,255,179,.18);
+  }
+  .panel h3{ margin:0; font-size:1rem; color:var(--aqua); }
+  .panel .controls{ display:flex; gap:.5rem; }
+  .ghost{
+    background:transparent; color:#b7fff0; border:1px solid rgba(183,255,240,.25);
+    padding:.45rem .8rem; border-radius:10px; cursor:pointer;
+  }
+  .ghost:hover{ background:rgba(0,255,179,.1); }
+
+  .panel .body{
+    max-height:28vh; overflow:auto; padding:.8rem .95rem 1rem;
+    font-size:.98rem; line-height:1.35rem; color:#dff8f1;
+  }
+
+  .talk-area{
+    position:fixed; left:50%; bottom:60px; transform:translateX(-50%);
+    text-align:center; color:var(--mint); z-index:70;
+  }
+  .talk-area h2{ margin:0; font-size:1.1rem; font-weight:800; }
+  .talk-area p{ margin:.2rem 0 .7rem; font-size:.86rem; color:#85f3d5; }
+
+  #talkBtn{
+    width:86px; height:86px; border-radius:50%; border:none; cursor:pointer;
+    background: radial-gradient(circle at 35% 30%, #15d79c 12%, #00b37a 60%, #007a57 100%);
+    color:#fff; font-size:1.6rem;
+    box-shadow: 0 0 22px rgba(0,255,179,.35), inset 0 0 26px rgba(255,77,219,.20);
+    transition:transform .25s ease, box-shadow .28s ease;
+  }
+  #talkBtn:hover{ transform:scale(1.04); }
+  #talkBtn.listening{
+    transform:scale(1.12);
+    box-shadow: 0 0 38px rgba(0,255,179,.65), 0 0 82px rgba(255,77,219,.25);
+    background: radial-gradient(circle at 40% 35%, #00ffb3 10%, #00cf98 58%, #008a65 100%);
+  }
+
+  footer.footer{
+    position:fixed; bottom:0; left:0; right:0;
+    background:var(--deep); border-top:1px solid var(--line);
+    text-align:center; padding:.7rem 0; z-index:1000;
+  }
+  footer .btn{ background:#009966; }
+
+  @media (max-width:700px){
+    .panel{ bottom:100px; }
+    .talk-area{ bottom:54px; }
+  }
+</style>
 </head>
-
 <body>
-  <header class="topbar">
-    <div class="brand">JARED • HERO2</div>
-  </header>
-
+  <header class="topbar"><div class="brand">JARED • HERO2</div></header>
   <canvas id="stage"></canvas>
 
   <main id="centerUI">
     <h1 class="coreText">Upload • Analyze • Estimate</h1>
-    <button id="uploadBtn">Upload Photo</button>
-    <img id="preview" alt="Preview" style="display:none;" />
+    <button class="btn" id="uploadBtn">Upload Photo</button>
+    <button class="btn" id="analyzeBtn">Analyze</button>
+    <img id="preview" alt="Preview"/>
   </main>
 
-  <!-- Talk button area -->
+  <section class="panel" id="tipsPanel">
+    <header>
+      <h3>Analysis & Tips</h3>
+      <div class="controls">
+        <button class="ghost" id="stopSpeakBtn">Stop Speaking</button>
+        <button class="ghost" id="closePanelBtn">Close</button>
+      </div>
+    </header>
+    <div class="body" id="tipsBody"></div>
+  </section>
+
   <div class="talk-area">
     <h2>Talk to Jared</h2>
     <p>for landscaping advice</p>
-    <button id="talkBtn">🎙️</button>
+    <button id="talkBtn" aria-label="Hold To Talk">🎙️</button>
   </div>
 
   <footer class="footer">
-    <button class="btn" id="downloadDeck">Download Pitch Deck</button>
+    <button class="btn" id="downloadDeck">PROAI(HERO)_BLACKBOOk</button>
   </footer>
 
-  <script>
-    (() => {
-      const API = "https://jared-hero2-backend.onrender.com";
-      const talkBtn = document.getElementById("talkBtn");
-      const c = document.getElementById("stage");
-      const ctx = c.getContext("2d");
-      let recognition = null, canListen = true, speechAudio = null;
+<script>
+(() => {
+  const API = "https://jared-hero2-backend.onrender.com";
+  const preview = document.getElementById("preview");
+  const uploadBtn = document.getElementById("uploadBtn");
+  const analyzeBtn = document.getElementById("analyzeBtn");
+  const tipsPanel = document.getElementById("tipsPanel");
+  const tipsBody = document.getElementById("tipsBody");
+  const stopSpeakBtn = document.getElementById("stopSpeakBtn");
+  const closePanelBtn = document.getElementById("closePanelBtn");
+  const talkBtn = document.getElementById("talkBtn");
+  let lastFile=null, speechAudio=null, recognition=null, canListen=true;
 
-      /* background grid */
-      function grid() {
-        ctx.save();
-        ctx.globalAlpha = 0.07;
-        ctx.strokeStyle = "#6bc7ab22";
-        const s = 64;
-        ctx.beginPath();
-        for (let x = 0; x < c.width; x += s) {
-          ctx.moveTo(x, 0); ctx.lineTo(x, c.height);
-        }
-        for (let y = 0; y < c.height; y += s) {
-          ctx.moveTo(0, y); ctx.lineTo(c.width, y);
-        }
-        ctx.stroke();
-        ctx.restore();
-      }
-      function size() { c.width = innerWidth; c.height = innerHeight; }
-      addEventListener("resize", size); size();
-      function loop() { ctx.clearRect(0, 0, c.width, c.height); grid(); requestAnimationFrame(loop); }
-      loop();
+  // Canvas background animation
+  const c=document.getElementById("stage");const ctx=c.getContext("2d");
+  let DPR=1,W=0,H=0,tick=0;const GRID=64,LAYERS=280;
+  function size(){DPR=Math.max(1,Math.min(2,window.devicePixelRatio||1));W=c.clientWidth;H=c.clientHeight;c.width=Math.floor(W*DPR);c.height=Math.floor(H*DPR);ctx.setTransform(DPR,0,0,DPR,0,0);}
+  addEventListener("resize",size,{passive:true});size();
+  function rr(x,y,w,h,r){r=Math.min(r,w/2,h/2);ctx.beginPath();ctx.moveTo(x+r,y);ctx.arcTo(x+w,y,x+w,y+h,r);ctx.arcTo(x+w,y+h,x,y+h,r);ctx.arcTo(x,y+h,x,y,r);ctx.arcTo(x,y,x+w,y,r);ctx.closePath();}
+  function draw(){ctx.clearRect(0,0,W,H);ctx.save();ctx.globalAlpha=.07;ctx.strokeStyle="#6bc7ab22";ctx.beginPath();for(let x=0;x<W;x+=GRID){ctx.moveTo(x,0);ctx.lineTo(x,H);}for(let y=0;y<H;y+=GRID){ctx.moveTo(0,y);ctx.lineTo(W,y);}ctx.stroke();ctx.restore();
+    const cx=W/2,cy=H/2,bW=Math.min(W,H)*.86,bH=Math.min(W,H)*.6,maxI=Math.min(W,H)*.28;
+    for(let i=0;i<LAYERS;i++){const t=i/LAYERS;const p=Math.sin(t*12+tick*.015)*2;const infl=t*maxI+p;const w=bW-infl*1.1,h=bH-infl*.9;if(w<=60||h<=60)break;const x=cx-w/2,y=cy-h/2;
+      const cool=`hsla(${170+20*Math.sin(t*6)},95%,${60-t*35}%,${.10+.55*(1-t)})`;
+      const aqua=`hsla(${190+30*Math.cos(t*8)},100%,${55-t*35}%,${.06+.35*(1-t)})`;
+      const mag=`hsla(315,95%,${60-t*45}%,${.05+.25*(1-t)})`;
+      ctx.strokeStyle=cool;ctx.lineWidth=1.5;rr(x,y,w,h,18-t*10);ctx.stroke();
+      ctx.strokeStyle=aqua;ctx.lineWidth=.9;rr(x+1.5,y+1.4,w-3,h-2.8,16-t*9);ctx.stroke();
+      if(i%3===0){ctx.strokeStyle=mag;ctx.lineWidth=.8;rr(x+3.2,y+3,w-6.4,h-6,14-t*8);ctx.stroke();}
+    }tick++;requestAnimationFrame(draw);}requestAnimationFrame(draw);
 
-      /* upload handler */
-      const hidden = document.createElement("input");
-      hidden.type = "file";
-      hidden.accept = "image/*";
-      hidden.style.display = "none";
-      document.body.appendChild(hidden);
+  // Upload + Analyze
+  const hidden=document.createElement("input");hidden.type="file";hidden.accept="image/*";hidden.style.display="none";document.body.appendChild(hidden);
+  uploadBtn.onclick=()=>hidden.click();
+  hidden.onchange=()=>{const f=hidden.files[0];if(!f)return;lastFile=f;const u=URL.createObjectURL(f);preview.src=u;preview.style.display="block";analyzeBtn.style.display="inline-block";};
 
-      const preview = document.getElementById("preview");
-      const uploadBtn = document.getElementById("uploadBtn");
-      const uiCenter = document.getElementById("centerUI");
+  analyzeBtn.onclick=async()=>{if(!lastFile)return;tipsPanel.style.display="block";tipsBody.textContent="Analyzing image…";preview.classList.add("processing");const start=Date.now();const min=15000;
+    try{const fd=new FormData();fd.append("file",lastFile);const r=await fetch(`${API}/analyze-image`,{method:"POST",body:fd});const j=await r.json();const text=j.summary||"No summary.";tipsBody.textContent=text;await speak(text);}
+    catch{tipsBody.textContent="Analysis failed.";}
+    finally{const elapsed=Date.now()-start;const remain=Math.max(0,min-elapsed);setTimeout(()=>preview.classList.remove("processing"),remain);}
+  };
 
-      uploadBtn.addEventListener("click", () => hidden.click());
-      hidden.addEventListener("change", async () => {
-        const f = hidden.files[0];
-        if (!f) return;
-        const u = URL.createObjectURL(f);
-        preview.src = u;
-        preview.style.display = "block";
-        uiCenter.querySelector("h1").style.display = "none";
-        uploadBtn.style.display = "none";
-        try {
-          const fd = new FormData();
-          fd.append("file", f);
-          const r = await fetch(`${API}/analyze-image`, { method: "POST", body: fd });
-          const j = await r.json();
-          await speak(j.summary || "No summary available.");
-        } catch {
-          await speak("Analysis failed.");
-        }
-      });
+  stopSpeakBtn.onclick=()=>{if(speechAudio){speechAudio.pause();speechAudio.currentTime=0;}};
+  closePanelBtn.onclick=()=>tipsPanel.style.display="none";
 
-      /* speech recognition */
-      if ("webkitSpeechRecognition" in window) {
-        recognition = new webkitSpeechRecognition();
-        recognition.continuous = false;
-        recognition.lang = "en-US";
-        recognition.interimResults = false;
-        recognition.onstart = () => talkBtn.classList.add("listening");
-        recognition.onend = () => { talkBtn.classList.remove("listening"); canListen = true; };
-        recognition.onresult = async e => {
-          const text = e.results[0][0].transcript;
-          await sendToJared(text);
-        };
-      }
+  async function speak(text){try{if(speechAudio){speechAudio.pause();speechAudio=null;}const r=await fetch(`${API}/speak`,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({text})});
+    if(!r.ok)throw new Error();const b=await r.blob();const u=URL.createObjectURL(b);speechAudio=new Audio(u);speechAudio.play();}catch{}}
 
-      talkBtn.addEventListener("click", () => {
-        if (!canListen) return;
-        if (recognition) { canListen = false; recognition.start(); }
-        else alert("Speech recognition not supported.");
-      });
+  // Talk to Jared
+  if("webkitSpeechRecognition" in window){recognition=new webkitSpeechRecognition();recognition.lang="en-US";recognition.onstart=()=>talkBtn.classList.add("listening");recognition.onend=()=>{talkBtn.classList.remove("listening");canListen=true;};
+    recognition.onresult=async(e)=>{const text=e.results[0][0].transcript;try{const r=await fetch(`${API}/inference`,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({text})});
+      const d=await r.json();tipsPanel.style.display="block";tipsBody.textContent=d.content||"No response.";await speak(d.content||"No response.");}catch{tipsPanel.style.display="block";tipsBody.textContent="Jared unavailable.";await speak("Jared unavailable.");}};
+  }
+  talkBtn.onclick=()=>{if(!recognition){alert("Speech recognition not supported.");return;}if(!canListen)return;canListen=false;recognition.start();};
 
-      async function sendToJared(text) {
-        try {
-          const res = await fetch(`${API}/inference`, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ text }),
-          });
-          const data = await res.json();
-          await speak(data.content || "No response");
-        } catch { await speak("Jared unavailable."); }
-      }
-
-      async function speak(text) {
-        try {
-          const r = await fetch(`${API}/speak`, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ text }),
-          });
-          if (!r.ok) throw new Error();
-          const b = await r.blob();
-          const u = URL.createObjectURL(b);
-          speechAudio = new Audio(u);
-          speechAudio.play();
-        } catch { console.error("Speech error"); }
-      }
-
-      /* pitch deck */
-      document.getElementById("downloadDeck").addEventListener("click", () => {
-        const blob = new Blob(["Pitch deck placeholder."], { type: "application/pdf" });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement("a");
-        a.href = url;
-        a.download = "WorkRockPro-PitchDeck.pdf";
-        a.click();
-        URL.revokeObjectURL(url);
-      });
-    })();
-  </script>
+  document.getElementById("downloadDeck").onclick=()=>{const blob=new Blob(["Pitch deck placeholder."],{type:"application/pdf"});const url=URL.createObjectURL(blob);const a=document.createElement("a");a.href=url;a.download="WorkRockPro-PitchDeck.pdf";a.click();URL.revokeObjectURL(url);};
+})();
+</script>
 </body>
 </html>
+
 
