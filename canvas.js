@@ -173,6 +173,7 @@
 
     recognition.onstart = () => {
       state.message = "🎙️ Listening...";
+      document.body.classList.add("listening"); // ✨ add glow
     };
     recognition.onresult = async (event) => {
       const text = event.results[0][0].transcript;
@@ -183,10 +184,12 @@
       console.error("Speech recognition error:", e);
       state.message = "Mic error.";
       canListen = true;
+      document.body.classList.remove("listening");
     };
     recognition.onend = () => {
       state.talk = false;
       canListen = true;
+      document.body.classList.remove("listening"); // ✨ remove glow
     };
   } else {
     alert("Speech recognition not supported in this browser.");
@@ -342,4 +345,5 @@
     URL.revokeObjectURL(url);
   });
 })();
+;
 
