@@ -2,321 +2,586 @@
 <html lang="en">
 <head>
 <meta charset="utf-8" />
-<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
-<title>JARED • HERO2</title>
-<meta name="theme-color" content="#0c1611" />
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,maximum-scale=1,user-scalable=no" />
+<title>JARED • HERO2 (Canvas HUD)</title>
+<meta name="theme-color" content="#0b1b16" />
 <style>
-  html,body {
-    margin:0;padding:0;
-    background:#0c1611;color:#e9f3ee;
-    height:100%;overflow:hidden;
-    font-family:system-ui,sans-serif;
-    -webkit-user-select:none;user-select:none;
-    -webkit-tap-highlight-color:transparent;
-    touch-action:manipulation;
-  }
-  header.topbar {
-    position:fixed;top:0;width:100%;
-    background:#0f1b16;border-bottom:1px solid #124d3b;
-    text-align:center;padding:0.6rem 0;z-index:1000;
-  }
-  header .brand { color:#00ffb3;font-weight:700;letter-spacing:1px; }
-
-  main#centerUI {
-    position:absolute;top:50%;left:50%;
-    transform:translate(-50%,-50%);
-    text-align:center;z-index:10;color:#00ffb3;
-  }
-  main#centerUI h1 { margin-bottom:1rem;transition:opacity .4s ease; }
-
-  button.btn {
-    background:#00b37a;border:none;color:#fff;
-    padding:0.6rem 1.2rem;border-radius:8px;
-    font-size:1rem;font-weight:600;cursor:pointer;
-    margin:0.3rem;transition:background .3s;
-  }
-  button.btn:hover { background:#00ffb3;color:#00281a; }
-
-  #preview {
-    display:none;margin-top:1rem;width:260px;
-    border-radius:12px;border:2px solid #00b37a;
-    box-shadow:0 0 20px rgba(0,255,179,.25);
-  }
-  .ai-tip {
-    display:none;margin-top:.7rem;font-size:.9rem;
-    background:rgba(0,255,179,.12);
-    border:1px solid rgba(0,255,179,.3);
-    color:#b7fff0;border-radius:10px;
-    padding:.6rem 1rem;
-    box-shadow:0 0 18px rgba(0,255,179,.15);
-  }
-  .saveInsight {
-    display:none;background:transparent;
-    color:#00ffb3;border:1px solid #00ffb3;
-    border-radius:8px;margin-top:.5rem;
-    padding:.4rem .8rem;font-size:.85rem;
-    cursor:pointer;transition:background .3s;
-  }
-  .saveInsight:hover { background:rgba(0,255,179,.1); }
-
-  .talk-zone {
-    position:fixed;bottom:90px;
-    left:50%;transform:translateX(-50%);
-    text-align:center;z-index:900;
-  }
-  .talk-zone h3 {
-    margin-bottom:.5rem;font-size:1rem;color:#00ffb3;
-  }
-  #talkBtn {
-    background:#00b37a;border:none;border-radius:50%;
-    width:90px;height:90px;cursor:pointer;
-    box-shadow:0 0 15px rgba(0,255,179,.4);
-    transition:all .25s ease;
-  }
-  #talkBtn:hover {
-    transform:scale(1.05);
-    box-shadow:0 0 25px rgba(0,255,179,.7);
-  }
-  #talkBtn.listening {
-    background:#00ffb3;
-    transform:scale(1.12);
-    box-shadow:0 0 40px rgba(0,255,179,.9);
-  }
-  .talk-zone p { margin-top:.6rem;font-size:.9rem;color:#9decd5; }
-
-  footer.footer {
-    position:fixed;bottom:0;width:100%;
-    background:#0f1b16;border-top:1px solid #124d3b;
-    text-align:center;padding:.75rem 0;z-index:1000;
-  }
-
-  .sales-link {
-    display:inline-block;margin-top:1rem;
-    color:#00ffb3;font-weight:500;text-decoration:underline;
-  }
-
-  #fullscreenBtn {
-    position:fixed;top:10px;right:10px;
-    background:rgba(0,255,179,.15);
-    border:1px solid #00ffb3;color:#00ffb3;
-    border-radius:6px;padding:6px 10px;
-    font-size:.9rem;cursor:pointer;z-index:2000;
-  }
+  html,body{margin:0;height:100%;background:#0b1b16;overflow:hidden;touch-action:none;-webkit-user-select:none;user-select:none;}
+  /* All UI is rendered on the canvas */
 </style>
 </head>
-
 <body>
-  <header class="topbar"><div class="brand">JARED • HERO2</div></header>
-  <button id="fullscreenBtn">⛶ Full Screen</button>
-
-  <main id="centerUI">
-    <h1 id="headline">Upload = Estimate</h1>
-    <button class="btn" id="uploadBtn">Upload Photo</button>
-    <button class="btn" id="analyzeBtn" style="display:none;">Estimate</button>
-    <img id="preview" alt="Preview" />
-    <div class="ai-tip" id="aiTip"></div>
-    <button class="saveInsight" id="saveInsight">Save Insight</button>
-    <a href="https://cardland51-bot.github.io/sales-university/" target="_blank" class="sales-link">Visit Sales University →</a>
-  </main>
-
-  <div class="talk-zone">
-    <h3>Hold to Talk</h3>
-    <button id="talkBtn" aria-label="Talk"></button>
-    <p>landscaping advice from JARED</p>
-  </div>
-
-  <footer class="footer">
-    <button class="btn" id="exportLogs">Export Saved Insights</button>
-    <button class="btn" id="downloadDeck">Download Pitch Deck</button>
-  </footer>
+<canvas id="hud"></canvas>
 
 <script>
 (() => {
-  const API = "https://jared-hero2-backend.onrender.com";
-  const uploadBtn = document.getElementById("uploadBtn");
-  const analyzeBtn = document.getElementById("analyzeBtn");
-  const downloadBtn = document.getElementById("downloadDeck");
-  const exportBtn = document.getElementById("exportLogs");
-  const preview = document.getElementById("preview");
-  const talkBtn = document.getElementById("talkBtn");
-  const aiTip = document.getElementById("aiTip");
-  const saveInsight = document.getElementById("saveInsight");
-  const fullscreenBtn = document.getElementById("fullscreenBtn");
-  const headline = document.getElementById("headline");
+  // ===== Brand & Theme (Corporate Neo Mint + Soft Horizon Glow) =====
+  const BRAND = {
+    bgTop:   '#0b1b16',
+    bgBot:   '#07100d',
+    mintL:   '#9CFFE0',            // softer light mint
+    mintB:   '#34D1A0',
+    mintD:   '#0E8B67',
+    text:    '#E9FFF6',
+    textDim: 'rgba(233,255,246,.85)',
+    auraSoft: 'rgba(136,255,215,.15)',
+    auraMed:  'rgba(136,255,215,.28)',
+    auraHard: 'rgba(136,255,215,.45)'
+  };
 
-  const hidden = document.createElement("input");
-  hidden.type = "file"; hidden.accept = "image/*"; hidden.style.display = "none";
-  document.body.appendChild(hidden);
+  // ===== Canvas Setup =====
+  const cvs = document.getElementById('hud');
+  const ctx = cvs.getContext('2d', { alpha: false });
+  let DPR = Math.max(1, Math.min(3, window.devicePixelRatio || 1));
+  const S = { w: 0, h: 0, t: 0, tiltX: 0, tiltY: 0, targetTiltX: 0, targetTiltY: 0 };
 
-  let lastFile = null;
-  let recognition = null;
-  let canListen = true;
-  let speechAudio = null;
+  function resize() {
+    DPR = Math.max(1, Math.min(3, window.devicePixelRatio || 1));
+    S.w = window.innerWidth;
+    S.h = window.innerHeight;
+    cvs.width = Math.floor(S.w * DPR);
+    cvs.height = Math.floor(S.h * DPR);
+    cvs.style.width = S.w + 'px';
+    cvs.style.height = S.h + 'px';
+    ctx.setTransform(DPR,0,0,DPR,0,0);
+  }
+  window.addEventListener('resize', resize, { passive:true });
+  resize();
+
+  // ===== Input =====
+  const ptr = { x: S.w/2, y: S.h/2, down: false };
+  const getXY = (e) => {
+    const r = cvs.getBoundingClientRect();
+    if (e.touches && e.touches[0]) return { x: e.touches[0].clientX - r.left, y: e.touches[0].clientY - r.top };
+    return { x: e.clientX - r.left, y: e.clientY - r.top };
+  };
+  function onDown(e){ const p=getXY(e); ptr.x=p.x; ptr.y=p.y; ptr.down=true; pressStart=performance.now(); handlePress(ptr.x,ptr.y); e.preventDefault(); }
+  function onMove(e){ const p=getXY(e); ptr.x=p.x; ptr.y=p.y; e.preventDefault(); }
+  function onUp(e){ ptr.down=false; handleRelease(); e.preventDefault(); }
+  cvs.addEventListener('pointerdown', onDown, { passive:false });
+  cvs.addEventListener('pointermove', onMove, { passive:false });
+  window.addEventListener('pointerup', onUp, { passive:false });
+  cvs.addEventListener('touchstart', onDown, { passive:false });
+  cvs.addEventListener('touchmove', onMove, { passive:false });
+  window.addEventListener('touchend', onUp, { passive:false });
+
+  // ===== Utility =====
+  const lerp = (a,b,t)=>a+(b-a)*t;
+  const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
+  const dist2=(x1,y1,x2,y2)=>{const dx=x2-x1,dy=y2-y1;return dx*dx+dy*dy;};
+
+  // ===== File input (hidden) =====
+  const fileInput = document.createElement('input');
+  fileInput.type = 'file'; fileInput.accept = 'image/*'; fileInput.style.display='none';
+  document.body.appendChild(fileInput);
+
+  // ===== HUD State =====
+  const API = "https://jared-hero2-backend.onrender.com";   // keep your working backend
+  const ICONS = []; // nodes rising from sod
+  const bubbles = []; // transient toast/bubbles
   const savedInsights = [];
-  let uploadCount = 0;
-  const MAX_UPLOADS = 3;
+  let pressStart = 0;
+  let pressedIcon = null;
+  let talkState = 'idle'; // 'idle' | 'listening' | 'thinking'
+  let rec = null, canListen = true, speechAudio = null;
 
-  // --- Upload ---
-  uploadBtn.onclick = () => {
-    if (uploadCount >= MAX_UPLOADS) {
-      aiTip.style.display = "block";
-      aiTip.textContent = "Upload limit reached (3). Please refresh or upgrade.";
-      return;
+  // Photo preview
+  let photo = { img:null, url:null, w:0, h:0, glow:0, show:false };
+
+  // ===== Icons Definition =====
+  const defs = [
+    { id:'upload',  label:'Upload = Estimate',  desc:'Drop a yard photo to get itemized estimates.', icon:'⬆️' },
+    { id:'analyze', label:'Estimate',           desc:'Run pricing + AI tips on the current photo.',   icon:'🧮' },
+    { id:'talk',    label:'Talk to JARED',      desc:'Hold to speak • release to send & hear reply.', icon:'🎤' },
+    { id:'export',  label:'Export Insights',    desc:'Save analysis notes and estimates as a file.',  icon:'📤' },
+    { id:'school',  label:'Sales University',   desc:'Open playbooks and close deals faster.',        icon:'🎓' }
+  ];
+
+  function layoutIcons() {
+    ICONS.length = 0;
+    const sodH = Math.max(120, Math.min(220, S.h*0.22));
+    const baseY = S.h - sodH + 8;
+    const pad = 28;
+    const gap = (S.w - pad*2) / (defs.length - 1);
+    defs.forEach((d,i)=>{
+      ICONS.push({
+        ...d,
+        x: pad + i*gap,
+        y: S.h + 140,
+        targetY: baseY - 88,
+        r: 44,
+        pop: 0,
+        hover: false,
+        bubble: 0
+      });
+    });
+  }
+  layoutIcons();
+  window.addEventListener('resize', layoutIcons, { passive:true });
+
+  // ===== Background: Corporate Horizon Glow =====
+  function drawBackground(t) {
+    const g = ctx.createLinearGradient(0,0,0,S.h);
+    g.addColorStop(0, BRAND.bgTop);
+    g.addColorStop(1, BRAND.bgBot);
+    ctx.fillStyle = g;
+    ctx.fillRect(0,0,S.w,S.h);
+
+    // Soft horizon glow (corporate: subtle)
+    const rg = ctx.createRadialGradient(S.w/2, S.h*0.86, 0, S.w/2, S.h*0.86, Math.max(S.w,S.h)*0.55);
+    rg.addColorStop(0, BRAND.auraMed);
+    rg.addColorStop(1, 'transparent');
+    ctx.fillStyle = rg;
+    ctx.fillRect(0,0,S.w,S.h);
+
+    // Gentle top haze
+    const mist = ctx.createLinearGradient(0,0,0,S.h*0.38);
+    mist.addColorStop(0, BRAND.auraSoft);
+    mist.addColorStop(1, 'transparent');
+    ctx.fillStyle = mist;
+    ctx.fillRect(0,0,S.w,S.h*0.38);
+  }
+
+  // ===== Sod (animated grass) =====
+  function drawSod(t) {
+    const sodTop = S.h - Math.max(120, Math.min(220, S.h*0.22));
+    const grd = ctx.createLinearGradient(0, sodTop, 0, S.h);
+    grd.addColorStop(0, '#0e241c');
+    grd.addColorStop(1, '#08130f');
+    ctx.fillStyle = grd;
+    ctx.fillRect(0, sodTop, S.w, S.h - sodTop);
+
+    const blades = Math.floor(S.w/9);
+    for(let i=0;i<blades;i++){
+      const x = (i/(blades-1))*S.w;
+      const h = 20 + Math.sin((i*0.55)+t*0.002)*5;
+      const sway = Math.sin(t*0.003 + i)*1.6 + S.tiltX*1.0;
+      ctx.strokeStyle = i%7===0 ? BRAND.mintL : BRAND.mintB;
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.moveTo(x, sodTop+2);
+      ctx.quadraticCurveTo(x+sway, sodTop - h*0.6, x+sway*0.8, sodTop - h);
+      ctx.stroke();
     }
-    hidden.click();
-  };
+    ctx.fillStyle = 'rgba(140,255,220,.16)';
+    ctx.fillRect(0, sodTop-1, S.w, 2);
+  }
 
-  hidden.onchange = () => {
-    const file = hidden.files[0];
-    if (!file) return;
-    lastFile = file;
-    const url = URL.createObjectURL(file);
-    preview.src = url;
-    preview.style.display = "block";
-    analyzeBtn.style.display = "inline-block";
-    aiTip.style.display = "none";
-    saveInsight.style.display = "none";
-    headline.style.opacity = 0; // fade out headline
-    setTimeout(() => (headline.style.display = "none"), 400);
-  };
-
-  // --- Analyze ---
-  analyzeBtn.onclick = async () => {
-    if (!lastFile) {
-      alert("Please upload a photo first.");
-      return;
+  // ===== Toasts =====
+  function toast(msg, ms=1700){ bubbles.push({ msg, t: performance.now(), ms }); }
+  function drawToasts() {
+    const now = performance.now();
+    for (let i=bubbles.length-1; i>=0; i--) {
+      const b = bubbles[i];
+      const age = now - b.t;
+      if (age > b.ms) { bubbles.splice(i,1); continue; }
+      const a = age < 200 ? age/200 : age > b.ms-250 ? (b.ms-age)/250 : 1;
+      const w = Math.min(460, S.w*0.9), h = 46;
+      const x = (S.w - w)/2, y = S.h - 90 - (bubbles.length-1-i)*56;
+      ctx.save();
+      ctx.globalAlpha = a*0.95;
+      ctx.fillStyle = 'rgba(10,26,20,.92)';
+      ctx.strokeStyle = BRAND.auraMed;
+      ctx.lineWidth = 2;
+      roundRect(ctx, x, y, w, h, 12); ctx.fill(); ctx.stroke();
+      ctx.fillStyle = BRAND.text;
+      ctx.font = '600 14px system-ui, sans-serif';
+      ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+      ctx.fillText(b.msg, x + w/2, y + h/2 + 1);
+      ctx.restore();
     }
-    analyzeBtn.disabled = true;
-    aiTip.style.display = "block";
-    aiTip.textContent = "Analyzing image... please wait.";
-    preview.style.boxShadow = "0 0 30px rgba(0,255,179,0.55)";
+  }
 
-    try {
-      const fd = new FormData();
-      fd.append("file", lastFile);
-      const res = await fetch(`${API}/analyze-image`, { method: "POST", body: fd });
-      const data = await res.json();
-      const summary = data.summary || "No summary returned.";
-      aiTip.textContent = summary;
-      saveInsight.style.display = "inline-block";
-      saveInsight.onclick = () => {
-        savedInsights.push(`[${new Date().toLocaleString()}]\n${summary}\n`);
-        alert("Insight saved!");
-        saveInsight.style.display = "none";
-      };
-      await speak(summary);
-      uploadCount++;
-      if (uploadCount >= MAX_UPLOADS) {
-        aiTip.textContent += "\n\n(Upload limit reached — 3 analyses max.)";
+  // ===== Icons =====
+  function drawIcon(it, t) {
+    it.pop = Math.min(1, it.pop + 0.02);
+    const bob = Math.sin(t*0.003 + it.x)*3.5;
+    it.y = lerp(it.y, it.targetY + bob - (it.hover?5:0), 0.12);
+
+    const isTalk = it.id === 'talk';
+    const x = it.x, y = it.y, r = it.r;
+
+    ctx.save();
+    ctx.translate(x, y - S.tiltY*4);
+
+    // Auras
+    if (isTalk) {
+      if (talkState === 'listening') {
+        haloRing(r+16, BRAND.auraHard, 18);               // outer glow while holding
+      } else if (talkState === 'thinking') {
+        haloRing(r-6,  'rgba(140,255,220,.70)', 12, true); // inner pulse while AI processing
+      } else {
+        haloRing(r+12, BRAND.auraSoft, 12);
       }
-    } catch {
-      aiTip.textContent = "Error analyzing image.";
-      saveInsight.style.display = "none";
+    } else {
+      haloRing(r+12, it.hover ? BRAND.auraMed : BRAND.auraSoft, 12);
     }
-    preview.style.boxShadow = "0 0 20px rgba(0,255,179,0.25)";
-    analyzeBtn.disabled = false;
+
+    // Plate
+    const grd = ctx.createRadialGradient(-r*0.5, -r*0.6, r*0.2, 0, 0, r*1.2);
+    grd.addColorStop(0, '#10281f');
+    grd.addColorStop(1, '#0a1a14');
+    ctx.fillStyle = grd;
+    roundRect(ctx, -r, -r, r*2, r*2, r*0.42);
+    ctx.fill();
+
+    // Glow ring
+    ctx.strokeStyle = it.hover ? BRAND.mintL : BRAND.mintB;
+    ctx.lineWidth = 3;
+    ctx.beginPath(); ctx.arc(0, 0, r-3, 0, Math.PI*2); ctx.stroke();
+
+    // Emoji icon
+    ctx.font = Math.floor(r*0.95)+'px serif';
+    ctx.textAlign='center'; ctx.textBaseline='middle';
+    ctx.fillText(it.icon, 0, 2);
+
+    // Label
+    ctx.font = '600 13px system-ui, sans-serif';
+    ctx.fillStyle = BRAND.textDim;
+    ctx.fillText(it.label, 0, r + 18);
+
+    // Description bubble (tap/hold reveal)
+    if (it.bubble > 0.001) {
+      it.bubble = Math.min(1, it.bubble + 0.12);
+      drawBubble(x, y - r - 18, it.label, it.desc, it.bubble);
+    }
+
+    ctx.restore();
+  }
+
+  function haloRing(radius, color, blur, pulse=false){
+    ctx.save();
+    if(pulse){
+      const k = (Math.sin(S.t*0.006) * 0.25) + 0.75;
+      ctx.shadowColor = color; ctx.shadowBlur = blur * k;
+    }else{
+      ctx.shadowColor = color; ctx.shadowBlur = blur;
+    }
+    ctx.beginPath(); ctx.arc(0,0,radius,0,Math.PI*2); ctx.strokeStyle = 'transparent'; ctx.stroke();
+    ctx.restore();
+  }
+
+  function drawBubble(cx, baseY, title, text, a){
+    const maxW = Math.min(320, S.w*0.8);
+    const pad = 10;
+    ctx.save();
+    ctx.globalAlpha = Math.pow(a,1.1);
+    ctx.fillStyle = 'rgba(7,27,22,.94)';
+    ctx.strokeStyle = BRAND.auraMed;
+    ctx.lineWidth = 2;
+    const lines = wrapText(text, '400 13px system-ui, sans-serif', maxW - pad*2);
+    const h = pad*2 + 18 + lines.lines.length*16 + 10;
+    const w = Math.min(maxW, Math.max(160, lines.longest + pad*2));
+    const x = clamp(cx - w/2, 10, S.w - w - 10);
+    const y = baseY - h;
+    roundRect(ctx, x, y, w, h, 12); ctx.fill(); ctx.stroke();
+    ctx.fillStyle = BRAND.mintL;
+    ctx.font = '700 13px system-ui, sans-serif';
+    ctx.textAlign='left'; ctx.textBaseline='alphabetic';
+    ctx.fillText(title, x+pad, y+pad+12);
+    ctx.fillStyle = BRAND.text;
+    ctx.font = '400 13px system-ui, sans-serif';
+    let ty = y + pad + 12 + 10;
+    lines.lines.forEach(line => { ctx.fillText(line, x+pad, ty); ty += 16; });
+    // Tail
+    ctx.beginPath();
+    ctx.moveTo(cx-10, y+h);
+    ctx.lineTo(cx, y+h+10);
+    ctx.lineTo(cx+10, y+h);
+    ctx.closePath(); ctx.fillStyle = 'rgba(7,27,22,.94)'; ctx.fill();
+    ctx.strokeStyle = BRAND.auraMed; ctx.stroke();
+    ctx.restore();
+  }
+
+  function wrapText(text, font, maxWidth){
+    ctx.font = font;
+    const words = (''+text).split(/\s+/);
+    const lines=[]; let line=''; let longest=0;
+    for(let i=0;i<words.length;i++){
+      const test = (line?line+' ':'')+words[i];
+      if (ctx.measureText(test).width > maxWidth && line) {
+        lines.push(line); longest = Math.max(longest, ctx.measureText(line).width); line = words[i];
+      } else line = test;
+    }
+    if(line){ lines.push(line); longest = Math.max(longest, ctx.measureText(line).width); }
+    return { lines, longest };
+  }
+
+  function roundRect(g,x,y,w,h,r){
+    const rr = Math.min(r, w/2, h/2);
+    g.beginPath();
+    g.moveTo(x+rr,y);
+    g.arcTo(x+w,y,x+w,y+h,rr);
+    g.arcTo(x+w,y+h,x,y+h,rr);
+    g.arcTo(x,y+h,x,y,rr);
+    g.arcTo(x,y,x+w,y,rr);
+    g.closePath();
+  }
+
+  // ===== Picking / Interaction =====
+  let activeHoverId = null;
+
+  function handlePress(x,y){
+    S.targetTiltX = ((x/S.w)*2 - 1) * 6;
+    S.targetTiltY = ((y/S.h)*2 - 1) * 4;
+
+    const hitId = pickIcon(x,y);
+    if (!hitId) return;
+    pressedIcon = hitId;
+    const it = ICONS.find(i=>i.id===hitId);
+    if (it) it.bubble = 0.001;
+
+    if (hitId === 'talk') startListening();
+    if (hitId === 'upload') chooseFile();
+  }
+
+  function handleRelease(){
+    if(!pressedIcon) return;
+    const id = pressedIcon;
+    pressedIcon = null;
+
+    const dt = performance.now() - pressStart;
+    const it = ICONS.find(i=>i.id===id);
+    if(it){
+      if (dt < 350) {
+        it.bubble = 1; setTimeout(()=> it.bubble = 0, 1100);
+        routeAction(id);
+      } else {
+        it.bubble = it.bubble > 0.5 ? 0 : 1; // toggle bubble
+      }
+    }
+    if (id === 'talk') stopListening();
+  }
+
+  function pickIcon(x,y){
+    let best=null, bestD=Infinity;
+    for(const it of ICONS){
+      const R = (it.id==='talk')? it.r+16 : it.r+8;
+      const d2 = dist2(x,y,it.x,it.y);
+      if(d2 < R*R && d2 < bestD){ best=it.id; bestD=d2; }
+      it.hover = (best===it.id);
+    }
+    activeHoverId = best;
+    return best;
+  }
+
+  // ===== Actions (wire to backend) =====
+  function routeAction(id){
+    switch(id){
+      case 'analyze': analyze(); break;
+      case 'export':  exportInsights(); break;
+      case 'school':  openSchool(); break;
+      // 'upload' handled on press (file picker)
+      // 'talk' handled by press/release (voice)
+    }
+  }
+
+  function openSchool(){ window.open('https://cardland51-bot.github.io/sales-university/','_blank'); }
+
+  function exportInsights(){
+    if(!savedInsights.length){ toast('No saved insights yet.'); return; }
+    const blob = new Blob(savedInsights, { type:'text/plain' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = 'JARED_Saved_Insights.txt';
+    a.click();
+    toast('Insights exported.');
+  }
+
+  // ===== Upload & Analyze =====
+  let lastFile = null;
+  function chooseFile(){ fileInput.value=''; fileInput.click(); }
+  fileInput.onchange = () => {
+    const f = fileInput.files[0];
+    if(!f) return;
+    lastFile = f;
+    if (photo.url) URL.revokeObjectURL(photo.url);
+    photo.url = URL.createObjectURL(f);
+    photo.img = new Image();
+    photo.img.onload = () => {
+      photo.w = photo.img.width; photo.h = photo.img.height;
+      photo.show = true; photo.glow = 0.6;
+      toast('Photo loaded. Tap "Estimate" to analyze.');
+    };
+    photo.img.src = photo.url;
   };
 
-  // --- Speech Recognition ---
-  function initRecognition() {
-    if ("webkitSpeechRecognition" in window) {
-      recognition = new webkitSpeechRecognition();
-      recognition.continuous = false;
-      recognition.lang = "en-US";
-      recognition.interimResults = false;
+  async function analyze(){
+    if(!lastFile){ toast('Please upload a photo first.'); return; }
+    // Photo glow = thinking
+    photo.glow = 1.0;
+    talkState = (talkState==='listening') ? 'listening' : 'thinking';
+    bubbles.splice(0,bubbles.length);
+    toast('Analyzing image...');
 
-      recognition.onstart = () => talkBtn.classList.add("listening");
-      recognition.onend = () => {
-        talkBtn.classList.remove("listening");
-        canListen = true;
-      };
-      recognition.onresult = async (e) => {
-        const text = e.results[0][0].transcript;
-        try {
-          const res = await fetch(`${API}/inference`, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ text })
-          });
-          const data = await res.json();
-          aiTip.style.display = "block";
-          aiTip.textContent = data.content || "No response";
-          saveInsight.style.display = "inline-block";
-          saveInsight.onclick = () => {
-            savedInsights.push(`[${new Date().toLocaleString()}]\nVOICE: "${text}"\n${data.content}\n`);
-            alert("Insight saved!");
-            saveInsight.style.display = "none";
-          };
-          await speak(data.content);
-        } catch {
-          await speak("JARED unavailable right now.");
-        }
-      };
-    } else {
-      alert("Speech recognition not supported in this browser.");
+    try{
+      const fd = new FormData();
+      fd.append('file', lastFile);
+      const r = await fetch(API + '/analyze-image', { method:'POST', body: fd });
+      const d = await r.json();
+      const summary = d.summary || 'No summary returned.';
+      savedInsights.push(`[${new Date().toLocaleString()}]\n${summary}\n`);
+      showHUDMessage('Estimate', summary);
+      await speak(summary);
+    }catch(e){
+      showHUDMessage('Error', 'Could not analyze the image.');
     }
+    talkState = 'idle';
+    photo.glow = 0.4;
   }
-  initRecognition();
 
-  // --- Hold to Talk ---
-  function startSpeech() {
-    if (!recognition) { initRecognition(); }
-    if (!canListen) return;
+  // ===== Voice (hold = listen, release = think) =====
+  if ('webkitSpeechRecognition' in window) {
+    rec = new webkitSpeechRecognition();
+    rec.lang = 'en-US'; rec.interimResults = false; rec.continuous = false;
+    rec.onstart = () => { talkState='listening'; };
+    rec.onend   = () => { if(talkState==='listening') talkState='thinking'; canListen = true; };
+    rec.onresult = async (e) => {
+      const text = e.results[0][0].transcript;
+      try{
+        const r = await fetch(API + '/inference', {
+          method:'POST', headers:{'Content-Type':'application/json'},
+          body: JSON.stringify({ text })
+        });
+        const d = await r.json();
+        const content = d.content || 'No response';
+        savedInsights.push(`[${new Date().toLocaleString()}]\nVOICE: "${text}"\n${content}\n`);
+        showHUDMessage('JARED says', content);
+        await speak(content);
+      }catch(err){
+        showHUDMessage('JARED', 'Unavailable right now.');
+      }
+      talkState='idle';
+    };
+  }
+
+  function startListening(){
+    if(!rec){ toast('Speech not supported in this browser.'); return; }
+    if(!canListen) return;
     canListen = false;
-    recognition.start();
+    rec.start();
   }
-  function stopSpeech() { if (recognition) recognition.stop(); }
+  function stopListening(){
+    if(rec) rec.stop();
+  }
 
-  talkBtn.addEventListener("mousedown", startSpeech);
-  talkBtn.addEventListener("mouseup", stopSpeech);
-  talkBtn.addEventListener("mouseleave", stopSpeech);
-  talkBtn.addEventListener("touchstart", e => { e.preventDefault(); startSpeech(); }, { passive:false });
-  talkBtn.addEventListener("touchend", e => { e.preventDefault(); stopSpeech(); }, { passive:false });
-  talkBtn.addEventListener("touchcancel", e => { e.preventDefault(); stopSpeech(); }, { passive:false });
-
-  // --- Speak (TTS) ---
-  async function speak(text) {
-    if (!text) return;
-    try {
-      if (speechAudio) { speechAudio.pause(); speechAudio = null; }
-      const r = await fetch(`${API}/speak`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
+  async function speak(text){
+    if(!text) return;
+    try{
+      if(speechAudio){ speechAudio.pause(); speechAudio=null; }
+      const r = await fetch(API + '/speak', {
+        method:'POST', headers:{'Content-Type':'application/json'},
         body: JSON.stringify({ text })
       });
-      if (!r.ok) throw new Error("TTS failed");
+      if(!r.ok) throw new Error('TTS failed');
       const b = await r.blob();
       const u = URL.createObjectURL(b);
       speechAudio = new Audio(u);
-      speechAudio.play();
-    } catch (err) { console.log("TTS error:", err); }
+      await speechAudio.play();
+    }catch(e){ /* fail silently */ }
   }
 
-  // --- Fullscreen ---
-  fullscreenBtn.onclick = () => {
-    if (!document.fullscreenElement) document.documentElement.requestFullscreen();
-    else document.exitFullscreen();
-  };
+  // ===== HUD Messages =====
+  let hudMsg = null;
+  function showHUDMessage(title, text){
+    hudMsg = { title, text, a:0 };
+  }
 
-  // --- Export ---
-  exportBtn.onclick = () => {
-    if (!savedInsights.length) { alert("No saved insights yet."); return; }
-    const blob = new Blob(savedInsights, { type: "text/plain" });
-    const a = document.createElement("a");
-    a.href = URL.createObjectURL(blob);
-    a.download = "JARED_Saved_Insights.txt";
-    a.click();
-  };
+  function drawHUDMessage(){
+    if(!hudMsg) return;
+    hudMsg.a = Math.min(1, hudMsg.a + 0.12);
+    const maxW = Math.min(420, S.w*0.9);
+    const pad = 12;
+    const lines = wrapText(hudMsg.text, '400 14px system-ui, sans-serif', maxW - pad*2);
+    const h = pad*2 + 18 + lines.lines.length*18 + 10;
+    const w = Math.min(maxW, Math.max(220, lines.longest + pad*2));
+    const x = (S.w - w)/2, y = S.h*0.2;
+    ctx.save();
+    ctx.globalAlpha = Math.pow(hudMsg.a,1.1);
+    ctx.fillStyle = 'rgba(6,22,18,.94)';
+    ctx.strokeStyle = BRAND.auraMed;
+    ctx.lineWidth = 2;
+    roundRect(ctx, x, y, w, h, 14); ctx.fill(); ctx.stroke();
+    ctx.fillStyle = BRAND.mintL;
+    ctx.font = '700 14px system-ui, sans-serif';
+    ctx.textAlign='left'; ctx.textBaseline='alphabetic';
+    ctx.fillText(hudMsg.title, x+pad, y+pad+12);
+    ctx.fillStyle = BRAND.text;
+    ctx.font = '400 14px system-ui, sans-serif';
+    let ty = y + pad + 12 + 10;
+    lines.lines.forEach(line=>{ ctx.fillText(line, x+pad, ty); ty+=18; });
+    ctx.restore();
+  }
 
-  // --- Download PDF ---
-  downloadBtn.onclick = () => {
-    const pdfUrl = "https://cardland51-bot.github.io/jared-hero2-frontend/JARED(HERO1)_Mission_Strategy.pdf";
-    const a = document.createElement("a");
-    a.href = pdfUrl;
-    a.target = "_blank";
-    a.download = "JARED(HERO1)_Mission_Strategy.pdf";
-    a.click();
-  };
+  // ===== Photo Preview (center, glow while thinking) =====
+  function drawPhoto(t){
+    if(!photo.show || !photo.img) return;
+    const maxW = Math.min(S.w*0.78, 560);
+    const maxH = Math.min(S.h*0.5, 360);
+    const scale = Math.min(maxW/photo.w, maxH/photo.h);
+    const w = Math.floor(photo.w*scale), h = Math.floor(photo.h*scale);
+    const x = Math.floor((S.w - w)/2), y = Math.floor(S.h*0.36 - h/2);
+
+    // Glow behind image (soft, corporate)
+    const phase = 0.22 + 0.18*Math.abs(Math.sin(t*0.005));
+    const glow = ctx.createRadialGradient(S.w/2, y+h/2, 0, S.w/2, y+h/2, Math.max(w,h)*0.8);
+    glow.addColorStop(0, `rgba(156,255,224,${phase * photo.glow})`);
+    glow.addColorStop(1, 'transparent');
+    ctx.fillStyle = glow;
+    ctx.fillRect(x-80,y-80,w+160,h+160);
+
+    // Image panel
+    ctx.save();
+    roundRect(ctx, x-6, y-6, w+12, h+12, 14);
+    ctx.fillStyle = 'rgba(9,21,17,.9)'; ctx.fill();
+    ctx.drawImage(photo.img, x, y, w, h);
+    ctx.strokeStyle = BRAND.mintB; ctx.lineWidth = 2;
+    roundRect(ctx, x-6, y-6, w+12, h+12, 14); ctx.stroke();
+    ctx.restore();
+  }
+
+  // ===== Animation Loop =====
+  function tick(t){
+    S.t=t;
+    // Parallax ease
+    S.tiltX += (S.targetTiltX - S.tiltX)*0.08;
+    S.tiltY += (S.targetTiltY - S.tiltY)*0.08;
+
+    drawBackground(t);
+    drawSod(t);
+
+    // Title
+    ctx.save();
+    ctx.textAlign='center'; ctx.fillStyle=BRAND.text;
+    ctx.font = '800 ' + Math.max(18, Math.min(34, S.w*0.06)) + 'px system-ui, sans-serif';
+    ctx.fillText('JARED • HERO2', S.w/2, 54);
+    ctx.font = '500 ' + Math.max(12, Math.min(16, S.w*0.035)) + 'px system-ui, sans-serif';
+    ctx.fillStyle = BRAND.textDim;
+    ctx.fillText('Upload = Estimate • Analyze • Talk • Export • Sales University', S.w/2, 80);
+    ctx.restore();
+
+    // Photo preview (under icons)
+    drawPhoto(t);
+
+    // Icons
+    ICONS.forEach(it => drawIcon(it, t));
+
+    // HUD message + toasts
+    drawHUDMessage();
+    drawToasts();
+
+    requestAnimationFrame(tick);
+  }
+  requestAnimationFrame(tick);
+
+  // ===== Hover tracking for icons (parallax & tooltips) =====
+  setInterval(()=>{
+    const hit = pickIcon(ptr.x, ptr.y);
+    ICONS.forEach(i=> i.hover = (i.id===hit));
+    S.targetTiltX = ((ptr.x/S.w)*2 - 1) * 6;
+    S.targetTiltY = ((ptr.y/S.h)*2 - 1) * 4;
+  }, 50);
+
 })();
 </script>
 </body>
