@@ -1,258 +1,183 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="utf-8"/>
-<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"/>
-<title>JARED • HERO2</title>
-<meta name="theme-color" content="#0c1611"/>
-<style>
-  :root{
-    --bg:#0c1611;
-    --mint:#00ffb3;
-    --deep:#0f1b16;
-    --line:#124d3b;
-  }
-
-  html,body{
-    margin:0; padding:0; height:100%;
-    background:var(--bg); color:#e9f3ee;
-    font-family:system-ui,Segoe UI,Roboto,Ubuntu,Arial,sans-serif;
-    overflow:hidden;
-  }
-
-  header.topbar{
-    position:fixed; top:0; left:0; right:0;
-    background:var(--deep); border-bottom:1px solid var(--line);
-    text-align:center; padding:.6rem 0; z-index:1000;
-  }
-  header .brand{ color:var(--mint); font-weight:800; letter-spacing:.08em; }
-
-  main#centerUI{
-    position:absolute; left:50%; top:50%;
-    transform:translate(-50%,-52%);
-    text-align:center; color:var(--mint); z-index:10;
-    width:min(92vw,520px);
-    opacity:0; animation:fadeIn 1.2s ease forwards;
-  }
-  @keyframes fadeIn{
-    from{opacity:0; transform:translate(-50%,-58%);}
-    to{opacity:1; transform:translate(-50%,-52%);}
-  }
-
-  h1.coreText{
-    margin:0 0 1rem;
-    font-size:clamp(1.3rem,4.6vw,2rem);
-    text-shadow:0 0 10px rgba(0,255,179,.3);
-  }
-
-  .btn{
-    background:#00b37a; color:#fff; border:none; border-radius:12px;
-    padding:.7rem 1.4rem; font-weight:700; cursor:pointer;
-    transition:transform .18s, box-shadow .25s, background .25s;
-  }
-  .btn:hover{transform:translateY(-1px); background:var(--mint); color:#00281a;
-    box-shadow:0 6px 20px rgba(0,255,179,.2);}
-  #analyzeBtn{display:none; margin-left:.6rem;}
-
-  #preview{
-    display:none; width:100%; max-height:42vh; object-fit:contain;
-    margin:.9rem 0 0; border-radius:14px; border:2px solid var(--mint);
-    box-shadow:0 0 20px rgba(0,255,179,.15);
-    background:#07110d;
-  }
-
-  /* Glow only during processing */
-  @keyframes pulseGlow{
-    0%,100%{box-shadow:0 0 25px rgba(0,255,179,.3),0 0 50px rgba(0,255,179,.1);}
-    50%{box-shadow:0 0 55px rgba(0,255,179,.8),0 0 90px rgba(255,77,219,.2);}
-  }
-  #preview.processing{animation:pulseGlow 3s ease-in-out infinite;}
-
-  .panel{
-    position:fixed; left:50%; bottom:110px; transform:translateX(-50%);
-    width:min(92vw,680px);
-    background:rgba(10,24,20,.9);
-    border:1px solid rgba(0,255,179,.25);
-    border-radius:16px; z-index:60; display:none;
-    box-shadow:0 12px 40px rgba(0,0,0,.4);
-  }
-  .panel header{
-    display:flex; justify-content:space-between; align-items:center;
-    padding:.7rem .9rem; border-bottom:1px solid rgba(0,255,179,.2);
-  }
-  .panel h3{margin:0; font-size:1rem; color:var(--mint);}
-  .panel .controls{display:flex; gap:.5rem;}
-  .ghost{
-    background:transparent; color:#b7fff0; border:1px solid rgba(183,255,240,.25);
-    padding:.4rem .8rem; border-radius:8px; cursor:pointer;
-  }
-  .ghost:hover{background:rgba(0,255,179,.1);}
-  .panel .body{padding:.8rem .95rem 1rem; color:#dff8f1; line-height:1.4rem;}
-
-  .talk-area{
-    position:fixed; left:50%; bottom:60px; transform:translateX(-50%);
-    text-align:center; color:var(--mint); z-index:70;
-  }
-  .talk-area h2{margin:0; font-size:1.1rem; font-weight:800;}
-  .talk-area p{margin:.2rem 0 .7rem; font-size:.9rem; color:#85f3d5;}
-  #talkBtn{
-    width:86px; height:86px; border-radius:50%; border:none; cursor:pointer;
-    background:radial-gradient(circle at 35% 30%, #15d79c 12%, #00b37a 60%, #007a57 100%);
-    color:#fff; font-size:1.6rem;
-    box-shadow:0 0 20px rgba(0,255,179,.3);
-    transition:transform .25s ease, box-shadow .3s ease;
-  }
-  #talkBtn:hover{transform:scale(1.05);}
-  #talkBtn.listening{
-    transform:scale(1.12);
-    box-shadow:0 0 40px rgba(0,255,179,.7),0 0 90px rgba(255,77,219,.25);
-  }
-
-  footer.footer{
-    position:fixed; bottom:0; left:0; right:0;
-    background:var(--deep); border-top:1px solid var(--line);
-    text-align:center; padding:.7rem 0; z-index:1000;
-  }
-  footer .btn{background:#009966;}
-</style>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+  <title>JARED • HERO2</title>
+  <meta name="theme-color" content="#0c1611" />
+  <style>
+    html, body {
+      margin: 0;
+      padding: 0;
+      background: #0c1611;
+      color: #e9f3ee;
+      height: 100%;
+      overflow: hidden;
+      font-family: system-ui, sans-serif;
+    }
+    header.topbar {
+      position: fixed;
+      top: 0;
+      width: 100%;
+      background: #0f1b16;
+      border-bottom: 1px solid #124d3b;
+      text-align: center;
+      padding: 0.6rem 0;
+      z-index: 1000;
+    }
+    header .brand {
+      color: #00ffb3;
+      font-weight: 700;
+      letter-spacing: 1px;
+    }
+    main#centerUI {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      text-align: center;
+      z-index: 10;
+      color: #00ffb3;
+    }
+    main#centerUI h1 {
+      margin-bottom: 1rem;
+    }
+    button.btn {
+      background: #00b37a;
+      border: none;
+      color: #fff;
+      padding: 0.6rem 1.4rem;
+      border-radius: 8px;
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+      margin: 0.3rem;
+      transition: background 0.3s;
+    }
+    button.btn:hover {
+      background: #00ffb3;
+      color: #00281a;
+    }
+    #preview {
+      display: none;
+      margin-top: 1rem;
+      width: 260px;
+      border-radius: 12px;
+      border: 2px solid #00b37a;
+      box-shadow: 0 0 20px rgba(0,255,179,0.25);
+      transition: box-shadow 0.5s ease;
+    }
+    footer.footer {
+      position: fixed;
+      bottom: 0;
+      width: 100%;
+      background: #0f1b16;
+      border-top: 1px solid #124d3b;
+      text-align: center;
+      padding: 0.75rem 0;
+      z-index: 1000;
+    }
+  </style>
 </head>
+
 <body>
-  <header class="topbar"><div class="brand">JARED • HERO2</div></header>
+  <header class="topbar">
+    <div class="brand">JARED • HERO2</div>
+  </header>
 
   <main id="centerUI">
-    <h1 class="coreText">Upload • Analyze • Estimate</h1>
+    <h1>Upload • Analyze • Estimate</h1>
     <button class="btn" id="uploadBtn">Upload Photo</button>
-    <button class="btn" id="analyzeBtn">Analyze</button>
-    <img id="preview" alt="Preview"/>
+    <button class="btn" id="analyzeBtn" style="display:none;">Analyze</button>
+    <img id="preview" alt="Preview" />
   </main>
-
-  <section class="panel" id="tipsPanel">
-    <header>
-      <h3>Analysis & Tips</h3>
-      <div class="controls">
-        <button class="ghost" id="stopSpeakBtn">Stop Speaking</button>
-        <button class="ghost" id="closePanelBtn">Close</button>
-      </div>
-    </header>
-    <div class="body" id="tipsBody"></div>
-  </section>
-
-  <div class="talk-area">
-    <h2>HOLD to TALK</h2>
-    <p>Advice from Jared</p>
-    <button id="talkBtn">🎙️</button>
-  </div>
 
   <footer class="footer">
     <button class="btn" id="downloadDeck">Download Pitch Deck</button>
   </footer>
 
-<script>
-(() => {
-  const API="https://jared-hero2-backend.onrender.com";
-  const preview=document.getElementById("preview");
-  const uploadBtn=document.getElementById("uploadBtn");
-  const analyzeBtn=document.getElementById("analyzeBtn");
-  const tipsPanel=document.getElementById("tipsPanel");
-  const tipsBody=document.getElementById("tipsBody");
-  const stopSpeakBtn=document.getElementById("stopSpeakBtn");
-  const closePanelBtn=document.getElementById("closePanelBtn");
-  const talkBtn=document.getElementById("talkBtn");
-  let lastFile=null,speechAudio=null,recognition=null,canListen=true;
+  <script>
+  (() => {
+    const API = "https://jared-hero2-backend.onrender.com";
 
-  // Upload + Analyze
-  const hidden=document.createElement("input");
-  hidden.type="file";hidden.accept="image/*";hidden.style.display="none";
-  document.body.appendChild(hidden);
-  uploadBtn.onclick=()=>hidden.click();
-  hidden.onchange=()=>{const f=hidden.files[0];if(!f)return;lastFile=f;
-    const u=URL.createObjectURL(f);preview.src=u;preview.style.display="block";
-    analyzeBtn.style.display="inline-block";};
+    const uploadBtn = document.getElementById("uploadBtn");
+    const analyzeBtn = document.getElementById("analyzeBtn");
+    const downloadBtn = document.getElementById("downloadDeck");
+    const preview = document.getElementById("preview");
 
-  analyzeBtn.onclick=async()=>{
-    if(!lastFile)return;
-    tipsPanel.style.display="block";tipsBody.textContent="Analyzing image…";
-    preview.classList.add("processing");
-    const start=Date.now();const min=15000;
-    try{
-      const fd=new FormData();fd.append("file",lastFile);
-      const r=await fetch(`${API}/analyze-image`,{method:"POST",body:fd});
-      const j=await r.json();
-      const text=j.summary||"No summary.";
-      tipsBody.textContent=text;
-      await speak(text);
-    }catch{tipsBody.textContent="Analysis failed.";}
-    finally{
-      const elapsed=Date.now()-start;
-      const remain=Math.max(0,min-elapsed);
-      setTimeout(()=>preview.classList.remove("processing"),remain);
-    }
-  };
+    const hidden = document.createElement("input");
+    hidden.type = "file";
+    hidden.accept = "image/*";
+    hidden.style.display = "none";
+    document.body.appendChild(hidden);
 
-  stopSpeakBtn.onclick=()=>{if(speechAudio){speechAudio.pause();speechAudio.currentTime=0;}};
-  closePanelBtn.onclick=()=>tipsPanel.style.display="none";
+    let lastFile = null;
 
-  async function speak(text){
-    try{
-      if(speechAudio){speechAudio.pause();speechAudio=null;}
-      const r=await fetch(`${API}/speak`,{
-        method:"POST",
-        headers:{"Content-Type":"application/json"},
-        body:JSON.stringify({text})
-      });
-      if(!r.ok)throw new Error();
-      const b=await r.blob();
-      const u=URL.createObjectURL(b);
-      speechAudio=new Audio(u);
-      speechAudio.play();
-    }catch{}
-  }
+    // Upload button opens file picker
+    uploadBtn.onclick = () => hidden.click();
 
-  // Talk to Jared
-  if("webkitSpeechRecognition" in window){
-    recognition=new webkitSpeechRecognition();
-    recognition.lang="en-US";
-    recognition.onstart=()=>talkBtn.classList.add("listening");
-    recognition.onend=()=>{talkBtn.classList.remove("listening");canListen=true;};
-    recognition.onresult=async(e)=>{
-      const text=e.results[0][0].transcript;
-      try{
-        const r=await fetch(`${API}/inference`,{
-          method:"POST",
-          headers:{"Content-Type":"application/json"},
-          body:JSON.stringify({text})
-        });
-        const d=await r.json();
-        tipsPanel.style.display="block";
-        tipsBody.textContent=d.content||"No response.";
-        await speak(d.content||"No response.");
-      }catch{
-        tipsPanel.style.display="block";
-        tipsBody.textContent="Jared unavailable.";
-        await speak("Jared unavailable.");
-      }
+    // When file chosen
+    hidden.onchange = () => {
+      const file = hidden.files[0];
+      if (!file) return;
+      lastFile = file;
+      const url = URL.createObjectURL(file);
+      preview.src = url;
+      preview.style.display = "block";
+      analyzeBtn.style.display = "inline-block";
     };
-  }
-  talkBtn.onclick=()=>{
-    if(!recognition){alert("Speech recognition not supported.");return;}
-    if(!canListen)return;
-    canListen=false;recognition.start();
-  };
 
-  // Deck
-  document.getElementById("downloadDeck").onclick = () => {
-  const a = document.createElement("a");
-  a.href = "https://cardland51-bot.github.io/jared-hero2-frontend/JARED(HERO1)_Mission_Strategy.pdf";
-  a.target = "_blank";
-  a.download = "JARED(HERO1)_Mission_Strategy.pdf";
-  a.click();
-};
+    // Analyze button → send to backend
+    analyzeBtn.onclick = async () => {
+      if (!lastFile) {
+        alert("Please upload a photo first.");
+        return;
+      }
+      analyzeBtn.disabled = true;
 
-  };
-})();
-</script>
+      // Pulse glow while analyzing
+      preview.style.boxShadow = "0 0 30px 8px rgba(0,255,179,0.7)";
+      let glow = true;
+      const glowPulse = setInterval(() => {
+        preview.style.boxShadow = glow
+          ? "0 0 40px 14px rgba(0,255,179,0.9)"
+          : "0 0 30px 6px rgba(0,255,179,0.5)";
+        glow = !glow;
+      }, 800);
+
+      setTimeout(() => {
+        clearInterval(glowPulse);
+        preview.style.boxShadow = "0 0 20px rgba(0,255,179,0.25)";
+      }, 15000);
+
+      try {
+        const fd = new FormData();
+        fd.append("file", lastFile);
+        const res = await fetch(`${API}/analyze-image`, { method: "POST", body: fd });
+        const data = await res.json();
+        alert("AI Summary:\n\n" + (data.summary || "No summary returned."));
+      } catch (err) {
+        alert("Error analyzing image.");
+      }
+
+      analyzeBtn.disabled = false;
+    };
+
+    // Download pitch deck
+    downloadBtn.onclick = () => {
+      const pdfUrl =
+        "https://cardland51-bot.github.io/jared-hero2-frontend/JARED(HERO1)_Mission_Strategy.pdf";
+      const a = document.createElement("a");
+      a.href = pdfUrl;
+      a.target = "_blank";
+      a.download = "JARED(HERO1)_Mission_Strategy.pdf";
+      a.click();
+    };
+  })();
+  </script>
 </body>
 </html>
+
 
 
 
