@@ -11,8 +11,8 @@
       background: #0c1611; color: #e9f3ee;
       height: 100%; overflow: hidden;
       font-family: system-ui, sans-serif;
+      -webkit-user-select: none; user-select: none;
     }
-
     header.topbar {
       position: fixed; top: 0; width: 100%;
       background: #0f1b16; border-bottom: 1px solid #124d3b;
@@ -26,7 +26,6 @@
       transform: translate(-50%, -50%);
       text-align: center; z-index: 10; color: #00ffb3;
     }
-
     main#centerUI h1 { margin-bottom: 1rem; }
 
     button.btn {
@@ -44,6 +43,24 @@
       transition: box-shadow 0.5s ease;
     }
 
+    /* AI Tip window below photo */
+    .ai-tip {
+      display: none;
+      margin-top: 0.7rem;
+      font-size: 0.9rem;
+      background: rgba(0, 255, 179, 0.12);
+      border: 1px solid rgba(0,255,179,0.3);
+      color: #b7fff0;
+      border-radius: 10px;
+      padding: 0.6rem 1rem;
+      box-shadow: 0 0 18px rgba(0,255,179,0.15);
+      animation: fadeIn 0.6s ease forwards;
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(8px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
     /* Talk button area */
     .talk-zone {
       position: fixed;
@@ -57,8 +74,7 @@
       background: #00b37a;
       border: none; border-radius: 50%;
       width: 90px; height: 90px;
-      color: #fff; font-weight: 700;
-      font-size: 0.95rem; cursor: pointer;
+      cursor: pointer;
       box-shadow: 0 0 15px rgba(0,255,179,0.4);
       transition: all 0.25s ease;
     }
@@ -67,7 +83,7 @@
       box-shadow: 0 0 25px rgba(0,255,179,0.7);
     }
     #talkBtn.listening {
-      background: #00ffb3; color: #00281a;
+      background: #00ffb3;
       transform: scale(1.12);
       box-shadow: 0 0 40px rgba(0,255,179,0.9);
     }
@@ -97,11 +113,12 @@
     <button class="btn" id="uploadBtn">Upload Photo</button>
     <button class="btn" id="analyzeBtn" style="display:none;">Analyze</button>
     <img id="preview" alt="Preview" />
+    <div class="ai-tip" id="aiTip"></div>
   </main>
 
   <!-- Bottom Talk Button -->
   <div class="talk-zone">
-    <button id="talkBtn">Hold to Talk</button>
+    <button id="talkBtn"></button>
     <p>landscaping advice from JARED</p>
   </div>
 
@@ -112,12 +129,12 @@
   <script>
   (() => {
     const API = "https://jared-hero2-backend.onrender.com";
-
     const uploadBtn = document.getElementById("uploadBtn");
     const analyzeBtn = document.getElementById("analyzeBtn");
     const downloadBtn = document.getElementById("downloadDeck");
     const preview = document.getElementById("preview");
     const talkBtn = document.getElementById("talkBtn");
+    const aiTip = document.getElementById("aiTip");
 
     const hidden = document.createElement("input");
     hidden.type = "file";
@@ -140,6 +157,7 @@
       preview.src = url;
       preview.style.display = "block";
       analyzeBtn.style.display = "inline-block";
+      aiTip.style.display = "none";
     };
 
     // Analyze
@@ -150,7 +168,7 @@
       }
       analyzeBtn.disabled = true;
 
-      // Glow while analyzing
+      // glowing pulse
       preview.style.boxShadow = "0 0 30px 8px rgba(0,255,179,0.7)";
       let glow = true;
       const glowPulse = setInterval(() => {
@@ -164,19 +182,23 @@
         preview.style.boxShadow = "0 0 20px rgba(0,255,179,0.25)";
       }, 15000);
 
+      aiTip.style.display = "block";
+      aiTip.textContent = "Analyzing image... please wait.";
+
       try {
         const fd = new FormData();
         fd.append("file", lastFile);
         const res = await fetch(`${API}/analyze-image`, { method: "POST", body: fd });
         const data = await res.json();
-        alert("AI Summary:\n\n" + (data.summary || "No summary returned."));
+        aiTip.textContent = data.summary || "No summary returned.";
+        await speak(data.summary);
       } catch {
-        alert("Error analyzing image.");
+        aiTip.textContent = "Error analyzing image.";
       }
       analyzeBtn.disabled = false;
     };
 
-    // Talk button setup
+    // Talk Button (no text selectable)
     if ("webkitSpeechRecognition" in window) {
       recognition = new webkitSpeechRecognition();
       recognition.continuous = false;
@@ -197,10 +219,9 @@
             body: JSON.stringify({ text })
           });
           const data = await res.json();
-          alert("JARED:\n\n" + (data.content || "No response"));
-          await speak(data.content);
+          await speak(data.content || "No response");
         } catch {
-          alert("JARED unavailable.");
+          await speak("JARED unavailable right now.");
         }
       };
     }
@@ -251,6 +272,7 @@
   </script>
 </body>
 </html>
+
 
 
 
