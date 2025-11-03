@@ -15,7 +15,6 @@
       overflow: hidden;
       font-family: system-ui, sans-serif;
     }
-
     header.topbar {
       position: fixed;
       top: 0;
@@ -44,6 +43,58 @@
       z-index: 1;
     }
 
+    /* --- TALK AREA --- */
+    .talk-area {
+      position: fixed;
+      bottom: 110px;
+      left: 50%;
+      transform: translateX(-50%);
+      text-align: center;
+      color: #00ffb3;
+      z-index: 50;
+      font-family: system-ui, sans-serif;
+    }
+
+    .talk-area h2 {
+      margin: 0;
+      font-size: 1.2rem;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+    }
+
+    .talk-area p {
+      margin: 2px 0 12px 0;
+      font-size: 0.9rem;
+      color: #85f3d5;
+      opacity: 0.9;
+    }
+
+    #talkBtn {
+      background: #00b37a;
+      color: #fff;
+      border: none;
+      border-radius: 50%;
+      width: 80px;
+      height: 80px;
+      font-size: 1.5rem;
+      line-height: 0;
+      cursor: pointer;
+      box-shadow: 0 0 20px rgba(0,255,179,0.4);
+      transition: transform 0.3s, background 0.3s, box-shadow 0.3s;
+    }
+
+    #talkBtn.listening {
+      background: #00ffb3;
+      color: #00281a;
+      transform: scale(1.1);
+      box-shadow: 0 0 25px rgba(0,255,179,0.8);
+    }
+
+    #talkBtn:hover {
+      transform: scale(1.05);
+    }
+
+    /* --- CENTER UI --- */
     main#centerUI {
       position: absolute;
       top: 50%;
@@ -85,29 +136,6 @@
       box-shadow: 0 0 20px rgba(0,255,179,0.2);
     }
 
-    #floatingTips {
-      position: absolute;
-      bottom: 10%;
-      left: 50%;
-      transform: translateX(-50%);
-      width: 100%;
-      pointer-events: none;
-      z-index: 9;
-    }
-    .tip {
-      position: absolute;
-      bottom: 0;
-      color: #00ffb3;
-      font-size: 0.9rem;
-      opacity: 0;
-      animation: floatUp 6s ease-in-out infinite;
-    }
-    @keyframes floatUp {
-      0% { transform: translateY(0); opacity: 0; }
-      10% { opacity: 1; }
-      100% { transform: translateY(-150px); opacity: 0; }
-    }
-
     footer.footer {
       position: fixed;
       bottom: 0;
@@ -125,26 +153,8 @@
       padding: 0.5rem 1.2rem;
       border-radius: 8px;
       cursor: pointer;
-      transition: background 0.3s, box-shadow 0.4s;
       font-weight: 600;
       font-size: 1rem;
-    }
-    footer .btn:hover {
-      background: #00ffb3;
-      color: #00281a;
-      box-shadow: 0 0 12px rgba(0, 255, 179, 0.4);
-    }
-
-    @keyframes listeningGlow {
-      0%, 100% { box-shadow: 0 0 4px rgba(0,255,179,0.4), 0 0 8px rgba(0,255,179,0.3); }
-      50% { box-shadow: 0 0 14px rgba(0,255,179,0.8), 0 0 28px rgba(0,255,179,0.4); }
-    }
-    .listening { animation: listeningGlow 1.4s ease-in-out infinite; }
-
-    @media (max-width: 700px) {
-      main#centerUI h1.coreText { font-size: 1.4rem; }
-      main#centerUI button { font-size: 0.9rem; }
-      footer.footer { padding: 0.5rem; }
     }
   </style>
 </head>
@@ -162,7 +172,12 @@
     <img id="preview" alt="Preview" style="display:none;" />
   </main>
 
-  <div id="floatingTips"></div>
+  <!-- Talk button area -->
+  <div class="talk-area">
+    <h2>Talk to Jared</h2>
+    <p>for landscaping advice</p>
+    <button id="talkBtn">🎙️</button>
+  </div>
 
   <footer class="footer">
     <button class="btn" id="downloadDeck">Download Pitch Deck</button>
@@ -171,33 +186,98 @@
   <script>
     (() => {
       const API = "https://jared-hero2-backend.onrender.com";
+      const talkBtn = document.getElementById("talkBtn");
       const c = document.getElementById("stage");
       const ctx = c.getContext("2d");
-      let W=0,H=0,DPR=1,speechAudio=null,recognition=null,canListen=true;
-      const state={talk:false,thinking:false,message:"Hold to talk • Upload a photo",img:null,fullscreen:false};
-      function size(){DPR=Math.max(1,Math.min(2,devicePixelRatio||1));W=c.clientWidth;H=c.clientHeight;c.width=Math.floor(W*DPR);c.height=Math.floor(H*DPR);ctx.setTransform(DPR,0,0,DPR,0,0);}
-      addEventListener("resize",size,{passive:true});size();
-      function rr(x,y,w,h,r){r=Math.min(r,w/2,h/2);ctx.beginPath();ctx.moveTo(x+r,y);ctx.arcTo(x+w,y,x+w,y+h,r);ctx.arcTo(x+w,y+h,x,y+h,r);ctx.arcTo(x,y+h,x,y,r);ctx.arcTo(x,y,x+w,y,r);ctx.closePath();}
-      function grid(){ctx.save();ctx.globalAlpha=0.07;ctx.strokeStyle="#6bc7ab22";const s=64;ctx.beginPath();for(let x=0;x<W;x+=s){ctx.moveTo(x,0);ctx.lineTo(x,H);}for(let y=0;y<H;y+=s){ctx.moveTo(0,y);ctx.lineTo(W,y);}ctx.stroke();ctx.restore();}
-      const hidden=document.createElement("input");hidden.type="file";hidden.accept="image/*";hidden.style.display="none";document.body.appendChild(hidden);
-      const uiCenter=document.getElementById("centerUI"),preview=document.getElementById("preview"),uploadBtn=document.getElementById("uploadBtn"),floatingTips=document.getElementById("floatingTips");
-      uploadBtn.addEventListener("click",()=>hidden.click());
-      hidden.addEventListener("change",async()=>{const f=hidden.files[0];if(!f)return;const u=URL.createObjectURL(f);preview.src=u;preview.style.display="block";uiCenter.querySelector("h1").style.display="none";uploadBtn.style.display="none";
-      const tips=["Tip: Lighting helps AI read edges","Tip: Keep shrubs visible","Tip: Use landscape view"];tips.forEach((text,i)=>{const el=document.createElement("div");el.className="tip";el.textContent=text;el.style.left=`${40+i*20}%`;el.style.animationDelay=`${i*2}s`;floatingTips.appendChild(el);});
-      state.thinking=true;try{const fd=new FormData();fd.append("file",f);const r=await fetch(`${API}/analyze-image`,{method:"POST",body:fd});const j=await r.json();state.message=j.summary||"No summary";state.thinking=false;await speak(state.message);}catch{state.thinking=false;state.message="Analysis failed.";}});
-      if("webkitSpeechRecognition" in window){recognition=new webkitSpeechRecognition();recognition.continuous=false;recognition.lang="en-US";recognition.interimResults=false;
-        recognition.onstart=()=>{state.message="🎙️ Listening...";document.body.classList.add("listening");};
-        recognition.onresult=async(e)=>{const text=e.results[0][0].transcript;await sendToJared(text);};
-        recognition.onerror=()=>{state.message="Mic error.";canListen=true;document.body.classList.remove("listening");};
-        recognition.onend=()=>{state.talk=false;canListen=true;document.body.classList.remove("listening");};
+      let recognition = null, canListen = true, speechAudio = null;
+
+      // Background grid
+      function grid() {
+        ctx.save();
+        ctx.globalAlpha = 0.07;
+        ctx.strokeStyle = "#6bc7ab22";
+        const s = 64;
+        ctx.beginPath();
+        for (let x = 0; x < c.width; x += s) {
+          ctx.moveTo(x, 0); ctx.lineTo(x, c.height);
+        }
+        for (let y = 0; y < c.height; y += s) {
+          ctx.moveTo(0, y); ctx.lineTo(c.width, y);
+        }
+        ctx.stroke();
+        ctx.restore();
       }
-      async function sendToJared(text){if(!canListen)return;canListen=false;try{state.thinking=true;const res=await fetch(`${API}/inference`,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({text})});const data=await res.json();state.message=data.content||"No response";await speak(state.message);}catch{state.message="Jared unavailable.";}finally{state.thinking=false;canListen=true;}}
-      async function speak(text){try{if(!text)return;if(speechAudio){speechAudio.pause();speechAudio=null;}const r=await fetch(`${API}/speak`,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({text})});if(!r.ok)throw new Error("TTS failed");const b=await r.blob();const u=URL.createObjectURL(b);speechAudio=new Audio(u);
-        speechAudio.onplay=()=>{state.thinking=false;state.message="🧠 Jared is speaking...";canListen=false;};
-        speechAudio.onended=()=>{canListen=true;state.message="Hold to talk • Upload a photo";};speechAudio.play();}catch{canListen=true;}}
-      function draw(){ctx.clearRect(0,0,W,H);grid();}
-      function loop(){draw();requestAnimationFrame(loop);}loop();
-      document.getElementById("downloadDeck").addEventListener("click",()=>{const blob=new Blob(["Pitch deck placeholder."],{type:"application/pdf"});const url=URL.createObjectURL(blob);const a=document.createElement("a");a.href=url;a.download="WorkRockPro-PitchDeck.pdf";a.click();URL.revokeObjectURL(url);});
+      function size() {
+        c.width = innerWidth;
+        c.height = innerHeight;
+      }
+      addEventListener("resize", size);
+      size();
+      function loop() {
+        ctx.clearRect(0, 0, c.width, c.height);
+        grid();
+        requestAnimationFrame(loop);
+      }
+      loop();
+
+      // Speech recognition setup
+      if ("webkitSpeechRecognition" in window) {
+        recognition = new webkitSpeechRecognition();
+        recognition.continuous = false;
+        recognition.lang = "en-US";
+        recognition.interimResults = false;
+
+        recognition.onstart = () => talkBtn.classList.add("listening");
+        recognition.onend = () => {
+          talkBtn.classList.remove("listening");
+          canListen = true;
+        };
+        recognition.onresult = async (event) => {
+          const text = event.results[0][0].transcript;
+          await sendToJared(text);
+        };
+      }
+
+      talkBtn.addEventListener("click", () => {
+        if (!canListen) return;
+        if (recognition) {
+          canListen = false;
+          recognition.start();
+        } else {
+          alert("Speech recognition not supported.");
+        }
+      });
+
+      async function sendToJared(text) {
+        try {
+          const res = await fetch(`${API}/inference`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ text }),
+          });
+          const data = await res.json();
+          await speak(data.content || "No response");
+        } catch {
+          await speak("Jared unavailable.");
+        }
+      }
+
+      async function speak(text) {
+        try {
+          const r = await fetch(`${API}/speak`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ text }),
+          });
+          if (!r.ok) throw new Error();
+          const b = await r.blob();
+          const u = URL.createObjectURL(b);
+          speechAudio = new Audio(u);
+          speechAudio.play();
+        } catch (err) {
+          console.error("Speech error", err);
+        }
+      }
     })();
   </script>
 </body>
