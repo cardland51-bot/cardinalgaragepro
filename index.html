@@ -7,74 +7,81 @@
   <meta name="theme-color" content="#0c1611" />
   <style>
     html, body {
-      margin: 0;
-      padding: 0;
-      background: #0c1611;
-      color: #e9f3ee;
-      height: 100%;
-      overflow: hidden;
+      margin: 0; padding: 0;
+      background: #0c1611; color: #e9f3ee;
+      height: 100%; overflow: hidden;
       font-family: system-ui, sans-serif;
     }
+
     header.topbar {
-      position: fixed;
-      top: 0;
-      width: 100%;
-      background: #0f1b16;
-      border-bottom: 1px solid #124d3b;
-      text-align: center;
-      padding: 0.6rem 0;
+      position: fixed; top: 0; width: 100%;
+      background: #0f1b16; border-bottom: 1px solid #124d3b;
+      text-align: center; padding: 0.6rem 0;
       z-index: 1000;
     }
-    header .brand {
-      color: #00ffb3;
-      font-weight: 700;
-      letter-spacing: 1px;
-    }
+    header .brand { color: #00ffb3; font-weight: 700; letter-spacing: 1px; }
+
     main#centerUI {
-      position: absolute;
-      top: 50%;
-      left: 50%;
+      position: absolute; top: 45%; left: 50%;
       transform: translate(-50%, -50%);
-      text-align: center;
-      z-index: 10;
-      color: #00ffb3;
+      text-align: center; z-index: 10; color: #00ffb3;
     }
-    main#centerUI h1 {
-      margin-bottom: 1rem;
-    }
+
+    main#centerUI h1 { margin-bottom: 1rem; }
+
     button.btn {
-      background: #00b37a;
-      border: none;
-      color: #fff;
-      padding: 0.6rem 1.4rem;
-      border-radius: 8px;
-      font-size: 1rem;
-      font-weight: 600;
-      cursor: pointer;
-      margin: 0.3rem;
-      transition: background 0.3s;
+      background: #00b37a; border: none; color: #fff;
+      padding: 0.6rem 1.4rem; border-radius: 8px;
+      font-size: 1rem; font-weight: 600; cursor: pointer;
+      margin: 0.3rem; transition: background 0.3s;
     }
-    button.btn:hover {
-      background: #00ffb3;
-      color: #00281a;
-    }
+    button.btn:hover { background: #00ffb3; color: #00281a; }
+
     #preview {
-      display: none;
-      margin-top: 1rem;
-      width: 260px;
-      border-radius: 12px;
-      border: 2px solid #00b37a;
+      display: none; margin-top: 1rem; width: 260px;
+      border-radius: 12px; border: 2px solid #00b37a;
       box-shadow: 0 0 20px rgba(0,255,179,0.25);
       transition: box-shadow 0.5s ease;
     }
-    footer.footer {
+
+    /* Talk button area */
+    .talk-zone {
       position: fixed;
-      bottom: 0;
-      width: 100%;
-      background: #0f1b16;
-      border-top: 1px solid #124d3b;
+      bottom: 90px;
+      left: 50%;
+      transform: translateX(-50%);
       text-align: center;
-      padding: 0.75rem 0;
+      z-index: 900;
+    }
+    #talkBtn {
+      background: #00b37a;
+      border: none; border-radius: 50%;
+      width: 90px; height: 90px;
+      color: #fff; font-weight: 700;
+      font-size: 0.95rem; cursor: pointer;
+      box-shadow: 0 0 15px rgba(0,255,179,0.4);
+      transition: all 0.25s ease;
+    }
+    #talkBtn:hover {
+      transform: scale(1.05);
+      box-shadow: 0 0 25px rgba(0,255,179,0.7);
+    }
+    #talkBtn.listening {
+      background: #00ffb3; color: #00281a;
+      transform: scale(1.12);
+      box-shadow: 0 0 40px rgba(0,255,179,0.9);
+    }
+    .talk-zone p {
+      margin-top: 0.5rem;
+      font-size: 0.9rem;
+      color: #9decd5;
+      letter-spacing: 0.04em;
+    }
+
+    footer.footer {
+      position: fixed; bottom: 0; width: 100%;
+      background: #0f1b16; border-top: 1px solid #124d3b;
+      text-align: center; padding: 0.75rem 0;
       z-index: 1000;
     }
   </style>
@@ -92,6 +99,12 @@
     <img id="preview" alt="Preview" />
   </main>
 
+  <!-- Bottom Talk Button -->
+  <div class="talk-zone">
+    <button id="talkBtn">Hold to Talk</button>
+    <p>landscaping advice from JARED</p>
+  </div>
+
   <footer class="footer">
     <button class="btn" id="downloadDeck">Download Pitch Deck</button>
   </footer>
@@ -104,6 +117,7 @@
     const analyzeBtn = document.getElementById("analyzeBtn");
     const downloadBtn = document.getElementById("downloadDeck");
     const preview = document.getElementById("preview");
+    const talkBtn = document.getElementById("talkBtn");
 
     const hidden = document.createElement("input");
     hidden.type = "file";
@@ -112,11 +126,12 @@
     document.body.appendChild(hidden);
 
     let lastFile = null;
+    let recognition = null;
+    let canListen = true;
+    let speechAudio = null;
 
-    // Upload button opens file picker
+    // Upload
     uploadBtn.onclick = () => hidden.click();
-
-    // When file chosen
     hidden.onchange = () => {
       const file = hidden.files[0];
       if (!file) return;
@@ -127,7 +142,7 @@
       analyzeBtn.style.display = "inline-block";
     };
 
-    // Analyze button → send to backend
+    // Analyze
     analyzeBtn.onclick = async () => {
       if (!lastFile) {
         alert("Please upload a photo first.");
@@ -135,7 +150,7 @@
       }
       analyzeBtn.disabled = true;
 
-      // Pulse glow while analyzing
+      // Glow while analyzing
       preview.style.boxShadow = "0 0 30px 8px rgba(0,255,179,0.7)";
       let glow = true;
       const glowPulse = setInterval(() => {
@@ -144,7 +159,6 @@
           : "0 0 30px 6px rgba(0,255,179,0.5)";
         glow = !glow;
       }, 800);
-
       setTimeout(() => {
         clearInterval(glowPulse);
         preview.style.boxShadow = "0 0 20px rgba(0,255,179,0.25)";
@@ -156,14 +170,74 @@
         const res = await fetch(`${API}/analyze-image`, { method: "POST", body: fd });
         const data = await res.json();
         alert("AI Summary:\n\n" + (data.summary || "No summary returned."));
-      } catch (err) {
+      } catch {
         alert("Error analyzing image.");
       }
-
       analyzeBtn.disabled = false;
     };
 
-    // Download pitch deck
+    // Talk button setup
+    if ("webkitSpeechRecognition" in window) {
+      recognition = new webkitSpeechRecognition();
+      recognition.continuous = false;
+      recognition.lang = "en-US";
+      recognition.interimResults = false;
+
+      recognition.onstart = () => talkBtn.classList.add("listening");
+      recognition.onend = () => {
+        talkBtn.classList.remove("listening");
+        canListen = true;
+      };
+      recognition.onresult = async (e) => {
+        const text = e.results[0][0].transcript;
+        try {
+          const res = await fetch(`${API}/inference`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ text })
+          });
+          const data = await res.json();
+          alert("JARED:\n\n" + (data.content || "No response"));
+          await speak(data.content);
+        } catch {
+          alert("JARED unavailable.");
+        }
+      };
+    }
+
+    talkBtn.onmousedown = talkBtn.ontouchstart = () => {
+      if (!recognition) {
+        alert("Speech recognition not supported in this browser.");
+        return;
+      }
+      if (!canListen) return;
+      canListen = false;
+      recognition.start();
+    };
+    talkBtn.onmouseup = talkBtn.ontouchend = () => {
+      if (recognition) recognition.stop();
+    };
+
+    async function speak(text) {
+      if (!text) return;
+      try {
+        if (speechAudio) { speechAudio.pause(); speechAudio = null; }
+        const r = await fetch(`${API}/speak`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ text })
+        });
+        if (!r.ok) throw new Error("TTS failed");
+        const b = await r.blob();
+        const u = URL.createObjectURL(b);
+        speechAudio = new Audio(u);
+        speechAudio.play();
+      } catch (err) {
+        console.log("TTS error:", err);
+      }
+    }
+
+    // Download PDF
     downloadBtn.onclick = () => {
       const pdfUrl =
         "https://cardland51-bot.github.io/jared-hero2-frontend/JARED(HERO1)_Mission_Strategy.pdf";
