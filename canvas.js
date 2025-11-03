@@ -6,7 +6,7 @@
   let W = 0, H = 0, DPR = 1;
   let speechAudio = null;
   let recognition = null;
-  let canListen = true; // ✅ new control flag to prevent overlap
+  let canListen = true;
 
   const state = {
     talk: false,
@@ -16,7 +16,7 @@
     fullscreen: false,
   };
 
-  // ====== Canvas sizing and layout ======
+  // ====== Canvas sizing ======
   function size() {
     DPR = Math.max(1, Math.min(2, devicePixelRatio || 1));
     W = c.clientWidth;
@@ -28,6 +28,7 @@
   addEventListener("resize", size, { passive: true });
   size();
 
+  // ====== UI drawing helpers ======
   function rr(x, y, w, h, r) {
     r = Math.min(r, w / 2, h / 2);
     ctx.beginPath();
@@ -39,9 +40,9 @@
     ctx.closePath();
   }
 
-  function button(x, y, w, h, t, a) {
+  function button(x, y, w, h, t, active) {
     rr(x, y, w, h, 14);
-    ctx.fillStyle = a ? "#12805f" : "#0f1b16";
+    ctx.fillStyle = active ? "#12805f" : "#0f1b16";
     ctx.fill();
     ctx.strokeStyle = "#1b2a23";
     ctx.stroke();
@@ -58,12 +59,30 @@
     full: { x: 0, y: 20, w: 130, h: 40, l: "Fullscreen" },
   };
 
+  // ====== Responsive layout ======
   function layout() {
-    ui.talk.y = H - 80;
-    ui.up.y = H - 80;
-    ui.full.x = W - 150;
+    const isMobile = window.innerWidth < 700;
+    const bottomPadding = isMobile ? 100 : 80;
+    const buttonSpacing = isMobile ? 10 : 30;
+
+    if (isMobile) {
+      const totalWidth = ui.talk.w + buttonSpacing + ui.up.w;
+      const startX = (W - totalWidth) / 2;
+      ui.talk.x = startX;
+      ui.up.x = startX + ui.talk.w + buttonSpacing;
+      ui.full.x = W - ui.full.w - 20;
+    } else {
+      ui.talk.x = 20;
+      ui.up.x = 210;
+      ui.full.x = W - 150;
+    }
+
+    ui.talk.y = H - bottomPadding;
+    ui.up.y = H - bottomPadding;
+    ui.full.y = 20;
   }
 
+  // ====== Bubble text ======
   function bubble(txt) {
     if (!txt) return;
     const pad = 14, maxW = Math.min(520, W - 40);
@@ -80,20 +99,20 @@
         lines[i] = t;
       }
     }
-    const tw = maxW + pad * 2,
-      th = lines.length * 20 + pad * 2,
-      x = 20,
-      y = H - th - 110;
-    rr(x, y, tw, th, 14);
+    const tw = maxW + pad * 2;
+    const th = lines.length * 20 + pad * 2;
+    const y = H - th - 110;
+    rr(20, y, tw, th, 14);
     ctx.fillStyle = "#0e1914";
     ctx.fill();
     ctx.strokeStyle = "#1b2a23";
     ctx.stroke();
     ctx.fillStyle = "#dff1ea";
-    lines.forEach((ln, j) => ctx.fillText(ln, x + pad, y + pad + 18 * j));
+    lines.forEach((ln, j) => ctx.fillText(ln, 34, y + pad + 18 * j));
     ctx.restore();
   }
 
+  // ====== Grid background ======
   function grid() {
     ctx.save();
     ctx.globalAlpha = 0.07;
@@ -137,11 +156,12 @@
       const r = await fetch(`${API}/analyze-image`, { method: "POST", body: fd });
       const j = await r.json();
       state.message = j.summary || "No summary";
+      state.thinking = false;
       await speak(state.message);
     } catch {
+      state.thinking = false;
       state.message = "Analysis failed.";
     }
-    state.thinking = false;
   });
 
   // ====== Voice Recognition ======
@@ -153,7 +173,6 @@
 
     recognition.onstart = () => {
       state.message = "🎙️ Listening...";
-      console.log("🎙️ Listening...");
     };
     recognition.onresult = async (event) => {
       const text = event.results[0][0].transcript;
@@ -185,7 +204,6 @@
         body: JSON.stringify({ text }),
       });
       const data = await res.json();
-      console.log("🤖 Jared says:", data.content);
       state.message = data.content || "No response";
       await speak(state.message);
     } catch (err) {
@@ -197,6 +215,7 @@
     }
   }
 
+  // ====== Speech playback ======
   async function speak(text) {
     try {
       if (!text) return;
@@ -204,26 +223,37 @@
         speechAudio.pause();
         speechAudio = null;
       }
+
       const r = await fetch(`${API}/speak`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ text }),
       });
       if (!r.ok) throw new Error("TTS failed");
+
       const b = await r.blob();
       const u = URL.createObjectURL(b);
       speechAudio = new Audio(u);
-      speechAudio.play();
-      speechAudio.onended = () => {
-        canListen = true; // ✅ Allow next talk after speech finishes
+
+      speechAudio.onplay = () => {
+        state.thinking = false;
+        state.message = "🧠 Jared is speaking...";
+        canListen = false;
       };
+
+      speechAudio.onended = () => {
+        canListen = true;
+        state.message = "Hold to talk • Upload a photo";
+      };
+
+      speechAudio.play();
     } catch (err) {
       console.error("Speech error:", err);
       canListen = true;
     }
   }
 
-  // ====== Canvas Button Controls ======
+  // ====== Canvas Controls ======
   c.addEventListener("pointerdown", (e) => {
     const x = e.clientX, y = e.clientY;
     if (
@@ -260,7 +290,7 @@
     }
   });
 
-  // ====== Drawing Loop ======
+  // ====== Draw Loop ======
   function draw() {
     layout();
     ctx.clearRect(0, 0, W, H);
@@ -299,7 +329,7 @@
   }
   requestAnimationFrame(loop);
 
-  // ====== Pitch Deck Download Placeholder ======
+  // ====== Download Deck Placeholder ======
   document.getElementById("downloadDeck").addEventListener("click", () => {
     const blob = new Blob(["Pitch deck placeholder. Replace with your PDF."], {
       type: "application/pdf",
@@ -312,3 +342,4 @@
     URL.revokeObjectURL(url);
   });
 })();
+
