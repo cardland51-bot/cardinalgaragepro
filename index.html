@@ -6,65 +6,6 @@
   <title>JARED • HERO2</title>
   <meta name="theme-color" content="#0c1611" />
   <link rel="stylesheet" href="./style.css" />
-  <style>
-    html, body {
-      margin: 0;
-      padding: 0;
-      background: #0c1611;
-      color: #e9f3ee;
-      height: 100%;
-      overflow: hidden;
-      font-family: system-ui, sans-serif;
-    }
-    header.topbar {
-      position: fixed;
-      top: 0;
-      width: 100%;
-      background: #0f1b16;
-      border-bottom: 1px solid #124d3b;
-      text-align: center;
-      padding: 0.6rem 0;
-      z-index: 1000;
-    }
-    header .brand {
-      color: #00ffb3;
-      font-weight: 700;
-      letter-spacing: 1px;
-    }
-    canvas#stage {
-      display: block;
-      position: absolute;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background: radial-gradient(circle at center, #10251c 0%, #07110d 100%);
-    }
-    footer.footer {
-      position: fixed;
-      bottom: 0;
-      width: 100%;
-      background: #0f1b16;
-      border-top: 1px solid #124d3b;
-      text-align: center;
-      padding: 0.75rem 0;
-      z-index: 1000;
-    }
-    footer .btn {
-      background: #00b37a;
-      border: none;
-      color: #fff;
-      padding: 0.5rem 1.2rem;
-      border-radius: 8px;
-      cursor: pointer;
-      transition: background 0.3s;
-      font-weight: 600;
-    }
-    footer .btn:hover {
-      background: #00ffb3;
-      color: #00281a;
-    }
-  </style>
 </head>
 
 <body>
@@ -86,9 +27,15 @@
     <button class="btn" id="downloadDeck">Download Pitch Deck</button>
   </footer>
 
+  <script>
+    window.API_BASE =
+      window.location.hostname.includes("localhost") || window.location.hostname.includes("127.0.0.1")
+        ? "http://localhost:3001"
+        : "https://jared-hero2-backend.onrender.com";
+  </script>
+
   <script src="./canvas.js"></script>
 </body>
-
 </html>
 
 
