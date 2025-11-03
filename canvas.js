@@ -16,7 +16,7 @@
     fullscreen: false,
   };
 
-  // Sizing
+  // ====== Canvas Sizing ======
   function size() {
     DPR = Math.max(1, Math.min(2, devicePixelRatio || 1));
     W = c.clientWidth;
@@ -28,7 +28,7 @@
   addEventListener("resize", size, { passive: true });
   size();
 
-  // Helpers
+  // ====== Rounded Rectangle Helper ======
   function rr(x, y, w, h, r) {
     r = Math.min(r, w / 2, h / 2);
     ctx.beginPath();
@@ -40,28 +40,54 @@
     ctx.closePath();
   }
 
-  const ui = { talk: { x: 30, y: 0, w: 180, h: 52, l: "Hold to Talk" }, full: { x: 0, y: 20, w: 130, h: 40, l: "Fullscreen" } };
+  // ====== Draw Button ======
+  function button(x, y, w, h, t, a) {
+    rr(x, y, w, h, 14);
+    ctx.fillStyle = a ? "#12805f" : "#0f1b16";
+    ctx.fill();
+    ctx.strokeStyle = "#1b2a23";
+    ctx.stroke();
+    ctx.fillStyle = "#e9f3ee";
+    ctx.font = "600 16px system-ui";
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+    ctx.fillText(t, x + w / 2, y + h / 2);
+  }
+
+  // ====== Layout ======
+  const ui = {
+    talk: { x: 30, y: 0, w: 180, h: 52, l: "Hold to Talk" },
+    full: { x: 0, y: 20, w: 130, h: 40, l: "Fullscreen" },
+  };
 
   function layout() {
     const isMobile = window.innerWidth < 700;
     const bottomPadding = isMobile ? 140 : 100;
-    if (isMobile) ui.full.x = W - ui.full.w - 24; else ui.full.x = W - 160;
     ui.talk.y = H - bottomPadding;
     ui.full.y = 30;
+    ui.full.x = isMobile ? W - ui.full.w - 24 : W - 160;
   }
 
+  // ====== Background Grid ======
   function grid() {
     ctx.save();
     ctx.globalAlpha = 0.07;
     ctx.strokeStyle = "#6bc7ab22";
     const s = 64;
     ctx.beginPath();
-    for (let x = 0; x < W; x += s) { ctx.moveTo(x, 0); ctx.lineTo(x, H); }
-    for (let y = 0; y < H; y += s) { ctx.moveTo(0, y); ctx.lineTo(W, y); }
-    ctx.stroke(); ctx.restore();
+    for (let x = 0; x < W; x += s) {
+      ctx.moveTo(x, 0);
+      ctx.lineTo(x, H);
+    }
+    for (let y = 0; y < H; y += s) {
+      ctx.moveTo(0, y);
+      ctx.lineTo(W, y);
+    }
+    ctx.stroke();
+    ctx.restore();
   }
 
-  // Upload handler
+  // ====== Upload Handler ======
   const hidden = document.createElement("input");
   hidden.type = "file";
   hidden.accept = "image/*";
@@ -84,7 +110,11 @@
     uploadBtn.style.display = "none";
 
     // Floating tips
-    const tips = ["Tip: Lighting helps AI read edges", "Tip: Keep shrubs visible", "Tip: Use landscape view"];
+    const tips = [
+      "Tip: Lighting helps AI read edges",
+      "Tip: Keep shrubs visible",
+      "Tip: Use landscape view",
+    ];
     tips.forEach((text, i) => {
       const el = document.createElement("div");
       el.className = "tip";
@@ -110,7 +140,7 @@
     }
   });
 
-  // Voice recognition
+  // ====== Voice Recognition ======
   if ("webkitSpeechRecognition" in window) {
     recognition = new webkitSpeechRecognition();
     recognition.continuous = false;
@@ -125,11 +155,21 @@
       const text = event.results[0][0].transcript;
       await sendToJared(text);
     };
-    recognition.onerror = () => { state.message = "Mic error."; canListen = true; document.body.classList.remove("listening"); };
-    recognition.onend = () => { state.talk = false; canListen = true; document.body.classList.remove("listening"); };
-  } else alert("Speech recognition not supported in this browser.");
+    recognition.onerror = () => {
+      state.message = "Mic error.";
+      canListen = true;
+      document.body.classList.remove("listening");
+    };
+    recognition.onend = () => {
+      state.talk = false;
+      canListen = true;
+      document.body.classList.remove("listening");
+    };
+  } else {
+    alert("Speech recognition not supported in this browser.");
+  }
 
-  // Communication
+  // ====== Backend Communication ======
   async function sendToJared(text) {
     if (!canListen) return;
     canListen = false;
@@ -143,14 +183,21 @@
       const data = await res.json();
       state.message = data.content || "No response";
       await speak(state.message);
-    } catch { state.message = "Jared unavailable."; }
-    finally { state.thinking = false; canListen = true; }
+    } catch {
+      state.message = "Jared unavailable.";
+    } finally {
+      state.thinking = false;
+      canListen = true;
+    }
   }
 
   async function speak(text) {
     try {
       if (!text) return;
-      if (speechAudio) { speechAudio.pause(); speechAudio = null; }
+      if (speechAudio) {
+        speechAudio.pause();
+        speechAudio = null;
+      }
       const r = await fetch(`${API}/speak`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -160,37 +207,77 @@
       const b = await r.blob();
       const u = URL.createObjectURL(b);
       speechAudio = new Audio(u);
-      speechAudio.onplay = () => { state.thinking = false; state.message = "🧠 Jared is speaking..."; canListen = false; };
-      speechAudio.onended = () => { canListen = true; state.message = "Hold to talk • Upload a photo"; };
+      speechAudio.onplay = () => {
+        state.thinking = false;
+        state.message = "🧠 Jared is speaking...";
+        canListen = false;
+      };
+      speechAudio.onended = () => {
+        canListen = true;
+        state.message = "Hold to talk • Upload a photo";
+      };
       speechAudio.play();
-    } catch { canListen = true; }
+    } catch {
+      canListen = true;
+    }
   }
 
-  // Canvas events
+  // ====== Canvas Events ======
   c.addEventListener("pointerdown", (e) => {
     const x = e.clientX, y = e.clientY;
-    if (x > ui.talk.x && x < ui.talk.x + ui.talk.w && y > ui.talk.y && y < ui.talk.y + ui.talk.h) {
-      if (canListen) { state.talk = true; recognition && recognition.start(); }
-    } else if (x > ui.full.x && x < ui.full.x + ui.full.w && y > ui.full.y && y < ui.full.y + ui.full.h) {
-      if (!document.fullscreenElement) document.body.requestFullscreen?.(); else document.exitFullscreen?.();
+    if (
+      x > ui.talk.x &&
+      x < ui.talk.x + ui.talk.w &&
+      y > ui.talk.y &&
+      y < ui.talk.y + ui.talk.h
+    ) {
+      if (canListen) {
+        state.talk = true;
+        recognition && recognition.start();
+      }
+    } else if (
+      x > ui.full.x &&
+      x < ui.full.x + ui.full.w &&
+      y > ui.full.y &&
+      y < ui.full.y + ui.full.h
+    ) {
+      if (!document.fullscreenElement)
+        document.body.requestFullscreen?.();
+      else document.exitFullscreen?.();
       state.fullscreen = !state.fullscreen;
     }
   });
-  c.addEventListener("pointerup", () => { if (state.talk) { state.talk = false; recognition && recognition.stop(); } });
+  c.addEventListener("pointerup", () => {
+    if (state.talk) {
+      state.talk = false;
+      recognition && recognition.stop();
+    }
+  });
 
-  // Draw loop
+  // ====== Draw Loop ======
   function draw() {
     layout();
     ctx.clearRect(0, 0, W, H);
     grid();
+    button(ui.talk.x, ui.talk.y, ui.talk.w, ui.talk.h, ui.talk.l, state.talk);
+    button(ui.full.x, ui.full.y, ui.full.w, ui.full.h, ui.full.l, state.fullscreen);
   }
-  function loop() { draw(); requestAnimationFrame(loop); }
+  function loop() {
+    draw();
+    requestAnimationFrame(loop);
+  }
   loop();
 
-  // Deck
+  // ====== Pitch Deck ======
   document.getElementById("downloadDeck").addEventListener("click", () => {
-    const blob = new Blob(["Pitch deck placeholder. Replace with your PDF."], { type: "application/pdf" });
+    const blob = new Blob(["Pitch deck placeholder. Replace with your PDF."], {
+      type: "application/pdf",
+    });
     const url = URL.createObjectURL(blob);
-    const a = document.createElement("a"); a.href = url; a.download = "WorkRockPro-PitchDeck.pdf"; a.click(); URL.revokeObjectURL(url);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "WorkRockPro-PitchDeck.pdf";
+    a.click();
+    URL.revokeObjectURL(url);
   });
 })();
