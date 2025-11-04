@@ -11,7 +11,7 @@
     --mintL:#9CFFE0; --mint:#34D1A0; --aqua:#2FB0E9; --teal:#0E8B67;
     --text:#E9FFF6; --textDim:rgba(233,255,246,.85);
     --glass:rgba(255,255,255,0.06); --stroke:rgba(156,255,224,0.28);
-    --opaque:#0a1713; --ink:#0f1916;
+    --opaque:#0a1713; --ink:#0f1916; --warn:#f6bf3a;
   }
   html,body{margin:0;height:100%;background:linear-gradient(180deg,var(--bg-top),var(--bg-bot));color:var(--text);font-family:ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial;overscroll-behavior:none}
   *{box-sizing:border-box}
@@ -28,7 +28,7 @@
     background:
       linear-gradient( to right, transparent 0%, rgba(156,255,224,.05) 30%, transparent 60%),
       linear-gradient( to left,  transparent 0%, rgba(47,176,233,.05) 30%, transparent 60%);
-    mix-blend-mode:screen; animation:film2 22s linear infinite; opacity:.7;
+    mix-blend-mode:screen; animation:film2 22s linear infinite; opacity:.65;
   }
   @keyframes film1{to{transform:translateY(-1.5%)}}
   @keyframes film2{to{transform:translateX(-2%)}}
@@ -55,6 +55,9 @@
   .btn.hidden{display:none}
   .btn.locked{opacity:.55;cursor:not-allowed}
   .btn-row{display:flex;gap:10px;flex-wrap:wrap;justify-content:center}
+  .btn.gray{border-color:var(--stroke);color:var(--text)}
+  .btn.mint{border-color:var(--mint);color:var(--mintL)}
+  .btn.warn{border-color:var(--warn);color:var(--warn)}
 
   /* Preview */
   #preview{display:none;position:relative;width:min(94vw,980px);aspect-ratio:16/10;border-radius:16px;overflow:hidden;border:1px solid var(--stroke);box-shadow:0 0 24px rgba(156,255,224,.14)}
@@ -67,7 +70,7 @@
   .mini-spin{width:14px;height:14px;border-radius:50%;border:2px solid rgba(156,255,224,.35);border-top-color:var(--mintL);animation:spin 1s linear infinite}
   @keyframes spin{to{transform:rotate(360deg)}}
 
-  /* Tips overlay under photo (lux bubbles) */
+  /* Tips overlay under photo */
   #tips{position:relative;width:min(94vw,980px);min-height:14px}
   .tip{
     position:relative; opacity:0; transform:translateY(8px);
@@ -90,12 +93,12 @@
   /* Opaque Cardinal Garage */
   #garageDoor{position:fixed;left:0;right:0;top:0;height:0;overflow:hidden;z-index:70;pointer-events:none}
   #garageDoor .door{
-    height:520px;background:var(--opaque);
+    height:540px;background:var(--opaque);
     border-bottom:1px solid var(--stroke);
     box-shadow:0 10px 40px rgba(0,0,0,.55);
     display:flex;flex-direction:column;align-items:center;gap:12px;padding:18px 12px; position:relative; color:var(--text);
   }
-  #garageDoor.open{height:520px;pointer-events:auto;transition:height .9s cubic-bezier(.2,.9,.2,1)}
+  #garageDoor.open{height:540px;pointer-events:auto;transition:height .9s cubic-bezier(.2,.9,.2,1)}
   #garageDoor.close{height:0;transition:height .8s cubic-bezier(.2,.9,.2,1)}
   .gTitle{font-weight:900;letter-spacing:.16em;color:var(--mintL);margin-top:2px}
   .gClose{position:absolute;right:10px;top:10px;border:1px solid var(--stroke);background:#0e1815;color:var(--text);border-radius:999px;padding:.35rem .6rem;cursor:pointer}
@@ -122,9 +125,6 @@
   .grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
   .kpi{border:1px solid var(--stroke);border-radius:10px;padding:10px;background:rgba(255,255,255,.04)}
   .mono{font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,"Liberation Mono","Courier New",monospace}
-  .btn.gray{border-color:var(--stroke);color:var(--text)}
-  .btn.mint{border-color:var(--mint);color:var(--mintL)}
-  .btn.warn{border-color:#f6bf3a;color:#f6bf3a}
 
   /* Boot chamber */
   #bootVeil{position:fixed;inset:0;background:#03100c;z-index:95;display:flex;align-items:center;justify-content:center;flex-direction:column}
@@ -132,6 +132,7 @@
   #bootWheel .mini-spin{border-color:rgba(156,255,224,.35);border-top-color:var(--mintL)}
   #bootMsg{margin-top:12px;color:var(--textDim);font-size:14px}
   #dedication{margin-top:14px;color:var(--mintL);opacity:0;transition:opacity .6s ease}
+  #wakeBtn{margin-top:14px}
 
   /* Voice orb (draggable) */
   #voiceOrb{position:fixed;left:18px;bottom:80px;width:54px;height:54px;border-radius:999px;border:1px solid var(--mint);background:radial-gradient(circle at 60% 40%, rgba(156,255,224,.25), rgba(47,176,233,.12));box-shadow:0 0 16px rgba(156,255,224,.25);z-index:60;display:grid;place-items:center}
@@ -176,9 +177,9 @@
   <!-- Boot chamber -->
   <div id="bootVeil" aria-hidden="true">
     <div id="bootWheel"><div class="mini-spin"></div><span>Waking up…</span></div>
-    <div id="bootMsg">Server configuring • Back end live • Please give Jared time to wake up</div>
+    <div id="bootMsg">Please give Jared time to wake up. Server configuring • Backend live</div>
     <div id="dedication">Precision meets grit. Heart meets hustle. — Dedicated to Addison</div>
-    <button class="pill" id="btnEnableAudio" style="margin-top:14px">Enable Sound</button>
+    <button class="pill" id="wakeBtn" style="display:none">Tap to Wake</button>
   </div>
 
   <div class="stage">
@@ -188,7 +189,6 @@
         <button class="btn" id="btnUpload">⬆ Upload Photo</button>
         <button class="btn" id="btnCameraTop">📷 Camera</button>
         <button class="btn" id="btnAnalyze">🔍 Analyze</button>
-        <button class="btn hidden" id="btnExport">📄 Download Log (.txt)</button>
       </div>
 
       <!-- Preview -->
@@ -199,7 +199,7 @@
         <div id="dashHint" style="position:absolute;inset:0;opacity:.0;pointer-events:none;"></div>
       </div>
 
-      <!-- Tips only (no chat boxes) -->
+      <!-- Tips only -->
       <div id="tips"></div>
 
       <!-- Modules hint -->
@@ -224,7 +224,7 @@
     <div class="t-title">Analysis Complete</div>
     <div class="t-body" id="toastBody">Summary will appear here…</div>
     <div class="t-actions">
-      <button class="btn gray" id="toastViewLog">View Full Log</button>
+      <button class="btn gray" id="toastViewLog">Export Log (.txt)</button>
       <button class="btn gray" id="toastBestPractices">Best Practices</button>
       <button class="btn gray" id="toastFieldGuides">Field Guides</button>
     </div>
@@ -235,12 +235,12 @@
     <div class="door">
       <button class="gClose" id="garageCloseBtn">Close</button>
       <div class="gTitle">CARDINAL GARAGE • High-Tier Access</div>
-      <div style="opacity:.9;font-size:12px;margin-top:-4px">Payments • Sales University • Best Practices • Field Guides • Founders Ops</div>
+      <div style="opacity:.9;font-size:12px;margin-top:-4px">Sales University • Best Practices • Field Guides • Founders Ops</div>
 
       <div class="gRow">
         <div class="card" id="cardAccess">
           <span class="tag">Access+</span>
-          <div>Unlimited uploads & analyses (removes daily caps).</div>
+          <div>Unlimited uploads & analyses (removes daily caps only).</div>
           <div class="price">$25 / month</div>
           <div class="btn-row">
             <a class="btn mint" href="https://www.paypal.com/ncp/payment/MVWW6VPEHJKKU" target="_blank" rel="noopener">Activate (PayPal)</a>
@@ -249,21 +249,21 @@
 
         <div class="card" id="cardBestPractices">
           <span class="tag">Best Practices</span>
-          <div>Situational playbooks for confident execution.</div>
+          <div>Situational playbooks for confident execution in the field.</div>
           <div class="price">$29 one-time</div>
           <div class="btn-row"><a class="btn" href="https://www.paypal.com/ncp/payment/MVWW6VPEHJKKU" target="_blank" rel="noopener">Buy (PayPal)</a></div>
         </div>
 
         <div class="card" id="cardFieldGuides">
           <span class="tag">Field Guides</span>
-          <div>Tools + materials lists with quick methods.</div>
+          <div>Tools, materials, and quick-method checklists per scenario.</div>
           <div class="price">$19 one-time</div>
           <div class="btn-row"><a class="btn" href="https://www.paypal.com/ncp/payment/MVWW6VPEHJKKU" target="_blank" rel="noopener">Buy (PayPal)</a></div>
         </div>
 
         <div class="card" id="cardSalesU">
           <span class="tag">Sales University</span>
-          <div>Addie-led 1-week sprint • junior & pro tracks.</div>
+          <div>Addie-led 1-week sprint • junior & pro tracks • voice drills.</div>
           <div class="price">$99 / week</div>
           <div class="btn-row">
             <button class="btn" id="btnSalesUEnter">Enter</button>
@@ -302,88 +302,78 @@
           <ul>
             <li>Photo → Insight → Action, in one motion.</li>
             <li>Confidence to price, pitch, and execute.</li>
-            <li>Junior-to-Pro continuum: Addie (training/payments) + Jared (field strategy).</li>
+            <li>Junior-to-Pro continuum: Addie (training/docs) + Jared (field strategy/insights).</li>
           </ul>
         </div>
 
         <div class="slide">
-          <h3 class="h">What It Is</h3>
-          <p class="sub">A voice-guided estimator, not a chat toy. Jared adapts to job contexts; Addie handles payments, Sales U, and operations.</p>
-          <div class="grid2">
-            <div class="kpi"><b>Jared</b><br/>Field strategist: reads the photo, surfaces tools, tips, time, and risk.</div>
-            <div class="kpi"><b>Addie</b><br/>Payments + School: onboarding, demos, and junior track continuity.</div>
-          </div>
+          <h3 class="h">What It Is (Positioning)</h3>
+          <p class="sub">A voice-guided estimator & field coach — not a chat toy.</p>
+          <ul>
+            <li>Jared: reads the site, calls out risks, tools, time, and upsell windows.</li>
+            <li>Addie: trains reps, runs Sales U drills, manages docs/templates.</li>
+            <li>Shared memory across junior and pro tracks for consistent growth.</li>
+          </ul>
         </div>
 
         <div class="slide">
-          <h3 class="h">How It Works (Technical)</h3>
+          <h3 class="h">System Diagram (Technical)</h3>
           <ul class="mono">
-            <li>Frontend: Vanilla JS • Web Speech • CSS Vars • Mobile-first.</li>
-            <li>Backend: Render (Node/Express) • /analyze-image • /export (txt).</li>
-            <li>Vector Insight Layer: stores distilled heuristics per scenario.</li>
-            <li>Field Confidence Index: image quality × region × prior outcomes.</li>
-            <li>Latency Target: &lt; 1.5s perceived between steps.</li>
+            <li>Front: HTML/CSS Vars/Vanilla JS • Web Speech • Mobile-first • Luxe glow FX</li>
+            <li>Voice: SpeechSynthesis — deterministic voice selection (US young female for Addie; male/neutral for Jared)</li>
+            <li>Back: Node/Express on Render → <code>/analyze-image</code> (image → summary,recommendation)</li>
+            <li>Export: Push-only TXT via toast; logs stored in localStorage (voice+actions)</li>
+            <li>Planned: Pipedream relays • Accounting/CRM webhooks • Territory heatmaps</li>
           </ul>
+        </div>
+
+        <div class="slide">
+          <h3 class="h">Field Confidence Index (FCI)</h3>
+          <ul>
+            <li>Inputs: image clarity, pattern recognition hits, prior job outcomes, regional norms.</li>
+            <li>Output: 1–5 rating with variance bands → drives risk voice-lines + tip density.</li>
+            <li>Effect: Higher FCI reduces unnecessary contingencies in pricing scripts.</li>
+          </ul>
+          <div class="kpi">Net effect: fewer revisions, faster acceptance.</div>
         </div>
 
         <div class="slide">
           <h3 class="h">Triple Market Coverage</h3>
           <ul>
             <li><b>Pros:</b> 3M+ NA landscape/lawncare businesses need speed & polish.</li>
-            <li><b>Youth 14–18:</b> 10M+ with seasonal earning potential (parents are buyers).</li>
-            <li><b>Licensing:</b> 50K+ suppliers, co-ops, and regional partners.</li>
+            <li><b>Youth 14–18:</b> seasonal earning potential; parents fund the on-ramp.</li>
+            <li><b>Licensing:</b> suppliers/co-ops/territories align docs and standards.</li>
           </ul>
-          <div class="kpi">No other tool intentionally spans <i>both entry-level and pro</i> with shared memory.</div>
+          <div class="kpi">No other tool intentionally spans <i>entry-level and pro</i> with shared memory.</div>
         </div>
 
         <div class="slide">
           <h3 class="h">Organic Leverage & Groups</h3>
           <ul>
-            <li>Automated “before/after” story posts to FB/Reddit communities.</li>
-            <li>Hooks: Time saved, Confidence Index +X, Profitability bump.</li>
-            <li>Avg organic reach: 15–20K impressions/post.</li>
+            <li>Automated story posts to local FB/Reddit groups (before/after + time saved).</li>
+            <li>CTAs: “Quoted in minutes,” “Confidence Index +X,” “Margins protected.”</li>
+            <li>Avg organic reach target: 15–20K impressions/post at scale.</li>
           </ul>
-          <div class="kpi">Crawler posts seed momentum; juniors + pros amplify with wins.</div>
-        </div>
-
-        <div class="slide">
-          <h3 class="h">Public Momentum Loop</h3>
-          <p class="sub">Demo → Share → Inspire → Recruit → Train → Demo again.</p>
-          <ul>
-            <li>Every 100 demos ≈ 8 new subs, 12 qualified leads (conservative).</li>
-            <li>Junior leaderboard stokes community pride and repeat posting.</li>
-          </ul>
+          <div class="kpi">Public momentum loop recruits juniors and warms pro leads.</div>
         </div>
 
         <div class="slide">
           <h3 class="h">Flywheel</h3>
           <ul>
-            <li>Inputs: photos, tools, checklists, voice logs.</li>
-            <li>Outputs: efficiency logs, upsell prompts, territory signals.</li>
+            <li>Inputs: photos, tools used, checklists, voice logs, outcomes.</li>
+            <li>Outputs: faster prompts, sharper tips, territory opportunity signals.</li>
             <li>Reinforcement: accuracy compounds with volume (data network effect).</li>
           </ul>
-          <div class="kpi">The more users train it, the smarter and more valuable it becomes.</div>
+          <div class="kpi">Every job makes the next job easier — for everyone.</div>
         </div>
 
         <div class="slide">
-          <h3 class="h">Tech Stack (Expanded)</h3>
-          <div class="grid2">
-            <div class="kpi">
-              <b>Front</b><br/>HTML • CSS Vars • Vanilla JS<br/>Web Speech (Addie/Jared)<br/>2D canvas-like effects & glows
-            </div>
-            <div class="kpi">
-              <b>Back</b><br/>Node/Express on Render<br/>/analyze-image • /export (txt)<br/>Planned: Pipedream, QBO, HubSpot
-            </div>
-          </div>
-        </div>
-
-        <div class="slide">
-          <h3 class="h">Efficiency Ratio (With Rationale)</h3>
+          <h3 class="h">Efficiency Ratio (Explained)</h3>
           <p class="sub mono">Efficiency = Value Created ÷ Time Spent</p>
           <ul>
-            <li>Example: $140 uplift on a 20min analysis → <b>7.0</b> efficiency.</li>
-            <li>Team of 5 ≈ +28 labor-equiv hours/week (aggregate saved).</li>
-            <li>AI Verdict: 82% automation, 93% precision, &lt;1.3s latency → 4.8★ readiness.</li>
+            <li>Example: +$140 margin uplift on a 20-min analysis → <b>7.0</b> efficiency.</li>
+            <li>Team of 5: ~28 labor-equivalent hours saved weekly (aggregate).</li>
+            <li>AI Verdict: 82% automation, 93% precision, &lt;1.3s perceived latency → 4.8★ readiness.</li>
           </ul>
         </div>
 
@@ -395,31 +385,34 @@
             Best Practices     $29       1,500          $43.5k<br/>
             Field Guides       $19       1,200          $22.8k<br/>
             Sales University   $99/wk    200 seats      $1.03M<br/>
-            Pro Export         $39       400 reports    $187k<br/>
+            Pro Export*        $39       400 reports    $187k<br/>
             -----------------------------------------------<br/>
             Total (pre-scale)                           ≈ $1.88M/yr
           </div>
+          <p class="sub">*Export remains TXT push for now; Pro Sales Insight tier can add structured client PDFs later.</p>
         </div>
 
         <div class="slide">
           <h3 class="h">Digital Franchise</h3>
           <ul>
-            <li>Cardinal Garage = distribution, compliance, payments, territory ops.</li>
-            <li>Digital territories; partner royalties; predictive underserved region finder.</li>
+            <li>Cardinal Garage as distro/compliance hub with territory ops.</li>
+            <li>Royalties + territory protection; predictive underserved region finder.</li>
+            <li>Partner playbooks standardize outcomes → reputation flywheel.</li>
           </ul>
         </div>
 
         <div class="slide">
           <h3 class="h">IPO / Public Path (Optional)</h3>
           <ul>
-            <li>Dual revenue: SaaS recurring + licensing royalties.</li>
-            <li>Yr-3 pre-IPO valuation target: <b>$95–110M</b> (conservative ranges).</li>
+            <li>Dual revenue: recurring SaaS + licensing royalties.</li>
+            <li>Yr-3 target valuation: <b>$95–110M</b> conservative with traction.</li>
+            <li>“Value machine” narrative: compress time, raise margins, broaden access.</li>
           </ul>
         </div>
 
         <div class="slide">
           <h3 class="h">Close</h3>
-          <p class="sub">Built to be a <b>value machine</b>: faster quotes, higher confidence, better margins — at any skill level.</p>
+          <p class="sub">Built to help anyone — from a teenager with a push mower to a pro crew — quote faster and win cleaner.</p>
           <p class="sub">Powered by Cardinal-Garage_MND Inc.</p>
         </div>
       </div>
@@ -440,7 +433,6 @@
   const API = (location.hostname.includes("localhost")||location.hostname.includes("127.0.0.1"))
     ? "http://localhost:3001"
     : "https://jared-hero2-backend.onrender.com";
-
   const PAYPAL_URL = "https://www.paypal.com/ncp/payment/MVWW6VPEHJKKU";
 
   /* ========= ELEMENTS ========= */
@@ -449,7 +441,6 @@
     btnUpload: qs('#btnUpload'),
     btnCameraTop: qs('#btnCameraTop'),
     btnAnalyze: qs('#btnAnalyze'),
-    btnExport: qs('#btnExport'),
     preview: qs('#preview'),
     previewImg: qs('#previewImg'),
     edgeGlow: qs('#edgeGlow'),
@@ -463,7 +454,7 @@
     bootVeil: qs('#bootVeil'),
     bootMsg: qs('#bootMsg'),
     dedication: qs('#dedication'),
-    btnEnableAudio: qs('#btnEnableAudio'),
+    wakeBtn: qs('#wakeBtn'),
     toast: qs('#toast'),
     toastBody: qs('#toastBody'),
     toastViewLog: qs('#toastViewLog'),
@@ -484,19 +475,14 @@
     deckNext2: qs('#deckNext2'),
     deckPrint2: qs('#deckPrint2'),
     deckExit2: qs('#deckExit2'),
-    openDeck: qs('#openDeck'),
-    // Sales U buttons
-    btnSalesUEnter: qs('#btnSalesUEnter'),
-    btnSalesUExtraDemo: qs('#btnSalesUExtraDemo'),
-    // Paywall
-    paywall: createPaywall()
+    openDeck: qs('#openDeck')
   };
 
   /* ========= STATE ========= */
   const STATE = {
     accessUnlocked: localStorage.getItem('herohud_access_unlocked')==='1',
-    uploadsToday: getUploadsToday(),
-    logs: loadLogs(), // { startedAt, entries: [] }
+    uploadsToday: getUploadsToday(),        // counts successful file selects/captures
+    logs: loadLogs(),                       // { startedAt, entries: [] }
     lastSummary: "",
     lastRecommendation: "",
     analyzing: false,
@@ -525,14 +511,20 @@
   function loadLogs(){ const raw=localStorage.getItem('herohud_logs'); return raw?JSON.parse(raw):{ startedAt: Date.now(), entries: [] } }
   function rand(min,max){ return Math.random()*(max-min)+min }
   function wait(ms){ return new Promise(r=>setTimeout(r,ms)) }
+  function downloadTxt(filename, text){
+    const blob=new Blob([text],{type:"text/plain"});
+    const a=document.createElement("a"); a.href=URL.createObjectURL(blob); a.download=filename; a.click();
+  }
+  function dateStamp(){ const d=new Date(); const z=n=>String(n).padStart(2,'0'); return `${d.getFullYear()}${z(d.getMonth()+1)}${z(d.getDate())}_${z(d.getHours())}${z(d.getMinutes())}${z(d.getSeconds())}`; }
 
   /* ========= SPEECH ========= */
   let activeUtter = null;
   function pickVoice(preferFemale=true){
     const voices = window.speechSynthesis.getVoices();
     if(!voices || !voices.length) return null;
-    const female = voices.find(v=>/Samantha|Google US English|Jenny|Aria|Amelia|Sara|Neural|Female/i.test(v.name));
-    const male   = voices.find(v=>/Daniel|Alex|Matthew|Guy|Neural|Male/i.test(v.name));
+    // Favor youthful US English voices commonly available
+    const female = voices.find(v=>/(Samantha|Google US English|Jenny|Aria|Sara|Amelia|Neural|Female)/i.test(v.name));
+    const male   = voices.find(v=>/(Daniel|Alex|Matthew|Guy|Neural|Male)/i.test(v.name));
     return preferFemale ? (female || voices[0]) : (male || voices[0]);
   }
   function speak(text, {female=false, rate=1.0, pitch=1.02, onend}={}){
@@ -553,44 +545,62 @@
   }
   function stopSpeech(){ if(activeUtter){ window.speechSynthesis.cancel(); activeUtter=null; el.voiceOrb.className='idle'; } }
 
+  /* ========= VOICE ORB DRAG ========= */
+  drag(el.voiceOrb);
+  function drag(node){
+    let sx=0, sy=0, ox=0, oy=0, d=false;
+    const onDown=e=>{ d=true; sx=(e.clientX||e.touches?.[0].clientX); sy=(e.clientY||e.touches?.[0].clientY); const r=node.getBoundingClientRect(); ox=r.left; oy=r.top; e.preventDefault(); }
+    const onMove=e=>{ if(!d) return; const x=(e.clientX||e.touches?.[0].clientX)-sx+ox; const y=(e.clientY||e.touches?.[0].clientY)-sy+oy; node.style.left=x+'px'; node.style.top=y+'px'; }
+    const onUp=()=>{ d=false; }
+    node.addEventListener('mousedown',onDown); node.addEventListener('touchstart',onDown,{passive:false});
+    window.addEventListener('mousemove',onMove); window.addEventListener('touchmove',onMove,{passive:false});
+    window.addEventListener('mouseup',onUp); window.addEventListener('touchend',onUp);
+  }
+
   /* ========= BOOT SEQUENCE ========= */
-  async function boot(){
-    // spin 2.5–3.2s, show dedication late, then fade out
-    await wait(1800);
+  async function bootSequence(){
+    // 3s “waking up” with dedication reveal and Tap to Wake
+    await wait(2000);
     el.dedication.style.opacity = 1;
-    await wait(1000 + Math.floor(Math.random()*600));
-    // Hide veil
-    el.bootVeil.style.display='none';
-    // Addie intro (young, energetic)
+    await wait(1000);
+    el.wakeBtn.style.display = 'inline-block';
+  }
+
+  function addieIntro(){
     const intro =
-      "Hey—I'm Addie. This dark-mint command deck is built for motion. " +
-      "Here’s how: upload a job photo, tap Analyze, and Jared reads the plan out loud. " +
-      "I run payments, Sales University, and the Cardinal Garage. Ready when you are.";
-    speak(intro, {female:true, rate:1.0, pitch:1.06, onend:()=>{ STATE.addieFinished=true; }});
+      "Welcome to Cardinal’s Garage. I’m Addie — your personal sales coach and partner in training. " +
+      "Here’s how this space works. Upload a job photo, tap Analyze, and Jared will walk you through the plan — " +
+      "tools, risks, timing, and opportunities. I handle the training, docs, and school. He handles the technical insights. " +
+      "When you’re ready, let’s get to work.";
+    speak(intro, { female:true, rate:1.0, pitch:1.06, onend:()=>{ STATE.addieFinished=true; }});
   }
 
-  /* ========= FULLSCREEN / GARAGE ========= */
-  el.btnFull.onclick = () => {
-    if(!document.fullscreenElement) document.documentElement.requestFullscreen().catch(()=>{});
-    else document.exitFullscreen().catch(()=>{});
-  };
-  el.btnGarage.onclick = openGarage;
-  function openGarage(){
-    el.garageDoor.classList.remove('close'); el.garageDoor.classList.add('open');
+  /* ========= PAYWALL (after second upload attempt to analyze) ========= */
+  function canUpload(){
+    if(STATE.accessUnlocked) return true;
+    // Allow exactly ONE free upload+analyze full run. Paywall on second upload attempt.
+    return STATE.uploadsToday < 1;
   }
-  function closeGarage(){ el.garageDoor.classList.remove('open'); el.garageDoor.classList.add('close'); }
-  el.garageCloseBtn.onclick = closeGarage;
-
-  /* ========= DAILY GATE (uploads only) ========= */
-  function canUpload(){ return STATE.accessUnlocked || STATE.uploadsToday < 1; }
   function enforceUploadGate(){
     if(canUpload()) return true;
     showPaywall();
     return false;
   }
   function showPaywall(){
-    document.body.appendChild(el.paywall.root);
-    el.paywall.open();
+    const overlay=document.createElement('div');
+    overlay.className='overlay';
+    overlay.style.display='flex';
+    overlay.innerHTML = `
+      <div class="panel" style="max-width:560px;margin:20px;background:#0f1916;border:1px solid var(--stroke);border-radius:16px;padding:1.1rem 1.3rem;text-align:center;box-shadow:0 0 32px rgba(156,255,224,.28)">
+        <h3 style="margin:0 0 8px;color:var(--mintL)">Access Limit Reached</h3>
+        <p class="sub" style="margin:0 0 12px;opacity:.85">Unlock Access+ for unlimited uploads & analyses (exports remain free TXT).</p>
+        <div class="btn-row" style="justify-content:center">
+          <a class="btn mint" href="${PAYPAL_URL}" target="_blank" rel="noopener">Activate Access+ (PayPal)</a>
+          <button class="btn" id="pwClose">Close</button>
+        </div>
+      </div>`;
+    document.body.appendChild(overlay);
+    overlay.querySelector('#pwClose').onclick = ()=> overlay.remove();
   }
 
   /* ========= CAMERA ========= */
@@ -649,22 +659,25 @@
     t.style.transform = `translateY(${Math.round(rand(6,12))}px) translateX(${Math.round(rand(-8,8))}px)`;
     el.tips.appendChild(t);
     requestAnimationFrame(()=>t.classList.add('show'));
+    // tips linger until next run
   }
   function clearTips(){ el.tips.innerHTML=""; }
   function showAnalysisTips(summary){
     const bits=(summary||"Define bed edge; set mulch depth; align shrub spacing.")
       .replace(/\s+/g,' ').trim().split(/[.;]/).map(s=>s.trim()).filter(Boolean).slice(0,3);
     let delay=200;
-    bits.forEach((b,i)=>{ setTimeout(()=>tip(b,true), delay); delay+=900; });
+    bits.forEach((b)=>{ setTimeout(()=>tip(b,true), delay); delay+=900; });
   }
 
-  /* ========= EXPORT (.txt ONLY — ALWAYS FREE) ========= */
-  el.btnExport.onclick = () => {
-    const text = buildTxtLog();
-    downloadTxt(`herohud_analysis_${dateStamp()}.txt`, text);
-    log('export_txt', {});
-  };
-  function buildTxtLog(){
+  /* ========= TOAST (EXPORT ONLY VIA PUSH) ========= */
+  function showToast(summary, recommendation){
+    const firstLine = (summary||"").split(/[.;]/).map(s=>s.trim()).filter(Boolean)[0] || "Analysis ready.";
+    const topRec = (recommendation||"").split(/[.;]/).map(s=>s.trim()).filter(Boolean)[0] || "";
+    el.toastBody.textContent = topRec ? `${firstLine} • ${topRec}` : firstLine;
+    el.toast.classList.add('show');
+    setTimeout(()=> el.toast.classList.remove('show'), 7000);
+  }
+  el.toastViewLog.onclick = ()=> {
     const tipsTxt=[...document.querySelectorAll('.tip')].map(e=>e.textContent.trim()).join("\n");
     const payload = {
       summary: STATE.lastSummary || "",
@@ -672,7 +685,7 @@
       tips: tipsTxt || "",
       logs: STATE.logs
     };
-    return [
+    const text = [
       "HeroHUD Analysis Log",
       "====================",
       "",
@@ -689,26 +702,9 @@
       JSON.stringify(payload.logs, null, 2),
       ""
     ].join("\n");
-  }
-  function downloadTxt(filename, text){
-    const blob=new Blob([text],{type:"text/plain"});
-    const a=document.createElement("a"); a.href=URL.createObjectURL(blob); a.download=filename; a.click();
-  }
-  function dateStamp(){
-    const d=new Date();
-    const z=n=>String(n).padStart(2,'0');
-    return `${d.getFullYear()}${z(d.getMonth()+1)}${z(d.getDate())}_${z(d.getHours())}${z(d.getMinutes())}${z(d.getSeconds())}`;
-  }
-
-  /* ========= TOAST ========= */
-  function showToast(summary, recommendation){
-    const firstLine = (summary||"").split(/[.;]/).map(s=>s.trim()).filter(Boolean)[0] || "Analysis ready.";
-    const topRec = (recommendation||"").split(/[.;]/).map(s=>s.trim()).filter(Boolean)[0] || "";
-    el.toastBody.textContent = topRec ? `${firstLine} • ${topRec}` : firstLine;
-    el.toast.classList.add('show');
-    setTimeout(()=> el.toast.classList.remove('show'), 6000);
-  }
-  el.toastViewLog.onclick = ()=> el.btnExport.click();
+    downloadTxt(`herohud_analysis_${dateStamp()}.txt`, text);
+    log('export_txt', {});
+  };
   el.toastBestPractices.onclick = ()=> { openGarage(); setTimeout(()=>document.querySelector('#cardBestPractices').scrollIntoView({behavior:'smooth',block:'center'}), 120); };
   el.toastFieldGuides.onclick = ()=> { openGarage(); setTimeout(()=>document.querySelector('#cardFieldGuides').scrollIntoView({behavior:'smooth',block:'center'}), 120); };
 
@@ -718,6 +714,11 @@
     const blob = el.file._capturedBlob;
     const fileEl = el.file.files && el.file.files[0];
     if(!blob && !fileEl){ tip("No image found.", true); return; }
+
+    // Gate: paywall only after second upload attempt (uploadsToday >= 1)
+    if(!STATE.accessUnlocked && STATE.uploadsToday >= 1){
+      showPaywall(); return;
+    }
 
     STATE.analyzing = true;
     clearTips();
@@ -743,7 +744,6 @@
       speak(summary, { female:false, rate:0.98, pitch:1.0, onend:()=> showToast(summary, rec) });
       showAnalysisTips(summary);
       el.hudTabs.style.display='flex';
-      el.btnExport.classList.remove('hidden');
       el.dashHint.style.opacity=.6;
 
       // Mark demo completed after first successful run
@@ -779,12 +779,19 @@
     log('upload', { name:f.name, size:f.size });
   };
 
-  /* ========= SALES U ========= */
-  el.btnSalesUEnter.onclick = ()=> {
-    openGarage();
-    alert("Sales University entry — placeholder.");
+  /* ========= FULLSCREEN / GARAGE ========= */
+  el.btnFull.onclick = () => {
+    if(!document.fullscreenElement) document.documentElement.requestFullscreen().catch(()=>{});
+    else document.exitFullscreen().catch(()=>{});
   };
-  el.btnSalesUExtraDemo.onclick = ()=> {
+  el.btnGarage.onclick = openGarage;
+  function openGarage(){ el.garageDoor.classList.remove('close'); el.garageDoor.classList.add('open'); }
+  function closeGarage(){ el.garageDoor.classList.remove('open'); el.garageDoor.classList.add('close'); }
+  el.garageCloseBtn.onclick = closeGarage;
+
+  /* ========= SALES U ========= */
+  qs('#btnSalesUEnter').onclick = ()=> { openGarage(); alert("Sales University entry — placeholder."); };
+  qs('#btnSalesUExtraDemo').onclick = ()=> {
     // allow +1 upload today (soft token)
     const extra = Number(localStorage.getItem('herohud_extra_demo')||0) + 1;
     localStorage.setItem('herohud_extra_demo', String(extra));
@@ -797,57 +804,28 @@
     downloadTxt(`herohud_logs_${dateStamp()}.txt`, text);
   };
 
-  /* ========= AUDIO ENABLE (Mobile requires tap) ========= */
+  /* ========= AUDIO ENABLE / BOOT ========= */
   function enableAudio(){
     STATE.audioEnabled = true;
     try{ window.speechSynthesis.getVoices(); }catch{}
-    el.btnEnableAudio.classList.add('locked');
-    el.btnEnableAudio.disabled = true;
   }
-  el.btnEnableAudio.onclick = async ()=>{
+
+  el.wakeBtn.onclick = () => {
+    // User gesture — enable audio on mobile
     enableAudio();
-    await boot();
+    el.bootVeil.style.display='none';
+    addieIntro();
   };
+
   window.addEventListener('load', async ()=>{
+    await bootSequence();
+    // Desktop: optionally auto-enable if allowed
     if(!/Mobi|Android/i.test(navigator.userAgent)){
       enableAudio();
-      await boot();
     }
   });
 
-  /* ========= VOICE ORB DRAG ========= */
-  drag(el.voiceOrb);
-  function drag(node){
-    let sx=0, sy=0, ox=0, oy=0, d=false;
-    const onDown=e=>{ d=true; sx=e.clientX||e.touches?.[0].clientX; sy=e.clientY||e.touches?.[0].clientY; const r=node.getBoundingClientRect(); ox=r.left; oy=r.top; e.preventDefault(); }
-    const onMove=e=>{ if(!d) return; const x=(e.clientX||e.touches?.[0].clientX)-sx+ox; const y=(e.clientY||e.touches?.[0].clientY)-sy+oy; node.style.left=x+'px'; node.style.top=y+'px'; }
-    const onUp=()=>{ d=false; }
-    node.addEventListener('mousedown',onDown); node.addEventListener('touchstart',onDown,{passive:false});
-    window.addEventListener('mousemove',onMove); window.addEventListener('touchmove',onMove,{passive:false});
-    window.addEventListener('mouseup',onUp); window.addEventListener('touchend',onUp);
-  }
-
-  /* ========= PAYWALL (Access+ after daily cap) ========= */
-  function createPaywall(){
-    const root=document.createElement('div');
-    root.className='overlay';
-    root.innerHTML = `
-      <div class="panel">
-        <h3>Access Limit Reached</h3>
-        <p class="sub">Unlock Access+ for unlimited uploads & analyses (no impact on exports).</p>
-        <div class="btn-row">
-          <a class="btn mint" href="${PAYPAL_URL}" target="_blank" rel="noopener">Activate Access+ (PayPal)</a>
-          <button class="btn" id="pwClose">Close</button>
-        </div>
-      </div>`;
-    const closeBtn = ()=>{ root.style.display='none'; };
-    return {
-      root,
-      open: ()=>{ root.style.display='flex'; root.querySelector('#pwClose').onclick = closeBtn; }
-    };
-  }
-
-  /* ========= FOUNDERS DECK ========= */
+  /* ========= DECK CONTROLS ========= */
   let slideIndex = 0;
   const slides = ()=> Array.from(el.deckBody.querySelectorAll('.slide'));
   function showSlide(i){
@@ -873,4 +851,5 @@
 </script>
 </body>
 </html>
+
 
