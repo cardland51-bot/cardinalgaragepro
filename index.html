@@ -582,7 +582,7 @@
   el.garageCloseBtn.onclick = closeGarage;
 
   /* ========= DAILY GATE (uploads only) ========= */
-  function canUpload(){ return STATE.accessUnlocked || STATE.uploadsToday < 2; }
+  function canUpload(){ return STATE.accessUnlocked || STATE.uploadsToday < 1; }
   function enforceUploadGate(){
     if(canUpload()) return true;
     showPaywall();
