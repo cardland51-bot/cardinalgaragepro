@@ -6,149 +6,30 @@
 <title>HERO PRO • JARED • Upload → Estimate → Send</title>
 <meta name="theme-color" content="#0b1b16" />
 <style>
-  :root{
-    --bg-top:#0b1b16; --bg-bot:#06121a;
-    --mintL:#9CFFE0; --mint:#34D1A0; --aqua:#2FB0E9; --teal:#0E8B67;
-    --text:#E9FFF6; --textDim:rgba(233,255,246,.85);
-    --glass:rgba(255,255,255,0.05); --stroke:rgba(156,255,224,0.28);
-  }
-  html,body{margin:0;height:100%;background:linear-gradient(180deg,var(--bg-top),var(--bg-bot));color:var(--text);font-family:ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial}
-  *{box-sizing:border-box}
+:root{
+  --bg-top:#0b1b16; --bg-bot:#06121a;
+  --mintL:#9CFFE0; --mint:#34D1A0; --aqua:#2FB0E9; --teal:#0E8B67;
+  --text:#E9FFF6; --textDim:rgba(233,255,246,.85);
+  --glass:rgba(255,255,255,0.05); --stroke:rgba(156,255,224,0.28);
+}
+html,body{margin:0;height:100%;background:linear-gradient(180deg,var(--bg-top),var(--bg-bot));color:var(--text);font-family:ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial}
+*{box-sizing:border-box}
 
-  /* Layered dual-tone background “multi-pass render” */
-  body::before, body::after{
-    content:""; position:fixed; inset:0; pointer-events:none;
-  }
-  body::before{
-    background:
-      radial-gradient(130% 90% at 50% 6%, rgba(156,255,224,.10), transparent 45%),
-      radial-gradient(120% 80% at 50% 95%, rgba(47,176,233,.12), transparent 55%);
-    animation:film1 14s ease-in-out infinite alternate;
-  }
-  body::after{
-    background:
-      linear-gradient( to right, transparent 0%, rgba(156,255,224,.05) 30%, transparent 60%),
-      linear-gradient( to left, transparent 0%, rgba(47,176,233,.05) 30%, transparent 60%);
-    mix-blend-mode:screen;
-    animation:film2 18s linear infinite;
-  }
-  @keyframes film1{to{transform:translateY(-2%)}}
-  @keyframes film2{to{transform:translateX(-2%)}}
-
-  /* Top controls */
-  .topleft, .topright{position:fixed;top:12px;z-index:20}
-  .topleft{left:12px}
-  .topright{right:12px;display:flex;gap:8px}
-  .pill{border:1px solid var(--stroke);background:rgba(255,255,255,.05);color:var(--mintL);
-        padding:.5rem .75rem;border-radius:999px;backdrop-filter:blur(6px);cursor:pointer;
-        display:flex;align-items:center;gap:.5rem;font-size:12px;box-shadow:0 0 12px rgba(156,255,224,.18)}
-  .iconbtn{width:42px;height:42px;border-radius:50%;border:1px solid var(--stroke);
-           background:rgba(255,255,255,.05);display:grid;place-items:center;cursor:pointer;
-           box-shadow:0 0 12px rgba(156,255,224,.14)}
-
-  /* Brand bar */
-  .topbar{position:fixed;inset:0 0 auto 0;height:64px;display:grid;place-items:center;pointer-events:none}
-  .brand{pointer-events:auto;font-weight:900;letter-spacing:.08em}
-  .brand .hero{font-weight:900;color:var(--mintL)}
-  .brand .pro{font-weight:500;color:var(--text);opacity:.9;margin-left:.2ch}
-
-  /* Stage */
-  .stage{position:fixed;inset:64px 0 148px 0;display:grid;place-items:center;padding:18px}
-  .stack{display:flex;flex-direction:column;align-items:center;text-align:center;gap:12px;max-width:960px;width:100%}
-
-  /* Button core style */
-  .btn{appearance:none;border:1px solid var(--mint);background:var(--glass);color:var(--mintL);
-    padding:.85rem 1.4rem;border-radius:999px;letter-spacing:.08em;text-transform:uppercase;
-    font-weight:700;backdrop-filter:blur(6px);cursor:pointer;transition:box-shadow .2s,transform .1s;
-    box-shadow:0 0 16px rgba(156,255,224,.14), 0 0 0 0 rgba(47,176,233,.0); font-size:13px; position:relative; overflow:hidden}
-  .btn:hover{box-shadow:0 0 26px rgba(156,255,224,.45), 0 0 24px rgba(47,176,233,.25)}
-  .btn:active{transform:translateY(1px)}
-  .btn::after{content:""; position:absolute; inset:-2px; border-radius:inherit; pointer-events:none;
-    background:radial-gradient(50% 50% at 50% 50%, rgba(47,176,233,.18), transparent 60%);
-    opacity:0; transition:opacity .2s}
-  .btn:focus-visible::after, .btn:hover::after{opacity:1}
-  .btn.hidden{display:none}
-  .btn-row{display:flex;gap:10px;flex-wrap:wrap;justify-content:center}
-
-  /* Upload/Camera module */
-  .primary-row{gap:10px}
-  .module{display:flex;gap:10px;flex-wrap:wrap;justify-content:center}
-
-  /* Preview */
-  #preview{display:none;position:relative;width:min(94vw,960px);aspect-ratio:16/10;border-radius:16px;overflow:hidden;border:1px solid var(--stroke);box-shadow:0 0 24px rgba(156,255,224,.14)}
-  #preview img, #preview video{width:100%;height:100%;object-fit:cover}
-  #edgeGlow{position:absolute;inset:0;border-radius:16px;pointer-events:none;opacity:0;
-    box-shadow:0 0 28px rgba(156,255,224,.6), inset 0 0 18px rgba(14,139,103,.55);transition:opacity .25s}
-  .glow-on #edgeGlow{opacity:1}
-  .wheel{position:absolute;inset:auto auto 10px 10px;background:rgba(0,0,0,.35);border:1px solid var(--stroke);
-    border-radius:999px;padding:.35rem .6rem;font-size:12px;display:flex;gap:.5rem;align-items:center}
-  .mini-spin{width:14px;height:14px;border-radius:50%;border:2px solid rgba(156,255,224,.35);border-top-color:var(--mintL);animation:spin 1s linear infinite}
-  @keyframes spin{to{transform:rotate(360deg)}}
-
-  /* Tips */
-  .tips{position:fixed;top:14%;left:0;right:0;pointer-events:none}
-  .tip{position:absolute;max-width:340px;background:rgba(255,255,255,.06);border:1px solid var(--stroke);
-    backdrop-filter:blur(8px);color:var(--text);padding:.7rem .9rem;border-radius:12px;
-    box-shadow:0 0 18px rgba(156,255,224,.25);opacity:0;transform:translateX(-40px);
-    transition:transform .6s cubic-bezier(.2,.9,.2,1),opacity .6s}
-  .tip.right{right:16px;left:auto;transform:translateX(40px)}
-  .tip.show{opacity:1;transform:translateX(0)}
-
-  /* HUD tabs */
-  .hud{display:none;gap:8px;margin-top:10px;flex-wrap:wrap;justify-content:center}
-  .tab{padding:.45rem .8rem;border:1px solid var(--stroke);border-radius:999px;background:rgba(255,255,255,.04);color:var(--textDim);font-size:12px}
-
-  /* Draggable Mic */
-  .mic-dock{position:fixed;left:50%;bottom:88px;transform:translateX(-50%);z-index:25}
-  .mic{width:68px;height:68px;border-radius:50%;border:1px solid var(--mint);
-    background:linear-gradient(180deg, rgba(156,255,224,.07), rgba(47,176,233,.06));
-    display:grid;place-items:center;cursor:grab;box-shadow:0 0 16px rgba(156,255,224,.2)}
-  .mic:active{cursor:grabbing}
-  .mic .ring{width:42px;height:42px;border:3px solid var(--mint);border-radius:50%}
-  .mic.idle .ring{box-shadow:0 0 10px rgba(156,255,224,.25)}
-  .mic.listening .ring{animation:breathe 1.2s ease-in-out infinite; box-shadow:0 0 14px rgba(156,255,224,.45)}
-  .mic.processing .ring{animation:slowpulse 1.6s ease-in-out infinite; border-color:var(--aqua)}
-  .mic.speaking .ring{box-shadow:0 0 18px rgba(47,176,233,.55), 0 0 28px rgba(156,255,224,.35)}
-  @keyframes breathe{0%,100%{transform:scale(1)}50%{transform:scale(1.08)}}
-  @keyframes slowpulse{0%,100%{transform:scale(1)}50%{transform:scale(1.04)}}
-  .mic-note{margin-top:6px;text-align:center;font-size:12px;color:var(--textDim);user-select:none}
-
-  /* Footer/garage */
-  .footer{position:fixed;left:50%;transform:translateX(-50%);bottom:18px;font-size:12px;color:rgba(233,255,246,.6);letter-spacing:.12em;text-transform:uppercase}
-  .garage{position:fixed;right:14px;bottom:46px;background:rgba(255,255,255,.05);border:1px solid var(--stroke);
-    border-radius:12px;padding:.45rem .65rem;display:flex;align-items:center;gap:.45rem;cursor:pointer;
-    box-shadow:0 0 12px rgba(156,255,224,.18);font-size:12px;z-index:15}
-  .garage.locked{opacity:.65}
-
-  /* Overlays */
-  .overlay{display:none;position:fixed;inset:0;background:rgba(3,8,6,.82);backdrop-filter:blur(6px);align-items:center;justify-content:center;z-index:60}
-  .panel{max-width:540px;margin:20px;background:rgba(255,255,255,.06);border:1px solid var(--stroke);
-    border-radius:16px;padding:1.1rem 1.3rem;text-align:center;box-shadow:0 0 32px rgba(156,255,224,.28)}
-  .panel h3{margin:.2rem 0 .2rem}
-  .panel .sub{color:var(--textDim);font-size:13px}
-
-  /* Startup overlay */
-  .boot{position:fixed;inset:0;display:grid;place-items:center;background:rgba(3,8,6,.78);backdrop-filter:blur(4px);z-index:70}
-  .spinner{width:74px;height:74px;border-radius:50%;border:3px solid rgba(156,255,224,.3);border-top-color:var(--mintL);
-    animation:spin 1s linear infinite;box-shadow:0 0 22px rgba(156,255,224,.35)}
-  .boot p{margin:.9rem 0 0;color:var(--textDim)}
-  .caption{font-size:12px;color:rgba(233,255,246,.7)}
-
-  /* Pulse when toggling fullscreen */
-  .pulse{position:fixed;inset:0;pointer-events:none;opacity:0;background:
-    radial-gradient(60% 50% at 50% 50%, rgba(156,255,224,.25), transparent 60%);transition:opacity .8s}
-  .pulse.show{opacity:1}
-
-  /* Mobile */
-  @media (max-width:540px){
-    .stage{inset:64px 0 168px 0}
-    #preview{width:94vw}
-  }
+/* top & layout styles (shortened for clarity) */
+.stage{position:fixed;inset:64px 0 148px 0;display:grid;place-items:center;padding:18px}
+.stack{display:flex;flex-direction:column;align-items:center;text-align:center;gap:12px;max-width:960px;width:100%}
+.btn{border:1px solid var(--mint);background:var(--glass);color:var(--mintL);padding:.85rem 1.4rem;border-radius:999px;cursor:pointer;font-weight:700;text-transform:uppercase}
+.btn.hidden{display:none}
+.boot{position:fixed;inset:0;display:grid;place-items:center;background:rgba(3,8,6,.78);backdrop-filter:blur(4px);z-index:70}
+.spinner{width:74px;height:74px;border-radius:50%;border:3px solid rgba(156,255,224,.3);border-top-color:var(--mintL);animation:spin 1s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.tip{position:absolute;max-width:340px;background:rgba(255,255,255,.06);border:1px solid var(--stroke);backdrop-filter:blur(8px);color:var(--text);padding:.7rem .9rem;border-radius:12px;box-shadow:0 0 18px rgba(156,255,224,.25);opacity:0;transform:translateX(-40px);transition:transform .6s,opacity .6s}
+.tip.show{opacity:1;transform:translateX(0)}
 </style>
 </head>
 <body>
 
-<!-- BOOT -->
+<!-- Boot overlay -->
 <div class="boot" id="boot">
   <div class="stack">
     <div class="spinner"></div>
@@ -157,93 +38,27 @@
     </p>
   </div>
 </div>
-<div class="pulse" id="pulse"></div>
 
-<!-- TOP CONTROLS -->
-<div class="topleft">
-  <div class="pill" id="btnAnim"><span>✨</span><span id="animLabel">Animations: On</span></div>
-</div>
-<div class="topright">
-  <div class="iconbtn" id="btnFS" title="Fullscreen">⛶</div>
-</div>
-
-<!-- BRAND -->
-<div class="topbar">
-  <div class="brand" aria-label="HERO PRO">
-    <span class="hero">HERO</span><span class="pro">PRO</span>
-  </div>
-</div>
-
-<!-- STAGE -->
+<!-- Stage -->
 <div class="stage">
   <div class="stack">
-
-    <!-- Primary Actions -->
     <div class="module primary-row">
       <button class="btn" id="btnUpload">⬆ Upload Photo</button>
-      <button class="btn" id="btnCamera">📷 Camera</button>
       <button class="btn" id="btnEstimate">🔍 Estimate</button>
-      <button class="btn hidden" id="btnExport">📤 Export Estimate & Sales Insight</button>
+      <button class="btn hidden" id="btnExport">📤 Export Insight</button>
     </div>
-
-    <!-- Preview -->
-    <div id="preview">
-      <img id="previewImg" alt="preview" />
-      <div id="edgeGlow"></div>
-      <div class="wheel" id="wheel" style="display:none;">
-        <div class="mini-spin"></div><span id="wheelText">Analyzing…</span>
+    <div id="preview" style="display:none;position:relative;">
+      <img id="previewImg" alt="preview" style="width:100%;border-radius:16px"/>
+      <div class="wheel" id="wheel" style="display:none;position:absolute;bottom:10px;left:10px;background:rgba(0,0,0,.4);padding:.3rem .6rem;border-radius:12px;color:#9CFFE0;font-size:12px">
+        <div class="mini-spin" style="width:14px;height:14px;border-radius:50%;border:2px solid rgba(156,255,224,.35);border-top-color:#9CFFE0;animation:spin 1s linear infinite"></div>
+        <span id="wheelText">Analyzing…</span>
       </div>
-      <!-- Pro dashboard hint -->
-      <div class="dash-hint" id="dashHint" style="position:absolute;inset:0;opacity:.0;pointer-events:none;"></div>
     </div>
-
-    <!-- Draggable Mic -->
-    <div class="mic-dock" id="micDock">
-      <div class="mic idle" id="mic"><div class="ring"></div></div>
-      <div class="mic-note" id="micLabel">Tap to Talk — Tap again to Send</div>
-    </div>
-
-    <!-- HUD Tabs -->
-    <div class="hud" id="hudTabs">
-      <div class="tab">Workflow</div>
-      <div class="tab">Insights</div>
-      <div class="tab">Join Our Journey</div>
-      <div class="tab">Sales University</div>
-    </div>
-
     <input type="file" id="file" accept="image/*" hidden />
   </div>
 </div>
 
-<!-- Tips -->
 <div class="tips" id="tips"></div>
-
-<!-- Garage + Footer -->
-<div class="garage locked" id="garage">🔧 Garage • Field Manual</div>
-<div class="footer">Powered by Cardinal Garage _MND</div>
-
-<!-- Overlays -->
-<div class="overlay" id="paywallGarage">
-  <div class="panel">
-    <h3>Exclusive Beta Access</h3>
-    <p class="sub">Unlock the roll-down Garage to view A–Z field techniques.</p>
-    <div class="btn-row" style="justify-content:center">
-      <button class="btn" id="btnBetaGarage">🚪 Join Beta</button>
-      <button class="btn" id="btnCloseGarage">Close</button>
-    </div>
-  </div>
-</div>
-
-<div class="overlay" id="paywallPro">
-  <div class="panel">
-    <h3>Pro Estimate with Sales Insight</h3>
-    <p class="sub">Unlock detailed dashboard, downloadable & shareable exports.</p>
-    <div class="btn-row" style="justify-content:center">
-      <button class="btn" id="btnBetaPro">⚡ Join Pro Beta</button>
-      <button class="btn" id="btnClosePro">Close</button>
-    </div>
-  </div>
-</div>
 
 <script>
 (() => {
@@ -254,336 +69,131 @@
 
   // ===== Elements =====
   const boot = document.getElementById('boot');
-  const pulse = document.getElementById('pulse');
-  const btnAnim = document.getElementById('btnAnim');
-  const animLabel = document.getElementById('animLabel');
-  const btnFS = document.getElementById('btnFS');
-
   const file = document.getElementById('file');
   const btnUpload = document.getElementById('btnUpload');
-  const btnCamera = document.getElementById('btnCamera');
   const btnEstimate = document.getElementById('btnEstimate');
   const btnExport = document.getElementById('btnExport');
-
   const preview = document.getElementById('preview');
   const previewImg = document.getElementById('previewImg');
-  const edgeGlow = document.getElementById('edgeGlow');
   const wheel = document.getElementById('wheel');
   const wheelText = document.getElementById('wheelText');
-
   const tips = document.getElementById('tips');
-  const hudTabs = document.getElementById('hudTabs');
-  const garage = document.getElementById('garage');
-  const paywallGarage = document.getElementById('paywallGarage');
-  const btnBetaGarage = document.getElementById('btnBetaGarage');
-  const btnCloseGarage = document.getElementById('btnCloseGarage');
-  const paywallPro = document.getElementById('paywallPro');
-  const btnBetaPro = document.getElementById('btnBetaPro');
-  const btnClosePro = document.getElementById('btnClosePro');
-
-  const micDock = document.getElementById('micDock');
-  const mic = document.getElementById('mic');
-  const micLabel = document.getElementById('micLabel');
-  const dashHint = document.getElementById('dashHint');
-
-  // ===== Session gating =====
-  let uploadCount = Number(localStorage.getItem("jared_uploads")||0);
   let lastSummary = "";
-  let animationsOn = true;
 
-  // ===== Voice Recognition =====
-  let rec=null, canListen=true, speechAudio=null, greeted=false;
-
-  function initRecognition(){
-    if(!('webkitSpeechRecognition' in window)) return null;
-    const r = new webkitSpeechRecognition();
-    r.lang='en-US'; r.interimResults=false; r.continuous=false;
-    r.onstart = ()=> setMicState('listening');
-    r.onend   = ()=> { canListen=true; setMicState('processing'); }; // user tapped again to send; now waiting for response
-    r.onresult= async (e)=>{
-      const text = e.results[0][0].transcript;
-      try{
-        showTip("…thinking", true);
-        const resp=await fetch(`${API}/inference`,{
-          method:'POST',headers:{'Content-Type':'application/json'},
-          body:JSON.stringify({ text })
-        });
-        const data=await resp.json();
-        await speak(data.content||'');
-      }catch{}
-    };
-    return r;
-  }
-  rec = initRecognition();
-
-  function setMicState(state){
-    mic.classList.remove('idle','listening','processing','speaking');
-    mic.classList.add(state);
-    if(state==='idle') micLabel.textContent = "Tap to Talk — Tap again to Send";
-    if(state==='listening') micLabel.textContent = "Listening… tap to Send";
-    if(state==='processing') micLabel.textContent = "Processing…";
-    if(state==='speaking') micLabel.textContent = " Addison is speaking…";
-  }
-  setMicState('idle');
-
-  function startListening(){ if(!rec||!canListen) return; canListen=false; rec.start(); }
-  function stopListening(){ if(rec) rec.stop(); }
+  // ===== Speech / Audio =====
+  let speechAudio = null;
 
   async function speak(text){
     if(!text) return;
     try{
       if(speechAudio){ speechAudio.pause(); speechAudio=null; }
-      const r=await fetch(`${API}/speak`,{
+      const r = await fetch(`${API}/speak`,{
         method:'POST', headers:{'Content-Type':'application/json'},
         body:JSON.stringify({ text })
       });
       if(!r.ok) throw new Error('tts');
-      const b=await r.blob(); const u=URL.createObjectURL(b);
-      speechAudio=new Audio(u);
-      setMicState('speaking');
+      const b = await r.blob(); const u = URL.createObjectURL(b);
+      speechAudio = new Audio(u);
       await speechAudio.play();
-      setMicState('idle');
-    }catch(e){ console.log('TTS error:',e); setMicState('idle'); }
+    }catch(e){
+      console.log('TTS unavailable, fallback speak:', text);
+    }
   }
 
-async function greeting(){
-  if(greeted) return; greeted = true;
-  await new Promise(r => setTimeout(r, 1100));
-  boot.style.display = 'none';
-  const lines = [
-    "Yo, yo, yo — Addison here. I’m in beta mode, so please be patient with me.",
-    "Im basically like your personal sales coach, ready to calculate costs, send estimates — Addison can look at your work, call out what she sees, price, and make recommendations based on proprietary insights and analysis to identify upsell opportunities, training, and documents to help you price like a pro.",
-    "Upload a photo, hit estimate, and let’s see what this thing can do."
-  ];
-  for (const line of lines) {
-    await speak(line);
-    await new Promise(r => setTimeout(r, 260));
+  // ===== Greeting =====
+  async function greeting(){
+    await new Promise(r => setTimeout(r, 800));
+    boot.style.display = 'none';
+    const lines = [
+      "Yo, yo, yo — Addison here. I’m in beta mode, so please be patient with me.",
+      "I’m basically your personal sales coach — ready to calculate costs, analyze your work, and identify upsell opportunities using proprietary insights.",
+      "Upload a photo, hit estimate, and let’s see what this thing can do."
+    ];
+    for (const line of lines) {
+      await speak(line);
+      await new Promise(r => setTimeout(r, 250));
+    }
   }
-}
 
+  // ===== Fail-safes =====
+  window.addEventListener('load', greeting, { once:true });
+  setTimeout(() => {
+    if (boot && boot.style.display !== 'none') {
+      console.warn('AI backend slow — skipping boot overlay');
+      boot.style.display = 'none';
+    }
+  }, 10000);
+
+  if (typeof speak === 'undefined') {
+    async function speak(text){ console.log('Fallback speak:', text); return new Promise(r=>setTimeout(r,1000)); }
+  }
 
   // ===== Upload flow =====
   btnUpload.onclick = ()=> file.click();
   file.onchange = ()=>{
     const f = file.files[0]; if(!f) return;
-    if(uploadCount >= 1){ // show pro paywall after first upload (demo)
-      paywallPro.style.display='flex';
-      dashHint.style.opacity = .6;
-      return;
-    }
-    uploadCount++; localStorage.setItem("jared_uploads", String(uploadCount));
     const url = URL.createObjectURL(f);
-    previewReplaceWithImage(url);
     preview.style.display='block';
-    dashHint.style.opacity = .25; // hint exists but dim until pro
+    previewImg.src = url;
   };
-
-  // ===== Camera flow =====
-  let camStream = null, camVideo = null, captureBtn = null;
-  btnCamera.onclick = openCamera;
-
-  async function openCamera(){
-    try{
-      const stream = await navigator.mediaDevices.getUserMedia({ video: true });
-      camStream = stream;
-      camVideo = document.createElement("video");
-      camVideo.playsInline = true;
-      camVideo.muted = true;
-      camVideo.srcObject = stream;
-      await camVideo.play();
-
-      preview.style.display = 'block';
-      previewReplaceWithNode(camVideo);
-
-      ensureCaptureBtn();
-    }catch(e){
-      showTip("Camera access denied.", true);
-    }
-  }
-
-  function ensureCaptureBtn(){
-    if(captureBtn) captureBtn.remove();
-    captureBtn = document.createElement("button");
-    captureBtn.textContent = "📸 Capture";
-    captureBtn.className = "btn";
-    captureBtn.style.position = "absolute";
-    captureBtn.style.right = "10px";
-    captureBtn.style.bottom = "10px";
-    preview.appendChild(captureBtn);
-    captureBtn.onclick = async ()=>{
-      if(!camVideo) return;
-      const canvas = document.createElement("canvas");
-      canvas.width = camVideo.videoWidth || 1280;
-      canvas.height = camVideo.videoHeight || 720;
-      const g = canvas.getContext("2d");
-      g.drawImage(camVideo, 0, 0, canvas.width, canvas.height);
-      const blob = await new Promise(res=>canvas.toBlob(res, 'image/jpeg', 0.92));
-      if(camStream){ camStream.getTracks().forEach(t=>t.stop()); camStream=null; }
-      camVideo = null;
-      const url = URL.createObjectURL(blob);
-      previewReplaceWithImage(url);
-      // Stash the blob to send on Estimate
-      file._capturedBlob = blob;
-      showTip("Captured — tap Estimate.", true);
-    };
-  }
-
-  function previewReplaceWithImage(url){
-    const img = document.createElement("img");
-    img.id = "previewImg";
-    img.alt = "preview";
-    img.src = url;
-    previewReplaceWithNode(img);
-  }
-
-  function previewReplaceWithNode(node){
-    const oldImg = preview.querySelector("img, video");
-    if(oldImg) oldImg.replaceWith(node);
-    else preview.prepend(node);
-  }
 
   // ===== Analyze =====
   btnEstimate.onclick = async ()=>{
-    if(!preview.style.display || preview.style.display==='none'){
-      showTip("Upload or capture a photo first.", true); return;
-    }
-    const blob = file._capturedBlob;
     const fileEl = file.files && file.files[0];
-
-    if(!blob && !fileEl){ showTip("No image found.", true); return; }
-
-    preview.classList.add('glow-on');
-    wheel.style.display='flex';
-    wheelText.textContent = "Analyzing…";
+    if(!fileEl){ showTip("Upload a photo first.", true); return; }
+    wheel.style.display='flex'; wheelText.textContent="Analyzing…";
 
     const formData = new FormData();
-    if(blob){
-      formData.append("file", blob, "capture.jpg");
-    } else {
-      formData.append("file", fileEl);
-    }
+    formData.append("file", fileEl);
 
     try{
-      showTip("Analyzing image…", false);
       const resp = await fetch(`${API}/analyze-image`, { method:"POST", body:formData });
       const data = await resp.json();
       lastSummary = data.summary || "No summary.";
       showAnalysisTips(lastSummary);
       await speak(lastSummary);
-      hudTabs.style.display='flex';
-      btnExport.classList.remove('hidden'); // export appears after analysis
-      dashHint.style.opacity = .6; // “power behind” glow
+      btnExport.classList.remove('hidden');
     }catch{
       showTip("❌ Analysis failed.", true);
     }finally{
       wheel.style.display='none';
-      preview.classList.remove('glow-on');
     }
   };
 
-  // ===== Export (Pro-gated) =====
+  // ===== Export =====
   btnExport.onclick = ()=>{
-    if(!localStorage.getItem("jared_pro_unlocked")){
-      paywallPro.style.display='flex'; return;
-    }
-    const content = collectExportText();
+    const content = `HERO PRO — Estimate Insight\n\n${lastSummary}\n`;
     const blob = new Blob([content], { type:"text/plain" });
     const a = document.createElement("a");
     a.href = URL.createObjectURL(blob);
-    a.download = "jared_estimate_and_sales_insight.txt";
+    a.download = "jared_estimate.txt";
     a.click();
   };
 
-  function collectExportText(){
-    const tipsTxt = [...document.querySelectorAll('.tip')].map(e=>e.textContent.trim()).join("\n");
-    return `HERO PRO — Estimate & Sales Insight\n\n${lastSummary}\n\nTIPS:\n${tipsTxt || "- none -"}\n`;
-  }
-
-  // ===== Mic drag + click =====
-  mic.addEventListener('pointerdown', startDrag);
-  let dragOffX=0, dragOffY=0, dragging=false;
-  function startDrag(e){
-    dragging=true; mic.setPointerCapture(e.pointerId);
-    const r = micDock.getBoundingClientRect();
-    dragOffX = e.clientX - r.left; dragOffY = e.clientY - r.top;
-  }
-  mic.addEventListener('pointermove', (e)=>{
-    if(!dragging) return;
-    micDock.style.left = (e.clientX - dragOffX) + 'px';
-    micDock.style.top  = (e.clientY - dragOffY) + 'px';
-    micDock.style.transform = 'translate(0,0)'; // cancel center transform once moved
-  });
-  mic.addEventListener('pointerup', (e)=>{
-    if(!dragging) return; dragging=false; mic.releasePointerCapture(e.pointerId);
-    // If user just tapped (not moved far), toggle listen/send
-    if(e.pointerType !== 'mouse' || Math.abs(e.movementX)+Math.abs(e.movementY) < 2){
-      if(mic.classList.contains('listening')) stopListening();
-      else startListening();
-    }
-  });
-
-  // ===== Fullscreen =====
-  btnFS.onclick = async ()=>{
-    if(!document.fullscreenElement) await document.documentElement.requestFullscreen();
-    else await document.exitFullscreen();
-    pulse.classList.add('show');
-    setTimeout(()=>pulse.classList.remove('show'), 900);
-  };
-
-  // ===== Animations toggle =====
-  btnAnim.onclick = ()=>{
-    animationsOn = !animationsOn;
-    animLabel.textContent = `Animations: ${animationsOn ? 'On' : 'Off'}`;
-    document.body.style.animationPlayState = animationsOn ? 'running' : 'paused';
-    for(const el of [document.body, document.body]){ /* placeholder to future-play/pause hooks */ }
-  };
-
-  // ===== Sales / Journey stubs =====
-  // (Hook your links/forms later if desired)
-
-  // ===== Garage =====
-  garage.onclick = ()=>{
-    if(garage.classList.contains('locked')) paywallGarage.style.display='flex';
-    else alert("Garage roll-down (mock) — Field Manuals A–Z.");
-  };
-  btnBetaGarage.onclick = ()=>{
-    garage.classList.remove('locked');
-    paywallGarage.style.display='none';
-  };
-  btnCloseGarage.onclick = ()=> paywallGarage.style.display='none';
-
-  // ===== Pro paywall =====
-  btnBetaPro.onclick = ()=>{
-    localStorage.setItem("jared_pro_unlocked","1");
-    paywallPro.style.display='none';
-    showTip("Pro unlocked — Export & Dashboard enabled.", true);
-    dashHint.style.opacity = .85;
-  };
-  btnClosePro.onclick = ()=> paywallPro.style.display='none';
-
-  // ===== Tips =====
-  function showTip(text, right=false){
+  // ===== Tips / Feedback =====
+  function showTip(text){
     const el=document.createElement('div');
-    el.className='tip'+(right?' right':'');
-    el.style.left = right ? '' : '16px';
-    el.innerHTML = text;
+    el.className='tip';
+    el.innerHTML=text;
     tips.appendChild(el);
     requestAnimationFrame(()=>el.classList.add('show'));
     setTimeout(()=>{ el.classList.remove('show'); setTimeout(()=>el.remove(),420); }, 4200);
   }
 
   function showAnalysisTips(summary){
-    const bits = (summary.replace(/\s+/g,' ').trim() || "Looks good. Consider fresh mulch; adjust shrub spacing; check edging.")
+    const bits = (summary.replace(/\s+/g,' ').trim() || 
+      "Looks good. Consider fresh mulch; adjust shrub spacing; check edging.")
       .split(/[.;]/).map(s=>s.trim()).filter(Boolean).slice(0,3);
     let delay = 240;
     bits.forEach((b,i)=>{
-      setTimeout(()=>showTip("💡 "+b, i%2===1), delay);
+      setTimeout(()=>showTip("💡 "+b), delay);
       delay += 1500;
     });
-    setTimeout(()=>showTip("🧾 Estimate ready — Export or upgrade to Pro.", true), delay+300);
+    setTimeout(()=>showTip("🧾 Estimate ready — Export or upgrade to Pro."), delay+300);
   }
 
 })();
 </script>
 </body>
 </html>
+
