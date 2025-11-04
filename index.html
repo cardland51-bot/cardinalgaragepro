@@ -6,394 +6,242 @@
 <title>HeroHUD • Upload → Analyze → Send</title>
 <meta name="theme-color" content="#0b1b16" />
 <style>
-  :root{
-    --bg-top:#0b1b16; --bg-bot:#06121a;
-    --mintL:#9CFFE0; --mint:#34D1A0; --aqua:#2FB0E9; --teal:#0E8B67;
-    --text:#E9FFF6; --textDim:rgba(233,255,246,.85);
-    --glass:rgba(255,255,255,0.06); --stroke:rgba(156,255,224,0.28);
-    --warn:#f6bf3a;
-  }
-  html,body{margin:0;height:100%;background:linear-gradient(180deg,var(--bg-top),var(--bg-bot));color:var(--text);font-family:ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial}
-  *{box-sizing:border-box}
-  .topbar{position:fixed;inset:0 0 auto 0;height:56px;display:flex;align-items:center;justify-content:space-between;padding:0 12px;background:rgba(0,0,0,.4);border-bottom:1px solid var(--stroke);z-index:20}
-  .brand{font-weight:900;letter-spacing:.08em;color:var(--mintL)}
-  .btn{appearance:none;border:1px solid var(--mint);background:var(--glass);color:var(--mintL);
-    padding:.85rem 1.4rem;border-radius:999px;letter-spacing:.08em;text-transform:uppercase;font-weight:700;
-    backdrop-filter:blur(6px);cursor:pointer;transition:box-shadow .2s,transform .1s,opacity .2s;
-    box-shadow:0 0 16px rgba(156,255,224,.14);font-size:13px;margin:4px}
-  .btn:hover{box-shadow:0 0 26px rgba(156,255,224,.45)}
-  .pill{border:1px solid var(--stroke);background:var(--glass);color:var(--text);cursor:pointer;border-radius:999px;padding:.45rem .85rem;font-size:12px}
-  .row{display:flex;flex-wrap:wrap;gap:10px;justify-content:center}
-  #preview{display:none;position:relative;width:min(94vw,980px);aspect-ratio:16/10;border-radius:16px;overflow:hidden;border:1px solid var(--stroke);margin:14px auto 0;box-shadow:0 0 24px rgba(156,255,224,.14)}
-  #preview img,#preview video{width:100%;height:100%;object-fit:cover}
-  #edgeGlow{position:absolute;inset:0;border-radius:16px;pointer-events:none;opacity:0;box-shadow:0 0 28px rgba(156,255,224,.6),inset 0 0 18px rgba(14,139,103,.55);transition:opacity .25s}
-  .glow-on #edgeGlow{opacity:1}
-  #tips{position:relative;width:min(94vw,980px);min-height:14px;margin:10px auto 0}
-  .tip{opacity:0;transform:translateY(8px);transition:all .5s cubic-bezier(.2,.9,.2,1);
-    background:rgba(255,255,255,.06);border:1px solid var(--stroke);backdrop-filter:blur(8px);
-    color:var(--text);padding:.55rem .75rem;border-radius:10px;margin:.35rem auto;max-width:92%}
-  .tip.show{opacity:1;transform:translateY(0)}
-  /* KPI panel */
-  #panel{display:none;width:min(94vw,980px);margin:14px auto 0;padding:10px;border:1px solid var(--stroke);border-radius:14px;background:rgba(255,255,255,.05);backdrop-filter:blur(6px)}
-  .kpis{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
-  .k{border:1px solid var(--stroke);border-radius:12px;padding:10px;background:rgba(255,255,255,.04);display:flex;gap:10px;align-items:center}
-  .k .i{font-size:18px}
-  .k .v{font-weight:800}
-  .k .s{font-size:12px;color:var(--textDim)}
-  @media (max-width:720px){ .kpis{grid-template-columns:1fr} }
-  /* Voice UI */
-  #voiceOrb{position:fixed;left:18px;bottom:80px;width:54px;height:54px;border-radius:999px;border:1px solid var(--mint);
-    background:radial-gradient(circle at 60% 40%, rgba(156,255,224,.25), rgba(47,176,233,.12));
-    box-shadow:0 0 16px rgba(156,255,224,.25);display:grid;place-items:center;z-index:25}
-  #voiceOrb.speaking{box-shadow:0 0 20px rgba(156,255,224,.45),0 0 28px rgba(47,176,233,.35)}
-  #talkBtn{position:fixed;right:18px;bottom:80px;background:var(--glass);border:1px solid var(--mint);
-    color:var(--mintL);padding:.7rem 1rem;border-radius:999px;cursor:pointer;backdrop-filter:blur(6px);
-    box-shadow:0 0 16px rgba(156,255,224,.25);font-weight:700;z-index:25}
-  /* Boot */
-  #bootVeil{position:fixed;inset:0;background:#03100c;z-index:99;display:flex;align-items:center;justify-content:center;flex-direction:column;color:var(--mintL)}
-  /* Floating capture */
-  #snapHint{position:absolute;right:10px;bottom:10px;border:1px solid var(--stroke);background:rgba(0,0,0,.45);padding:.4rem .7rem;border-radius:999px;font-size:12px}
-  .footer{position:fixed;left:50%;transform:translateX(-50%);bottom:14px;font-size:12px;color:rgba(233,255,246,.7);letter-spacing:.12em;text-transform:uppercase}
+:root{
+  --bg-top:#0b1b16;--bg-bot:#06121a;
+  --mintL:#9CFFE0;--mint:#34D1A0;--aqua:#2FB0E9;--teal:#0E8B67;
+  --text:#E9FFF6;--textDim:rgba(233,255,246,.85);
+  --glass:rgba(255,255,255,0.06);--stroke:rgba(156,255,224,0.28);
+  --warn:#f6bf3a;
+}
+html,body{margin:0;height:100%;background:linear-gradient(180deg,var(--bg-top),var(--bg-bot));
+  color:var(--text);font-family:ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial;overflow-x:hidden}
+*{box-sizing:border-box;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none}
+.btn{appearance:none;border:1px solid var(--mint);background:var(--glass);color:var(--mintL);
+  padding:.85rem 1.4rem;border-radius:999px;letter-spacing:.08em;text-transform:uppercase;font-weight:700;
+  backdrop-filter:blur(6px);cursor:pointer;transition:box-shadow .2s,transform .1s,opacity .2s;
+  box-shadow:0 0 16px rgba(156,255,224,.14);font-size:13px;margin:4px}
+.btn:hover{box-shadow:0 0 26px rgba(156,255,224,.45)}
+.pill{border:1px solid var(--stroke);background:var(--glass);color:var(--text);cursor:pointer;border-radius:999px;
+  padding:.45rem .85rem;font-size:12px}
+.topbar{position:fixed;inset:0 0 auto 0;height:56px;display:flex;align-items:center;justify-content:space-between;
+  padding:0 12px;background:rgba(0,0,0,.4);border-bottom:1px solid var(--stroke);z-index:40}
+.brand{font-weight:900;letter-spacing:.08em;color:var(--mintL)}
+main{padding-top:70px;text-align:center}
+.row{display:flex;gap:10px;flex-wrap:wrap;justify-content:center}
+#preview{display:none;position:relative;width:min(94vw,980px);aspect-ratio:16/10;border-radius:16px;overflow:hidden;
+  border:1px solid var(--stroke);margin:12px auto;box-shadow:0 0 24px rgba(156,255,224,.14)}
+#preview img,#preview video{width:100%;height:100%;object-fit:cover}
+#edgeGlow{position:absolute;inset:0;border-radius:16px;pointer-events:none;opacity:0;
+  box-shadow:0 0 28px rgba(156,255,224,.6),inset 0 0 18px rgba(14,139,103,.55);transition:opacity .25s}
+.glow-on #edgeGlow{opacity:1}
+#tips{width:min(94vw,980px);margin:10px auto}
+.tip{opacity:0;transform:translateY(8px);transition:all .5s cubic-bezier(.2,.9,.2,1);
+  background:rgba(255,255,255,.06);border:1px solid var(--stroke);backdrop-filter:blur(8px);
+  color:var(--text);padding:.55rem .75rem;border-radius:10px;margin:.35rem auto;max-width:92%}
+.tip.show{opacity:1;transform:translateY(0)}
+#panel{display:none;width:min(94vw,980px);margin:12px auto;padding:10px;border:1px solid var(--stroke);
+  border-radius:14px;background:rgba(255,255,255,.05);backdrop-filter:blur(6px)}
+.kpis{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.k{border:1px solid var(--stroke);border-radius:12px;padding:10px;background:rgba(255,255,255,.04);
+  display:flex;gap:10px;align-items:center}
+.k .i{font-size:18px}.k .v{font-weight:800}.k .s{font-size:12px;color:var(--textDim)}
+@media(max-width:720px){.kpis{grid-template-columns:1fr}}
+#voiceOrb{position:fixed;left:18px;bottom:88px;width:56px;height:56px;border-radius:999px;border:1px solid var(--mint);
+  background:radial-gradient(circle at 60% 40%,rgba(156,255,224,.25),rgba(47,176,233,.12));
+  box-shadow:0 0 16px rgba(156,255,224,.25);display:grid;place-items:center;z-index:45}
+#voiceOrb.speaking{box-shadow:0 0 20px rgba(156,255,224,.45),0 0 28px rgba(47,176,233,.35)}
+#talkBtn{position:fixed;right:18px;bottom:128px}
+#stopBtn{position:fixed;right:18px;bottom:80px;border-color:var(--warn);color:var(--warn)}
+.footer{position:fixed;left:50%;transform:translateX(-50%);bottom:14px;font-size:12px;color:rgba(233,255,246,.7);
+  letter-spacing:.12em;text-transform:uppercase}
+#bootVeil{position:fixed;inset:0;background:#03100c;z-index:90;display:flex;align-items:center;justify-content:center;
+  flex-direction:column;color:var(--mintL)}
+#garage{display:none;position:fixed;inset:0;z-index:100;background:rgba(0,0,0,.85);color:var(--text)}
+.garage-box{position:absolute;inset:6% 6%;border:1px solid var(--stroke);background:#0e1815;border-radius:16px;
+  display:flex;flex-direction:column;box-shadow:0 0 40px rgba(0,0,0,.55);overflow:hidden}
+.gar-head{display:flex;justify-content:space-between;align-items:center;padding:12px 14px;border-bottom:1px solid var(--stroke)}
+.gar-body{flex:1;overflow-y:auto;padding:20px}
+.tier{border:1px solid var(--stroke);border-radius:12px;padding:12px;margin-bottom:14px;background:rgba(255,255,255,.04)}
+.tier h3{margin:0;color:var(--mintL)}
+.tier p{margin:6px 0;color:var(--textDim)}
 </style>
 </head>
 <body>
-  <div class="topbar">
-    <div class="brand">HeroHUD</div>
-    <div class="menu">
-      <button class="pill" id="btnFull">Full Screen</button>
-    </div>
+<div class="topbar">
+  <div class="brand">HeroHUD</div>
+  <div class="menu"><button class="pill" id="btnGarage">🚪 Garage</button></div>
+</div>
+
+<main>
+  <div class="row">
+    <button class="btn" id="btnCamera">📷 Camera</button>
+    <button class="btn" id="btnUpload">⬆ Upload</button>
+    <button class="btn" id="btnAnalyze">🔍 Analyze</button>
   </div>
-
-  <!-- Boot -->
-  <div id="bootVeil">
-    <div id="bootMsg" style="text-align:center">Please give Jared time to wake up.<br>Server configuring • Backend live</div>
-    <div id="dedication" style="margin-top:14px;opacity:0">Precision meets grit. Heart meets hustle. — Dedicated to Addison</div>
-    <button class="pill" id="wakeBtn" style="display:none;margin-top:12px">Tap to Wake</button>
-  </div>
-
-  <main style="padding-top:70px;text-align:center">
-    <div class="row">
-      <button class="btn" id="btnCamera">📷 Camera</button>
-      <button class="btn" id="btnUpload">⬆ Upload</button>
-      <button class="btn" id="btnAnalyze">🔍 Analyze</button>
-      <button class="btn" id="btnGarage" style="display:none">Garage</button>
+  <div id="preview"><img id="previewImg"/><div id="edgeGlow"></div></div>
+  <section id="panel">
+    <div class="kpis">
+      <div class="k"><div class="i">💲</div><div><div class="v" id="kCost">—</div><div class="s">Estimated Cost</div></div></div>
+      <div class="k"><div class="i">⚠️</div><div><div class="v" id="kRisk">—</div><div class="s">Risk Factors</div></div></div>
+      <div class="k"><div class="i">📈</div><div><div class="v" id="kUpsell">—</div><div class="s">Upsell Opportunities</div></div></div>
     </div>
+  </section>
+  <div id="tips"></div>
+</main>
 
-    <div id="preview">
-      <img id="previewImg" alt="preview"/>
-      <div id="edgeGlow"></div>
+<button id="talkBtn" class="btn">💬 Talk to Addie</button>
+<button id="stopBtn" class="btn">⛔ Stop</button>
+<div id="voiceOrb" title="Voice Status"></div>
+<div class="footer">Powered by Cardinal-Garage_MND Inc.</div>
+
+<div id="garage">
+  <div class="garage-box">
+    <div class="gar-head">
+      <div style="font-weight:800;letter-spacing:.08em;color:var(--mintL)">Garage Access</div>
+      <button class="pill" id="closeGarage">Close</button>
     </div>
-
-    <!-- Result KPIs -->
-    <section id="panel" aria-live="polite">
-      <div class="kpis">
-        <div class="k"><div class="i">💲</div><div><div class="v" id="kCost">—</div><div class="s">Estimated Cost</div></div></div>
-        <div class="k"><div class="i">⚠️</div><div><div class="v" id="kRisk">—</div><div class="s">Risk Factors</div></div></div>
-        <div class="k"><div class="i">📈</div><div><div class="v" id="kUpsell">—</div><div class="s">Upsell Opportunities</div></div></div>
+    <div class="gar-body">
+      <h2>Tiered Access Plans</h2>
+      <div class="tier"><h3>🔰 Basic</h3>
+        <p>1 Free Demo • Basic photo estimate</p>
+        <p>Ideal for first-time users testing the HUD system.</p>
       </div>
-    </section>
+      <div class="tier"><h3>💎 Unlimited</h3>
+        <p>Unlimited analyses • Voice AI & export access</p>
+        <p>For contractors running full daily estimates.</p>
+      </div>
+      <div class="tier"><h3>🚀 Pro</h3>
+        <p>Unlimited + Sales Logic • Export Logs • Addie Coaching</p>
+        <p>Includes advanced AI sales insight and upgrade logic training.</p>
+      </div>
 
-    <div id="tips"></div>
-  </main>
+      <h2>Portals</h2>
+      <ul>
+        <li><a class="btn" href="./GarageMind_Founder_Black_Book_v1.2_InvestorPrintEdition.pdf" target="_blank">📘 Founder Black Book</a></li>
+        <li><a class="btn" href="https://cardinal-systems-university.example.com" target="_blank">🏫 Sales University Portal</a></li>
+        <li><a class="btn" href="https://docs.cardinal-systems.example.com" target="_blank">📚 Docs Portal</a></li>
+      </ul>
 
-  <div id="voiceOrb" class="idle" title="Voice status"></div>
-  <button id="talkBtn">💬 Talk to Addie</button>
-  <div class="footer">Powered by Cardinal-Garage_MND Inc.</div>
+      <h2>Exports</h2>
+      <button class="btn" id="btnExport">📤 Export Last Analysis</button>
+      <button class="btn" id="btnLogs">🧾 Export Logs CSV</button>
+    </div>
+  </div>
+</div>
 
 <script>
 (() => {
-  /* ====== CONFIG ====== */
-  const API = (location.hostname.includes("localhost")||location.hostname.includes("127.0.0.1"))
-    ? "http://localhost:3001"
-    : "https://jared-hero2-backend.onrender.com";
-  const PAYPAL_URL = "https://www.paypal.com/ncp/payment/MVWW6VPEHJKKU";
+const API="https://jared-hero2-backend.onrender.com";
+const PAYPAL_URL="https://www.paypal.com/ncp/payment/MVWW6VPEHJKKU";
+const el={
+ btnCamera:qs('#btnCamera'),btnUpload:qs('#btnUpload'),btnAnalyze:qs('#btnAnalyze'),
+ preview:qs('#preview'),previewImg:qs('#previewImg'),edgeGlow:qs('#edgeGlow'),
+ tips:qs('#tips'),panel:qs('#panel'),kCost:qs('#kCost'),kRisk:qs('#kRisk'),kUpsell:qs('#kUpsell'),
+ talkBtn:qs('#talkBtn'),stopBtn:qs('#stopBtn'),voiceOrb:qs('#voiceOrb'),
+ btnGarage:qs('#btnGarage'),garage:qs('#garage'),closeGarage:qs('#closeGarage'),
+ btnExport:qs('#btnExport'),btnLogs:qs('#btnLogs')
+};
+const STATE={audioEnabled:false,analyzeCount:Number(localStorage.getItem('hero_analyzes')||0),speechQueue:[],speaking:false,logs:[]};
+function qs(s){return document.querySelector(s);}
+function tip(t){const d=document.createElement("div");d.className="tip";d.textContent=t;el.tips.appendChild(d);requestAnimationFrame(()=>d.classList.add("show"));}
+function clearTips(){el.tips.innerHTML="";}
+function setAnalyzes(n){STATE.analyzeCount=n;localStorage.setItem('hero_analyzes',String(n));}
 
-  /* ====== ELEMENTS ====== */
-  const el = {
-    btnFull: qs('#btnFull'),
-    btnUpload: qs('#btnUpload'),
-    btnCamera: qs('#btnCamera'),
-    btnAnalyze: qs('#btnAnalyze'),
-    preview: qs('#preview'),
-    previewImg: qs('#previewImg'),
-    edgeGlow: qs('#edgeGlow'),
-    tips: qs('#tips'),
-    panel: qs('#panel'),
-    kCost: qs('#kCost'),
-    kRisk: qs('#kRisk'),
-    kUpsell: qs('#kUpsell'),
-    voiceOrb: qs('#voiceOrb'),
-    talkBtn: qs('#talkBtn'),
-    bootVeil: qs('#bootVeil'),
-    dedication: qs('#dedication'),
-    wakeBtn: qs('#wakeBtn')
-  };
+/* Garage */
+el.btnGarage.onclick=()=>el.garage.style.display='block';
+el.closeGarage.onclick=()=>el.garage.style.display='none';
 
-  /* ====== STATE ====== */
-  const STATE = {
-    audioEnabled:false,
-    analyzeCount: Number(localStorage.getItem('herohud_analyzes')||0), // demo gate: paywall on 2nd try
-    speechQueue: [],
-    speaking:false
-  };
+/* Exports */
+el.btnExport.onclick=()=>{
+  const last=STATE.logs[STATE.logs.length-1];if(!last)return alert("No analysis yet.");
+  const blob=new Blob([JSON.stringify(last,null,2)],{type:"application/json"});
+  const a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download="HeroHUD_LastAnalysis.json";a.click();
+};
+el.btnLogs.onclick=()=>{
+  if(!STATE.logs.length)return alert("No logs yet.");
+  const csv="Date,Cost,Risks,Upsells\n"+STATE.logs.map(l=>[l.date,l.cost,l.risk,l.upsell].join(",")).join("\n");
+  const blob=new Blob([csv],{type:"text/csv"});const a=document.createElement("a");
+  a.href=URL.createObjectURL(blob);a.download="HeroHUD_Logs.csv";a.click();
+};
 
-  /* ====== UTIL ====== */
-  function qs(s){ return document.querySelector(s); }
-  const wait = ms => new Promise(r=>setTimeout(r,ms));
-  function tip(text){
-    const t=document.createElement("div");
-    t.className="tip"; t.textContent=text;
-    el.tips.appendChild(t);
-    requestAnimationFrame(()=>t.classList.add("show"));
-  }
-  function clearTips(){ el.tips.innerHTML = ""; }
-  function setAnalyzes(n){ STATE.analyzeCount=n; localStorage.setItem('herohud_analyzes',String(n)); }
+/* Speech */
+let activeUtter=null;
+function pickVoice(f=true){const v=speechSynthesis.getVoices();if(!v.length)return null;
+ const us=v.filter(x=>x.lang.toLowerCase().includes("en-us"));
+ const fList=["Google US English","Samantha","Jenny","Aria","Amelia","Sara","Coral"];
+ const mList=["Daniel","Alex","Matthew","Guy"];
+ return f?us.find(x=>fList.includes(x.name))||us[0]:us.find(x=>mList.includes(x.name))||us[0];
+}
+function speakQueued(text,{female=true,rate=1.1,pitch=1.25}={}){STATE.speechQueue.push({text,female,rate,pitch});processQueue();}
+function processQueue(){if(STATE.speaking||!STATE.speechQueue.length||!STATE.audioEnabled)return;
+ const {text,female,rate,pitch}=STATE.speechQueue.shift();speakNow(text,{female,rate,pitch,onend:()=>{STATE.speaking=false;processQueue();}});}
+function speakNow(text,{female,rate,pitch,onend}={}){stopSpeech();try{
+ const u=new SpeechSynthesisUtterance(text);const v=pickVoice(female);if(v)u.voice=v;u.rate=rate;u.pitch=pitch;
+ u.onend=()=>{activeUtter=null;el.voiceOrb.classList.remove('speaking');onend&&onend();};
+ activeUtter=u;STATE.speaking=true;el.voiceOrb.classList.add('speaking');speechSynthesis.speak(u);}catch{onend&&onend();}}
+function stopSpeech(){try{if(activeUtter){speechSynthesis.cancel();activeUtter=null;}}catch{}el.voiceOrb.classList.remove('speaking');}
+el.stopBtn.onclick=stopSpeech;
 
-  /* ====== SPEECH (Never Overlap via Queue) ====== */
-  let activeUtter=null;
-  window.speechSynthesis.onvoiceschanged=()=>window.speechSynthesis.getVoices();
+/* Hold-to-Talk */
+let holdStart=0;
+el.talkBtn.addEventListener('pointerdown',e=>{e.preventDefault();holdStart=Date.now();el.talkBtn.style.boxShadow="0 0 20px rgba(156,255,224,.6)";});
+el.talkBtn.addEventListener('pointerup',e=>{
+ e.preventDefault();el.talkBtn.style.boxShadow="";
+ const held=Date.now()-holdStart;
+ if(!STATE.audioEnabled){STATE.audioEnabled=true;speakQueued("Hi I'm Addie — hold to talk and I'll coach your sales pitch.");return;}
+ if(held>300){speakQueued("I'm listening. What do you need — pricing, risk, or how to close the sale?");}
+ else{speakQueued("Tap or hold to talk. Upload a photo and I’ll help estimate it!");}
+});
 
-  function pickVoice(preferFemale=true){
-    const voices = window.speechSynthesis.getVoices();
-    if(!voices || !voices.length) return null;
-    const us = voices.filter(v=>v.lang.toLowerCase().includes("en-us"));
-    const females = ["Google US English","Samantha","Jenny","Aria","Amelia","Sara","Coral"];
-    const males   = ["Daniel","Alex","Matthew","Guy"];
-    if(preferFemale){
-      return us.find(v=>females.includes(v.name))||us.find(v=>/female|aria|samantha|jenny|coral/i.test(v.name))||us[0]||voices[0];
-    }else{
-      return us.find(v=>males.includes(v.name))||us.find(v=>/male|daniel|alex|guy/i.test(v.name))||us[0]||voices[0];
-    }
-  }
+/* Camera */
+el.btnCamera.onclick=async()=>{try{
+ const s=await navigator.mediaDevices.getUserMedia({video:{facingMode:"user"},audio:false});
+ const v=document.createElement("video");v.srcObject=s;await v.play();el.preview.innerHTML="";el.preview.appendChild(v);el.preview.appendChild(el.edgeGlow);el.preview.style.display="block";
+ const snap=document.createElement("div");snap.id="snapHint";snap.textContent="Tap video to snapshot";el.preview.appendChild(snap);
+ v.onclick=()=>{const c=document.createElement("canvas");c.width=v.videoWidth;c.height=v.videoHeight;c.getContext("2d").drawImage(v,0,0);
+ el.previewImg.src=c.toDataURL("image/jpeg",0.9);el.preview.innerHTML="";el.preview.appendChild(el.previewImg);el.preview.appendChild(el.edgeGlow);
+ s.getTracks().forEach(t=>t.stop());tip("Snapshot captured — tap Analyze.");};}
+ catch{tip("Camera unavailable.");}};
 
-  // Queue API
-  function speakQueued(text, {female=false, rate=1.0, pitch=1.0}={}){
-    STATE.speechQueue.push({text, female, rate, pitch});
-    processQueue();
-  }
-  function processQueue(){
-    if(STATE.speaking || !STATE.speechQueue.length || !STATE.audioEnabled) return;
-    const {text, female, rate, pitch} = STATE.speechQueue.shift();
-    speakNow(text,{female,rate,pitch, onend:()=>{ STATE.speaking=false; processQueue(); }});
-  }
-  function speakNow(text,{female=false,rate=1.0,pitch=1.0,onend}={}){
-    stopSpeech();
-    try{
-      const u = new SpeechSynthesisUtterance(text);
-      const v = pickVoice(female);
-      if(v) u.voice = v;
-      u.rate = rate; u.pitch = pitch;
-      u.onend = ()=>{ activeUtter=null; el.voiceOrb.classList.remove('speaking'); onend && onend(); };
-      u.onerror = u.onend;
-      activeUtter = u; STATE.speaking = true; el.voiceOrb.classList.add('speaking');
-      window.speechSynthesis.speak(u);
-    }catch{ onend && onend(); }
-  }
-  function stopSpeech(){
-    try{ if(activeUtter){ window.speechSynthesis.cancel(); activeUtter=null; } }catch{}
-    el.voiceOrb.classList.remove('speaking');
-  }
+/* Upload */
+const fileInput=document.createElement("input");fileInput.type="file";fileInput.accept="image/*";
+el.btnUpload.onclick=()=>fileInput.click();
+fileInput.onchange=()=>{const f=fileInput.files[0];if(!f)return;const url=URL.createObjectURL(f);
+ el.previewImg.src=url;el.preview.style.display="block";tip("Photo ready — tap Analyze.");};
 
-  /* ====== BOOT / INTRO ====== */
-  async function bootSequence(){
-    await wait(1500); el.dedication.style.opacity=1;
-    await wait(900); el.wakeBtn.style.display="inline-block";
-  }
-  el.wakeBtn.onclick = () => {
-    STATE.audioEnabled = true;
-    el.bootVeil.style.display='none';
-    // Addie explains what’s being built
-    speakQueued("Welcome to Cardinal’s Garage. I’m Addie — your personal sales coach.", {female:true, rate:1.05, pitch:1.08});
-    speakQueued("We’re building Hero H U D, a living AI estimator and field coach that turns job photos into pricing, risks, and upsell-ready plans — so beginners feel confident and pros move faster.", {female:true, rate:1.04, pitch:1.06});
-    speakQueued("Tap Camera or Upload, then Analyze. I’ll handle training and docs; Jared covers technical site calls.", {female:true});
-  };
-  window.addEventListener('load', bootSequence);
-
-  /* ====== FULLSCREEN ====== */
-  el.btnFull.onclick = () => {
-    if(!document.fullscreenElement) document.documentElement.requestFullscreen().catch(()=>{});
-    else document.exitFullscreen().catch(()=>{});
-  };
-
-  /* ====== CAMERA (front-facing) ====== */
-  el.btnCamera.onclick = openCamera;
-  let camStream=null, camVideo=null;
-  async function openCamera(){
-    try{
-      const stream = await navigator.mediaDevices.getUserMedia({video:{facingMode:"user"}, audio:false});
-      camStream = stream;
-      camVideo = document.createElement("video");
-      camVideo.playsInline = true; camVideo.muted = true; camVideo.srcObject = stream; await camVideo.play();
-      el.preview.style.display='block';
-      el.preview.innerHTML = "";
-      el.preview.appendChild(camVideo);
-      el.preview.appendChild(el.edgeGlow);
-      // Snap helper
-      const snap = document.createElement("div");
-      snap.id="snapHint"; snap.textContent="Tap video to snapshot";
-      el.preview.appendChild(snap);
-      tip("Camera active — tap video to snapshot.");
-      camVideo.onclick = () => {
-        const canvas=document.createElement("canvas");
-        canvas.width=camVideo.videoWidth||1280; canvas.height=camVideo.videoHeight||720;
-        const g=canvas.getContext("2d"); g.drawImage(camVideo,0,0,canvas.width,canvas.height);
-        const url = canvas.toDataURL("image/jpeg", 0.92);
-        // Replace with image
-        el.preview.innerHTML = "";
-        el.preview.appendChild(el.previewImg);
-        el.preview.appendChild(el.edgeGlow);
-        el.previewImg.src = url;
-        if(camStream){ camStream.getTracks().forEach(t=>t.stop()); camStream=null; }
-        tip("Snapshot captured — tap Analyze.");
-      };
-    }catch(e){
-      tip("Camera not available or permission denied.");
-    }
-  }
-
-  /* ====== UPLOAD ====== */
-  const fileInput=document.createElement("input");
-  fileInput.type="file"; fileInput.accept="image/*";
-  el.btnUpload.onclick=()=>fileInput.click();
-  fileInput.onchange=()=>{
-    const f=fileInput.files[0]; if(!f) return;
-    const url=URL.createObjectURL(f);
-    el.previewImg.src=url; el.preview.style.display="block";
-    tip("Photo ready — tap Analyze.");
-  };
-
-  /* ====== DEMO PAYWALL (only on 2nd Analyze) ====== */
-  function canAnalyze(){ return STATE.analyzeCount < 1; } // 0 = free, block when >=1
-  function showPaywall(){
-    stopSpeech();
-    const overlay=document.createElement("div");
-    overlay.style="position:fixed;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,.8);z-index:9999;";
-    overlay.innerHTML = `
-      <div style="background:#0f1916;border:1px solid var(--stroke);padding:1rem 1.4rem;border-radius:16px;max-width:520px;color:var(--text);text-align:center">
-        <h3 style="margin:0 0 8px;color:var(--mintL)">Access Limit Reached</h3>
-        <p style="opacity:.9">Your free demo is complete. Unlock <b>Access+</b> for unlimited analyses.</p>
-        <div style="margin-top:10px">
-          <a class="btn" href="${PAYPAL_URL}" target="_blank" rel="noopener">Activate Access+</a>
-          <button class="btn" id="pwClose">Close</button>
-        </div>
-      </div>`;
-    document.body.appendChild(overlay);
-    overlay.querySelector('#pwClose').onclick=()=>overlay.remove();
-  }
-
-  /* ====== BACKEND ANALYZE ====== */
-  el.btnAnalyze.onclick = async ()=>{
-    if(!el.previewImg.src){ tip("Upload or capture a photo first."); return; }
-    if(!canAnalyze()){ showPaywall(); return; }
-
-    clearTips();
-    el.preview.classList.add('glow-on');
-    speakQueued("Analyzing photo. One moment.", {female:false, rate:0.96}); // Jared voice
-
-    try{
-      const formData=new FormData();
-      const blob=await fetch(el.previewImg.src).then(r=>r.blob());
-      formData.append("file", blob, "upload.jpg");
-      const resp = await fetch(`${API}/analyze-image`, { method:"POST", body:formData });
-      const data = await resp.json();
-
-      // Expected (optional) fields: summary, recommendation, cost, risks[], upsells[]
-      const summary = (data.summary||"Analysis complete.").trim();
-      const recommendation = (data.recommendation||"Standard site prep and edging recommended.").trim();
-
-      // KPIs with smart fallbacks
-      const cost = deriveCost(data);               // ${...}
-      const riskStr = deriveRisks(data);           // string like "Slope, roots"
-      const upsellStr = deriveUpsells(data);       // string like "Edging, mulch color"
-
-      // Voice (queued, no overlap)
-      speakQueued(summary, {female:false, rate:0.98});
-      speakQueued(recommendation, {female:false, rate:0.99});
-
-      // Tips and KPI panel
-      showAnalysisTips(summary);
-      renderKPIs(cost, riskStr, upsellStr);
-
-      setAnalyzes(STATE.analyzeCount + 1); // count this run
-    }catch(e){
-      tip("Analysis failed. Please try again.");
-    }finally{
-      el.preview.classList.remove('glow-on');
-    }
-  };
-
-  function deriveCost(data){
-    if(typeof data.cost === 'string') return data.cost;
-    if(typeof data.costEstimate === 'string') return data.costEstimate;
-    if(typeof data.costUSD === 'number') return `$${Math.round(data.costUSD).toLocaleString()}`;
-    // Fallback heuristic from summary length if present
-    const base = (data.summary||"").length;
-    const est = Math.min(2500, Math.max(85, Math.round(base*2.2)));
-    return `$${est.toLocaleString()}`;
-  }
-  function deriveRisks(data){
-    const arr = Array.isArray(data.risks) ? data.risks : [];
-    if(arr.length) return arr.slice(0,4).join(", ");
-    // soft guess from text
-    const s=(data.summary||"").toLowerCase();
-    const r=[];
-    if(/slope|grade|pitch/.test(s)) r.push("Slope");
-    if(/roots?/.test(s)) r.push("Roots");
-    if(/irrigation|sprinkler/.test(s)) r.push("Irrigation");
-    if(/drainage|water/.test(s)) r.push("Drainage");
-    return r.length? r.join(", ") : "Low";
-  }
-  function deriveUpsells(data){
-    const arr = Array.isArray(data.upsells) ? data.upsells : [];
-    if(arr.length) return arr.slice(0,4).join(", ");
-    const s=(data.summary||"").toLowerCase();
-    const u=[];
-    if(/edge|edging/.test(s)) u.push("Edging upgrade");
-    if(/mulch/.test(s)) u.push("Mulch color/depth");
-    if(/shrub|bush|hedge/.test(s)) u.push("Shrub shaping");
-    if(/weed|overgrown/.test(s)) u.push("Weed control");
-    return u.length? u.join(", ") : "Edging, Mulch color";
-  }
-  function renderKPIs(cost, risk, upsell){
-    el.kCost.textContent = cost || "—";
-    el.kRisk.textContent = risk || "—";
-    el.kUpsell.textContent = upsell || "—";
-    el.panel.style.display = "block";
-  }
-  function showAnalysisTips(summary){
-    const bits=(summary||"Define bed edge; set mulch depth; align shrub spacing.")
-      .replace(/\s+/g,' ').trim().split(/[.;]/).map(s=>s.trim()).filter(Boolean).slice(0,3);
-    let delay=150;
-    bits.forEach((b)=>{ setTimeout(()=>tip(b), delay); delay+=800; });
-  }
-
-  /* ====== TALK TO ADDIE (tap) ====== */
-  el.talkBtn.onclick = ()=>{
-    if(!STATE.audioEnabled){
-      STATE.audioEnabled=true;
-      speakQueued("Audio enabled. I’m Addie — ask me about pricing, risks, or how to pitch the job.", {female:true, rate:1.05, pitch:1.08});
-      return;
-    }
-    speakQueued("Here’s the play: show confidence, define the scope, then anchor on value. If you want, upload a photo and tap Analyze — Jared will read the site, and I’ll polish your pitch.", {female:true, rate:1.04, pitch:1.07});
-  };
-
-  /* ====== HELPERS ====== */
-  // drag orb (optional tiny UX)
-  drag(el.voiceOrb);
-  function drag(node){
-    let sx=0, sy=0, ox=0, oy=0, d=false;
-    const onDown=e=>{ d=true; sx=(e.clientX||e.touches?.[0].clientX); sy=(e.clientY||e.touches?.[0].clientY); const r=node.getBoundingClientRect(); ox=r.left; oy=r.top; e.preventDefault(); }
-    const onMove=e=>{ if(!d) return; const x=(e.clientX||e.touches?.[0].clientX)-sx+ox; const y=(e.clientY||e.touches?.[0].clientY)-sy+oy; node.style.left=x+'px'; node.style.top=y+'px'; }
-    const onUp=()=>{ d=false; }
-    node.addEventListener('mousedown',onDown); node.addEventListener('touchstart',onDown,{passive:false});
-    window.addEventListener('mousemove',onMove); window.addEventListener('touchmove',onMove,{passive:false});
-    window.addEventListener('mouseup',onUp); window.addEventListener('touchend',onUp);
-  }
-
+/* Analyze */
+function canAnalyze(){return STATE.analyzeCount<1;}
+function showPaywall(){const o=document.createElement("div");o.style="position:fixed;inset:0;background:rgba(0,0,0,.8);display:flex;align-items:center;justify-content:center;z-index:9999;";
+ o.innerHTML=`<div style="background:#0f1916;padding:1rem 1.4rem;border-radius:16px;border:1px solid var(--stroke);text-align:center;max-width:480px">
+ <h3 style="color:var(--mintL)">Access Limit Reached</h3>
+ <p>You’ve finished your demo. Upgrade for unlimited analyses or Pro-level AI sales logic.</p>
+ <a class='btn' href='${PAYPAL_URL}' target='_blank'>Upgrade</a>
+ <button class='btn' id='closePay'>Close</button></div>`;
+ document.body.appendChild(o);o.querySelector('#closePay').onclick=()=>o.remove();
+}
+el.btnAnalyze.onclick=async()=>{
+ if(!el.previewImg.src){tip("Upload or capture first.");return;}
+ if(!canAnalyze()){showPaywall();return;}
+ clearTips();el.preview.classList.add("glow-on");
+ speakQueued("Analyzing photo...",{female:false,rate:0.95});
+ try{
+  const fd=new FormData();const b=await fetch(el.previewImg.src).then(r=>r.blob());fd.append("file",b,"upload.jpg");
+  const r=await fetch(API+"/analyze-image",{method:"POST",body:fd});const d=await r.json();
+  const cost=d.cost||"$"+Math.round((d.summary||"").length*2.2);
+  const risk=(d.risks||["Low"]).join(", ");
+  const ups=(d.upsells||["Edging","Mulch color"]).join(", ");
+  el.kCost.textContent=cost;el.kRisk.textContent=risk;el.kUpsell.textContent=ups;el.panel.style.display="block";
+  STATE.logs.push({date:new Date().toLocaleString(),cost,risk,upsell:ups});
+  tip(d.summary||"Analysis complete.");tip(d.recommendation||"Standard prep suggested.");
+  speakQueued(d.summary||"Analysis complete.");setAnalyzes(STATE.analyzeCount+1);
+ }catch{tip("Analysis failed.");}finally{el.preview.classList.remove("glow-on");}
+};
 })();
 </script>
 </body>
 </html>
+
+
 
 
 
