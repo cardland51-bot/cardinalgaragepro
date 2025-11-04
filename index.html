@@ -12,6 +12,7 @@
     --text:#E9FFF6; --textDim:rgba(233,255,246,.85);
     --glass:rgba(255,255,255,0.05); --stroke:rgba(156,255,224,0.28);
     --opaque:#0a1713;
+    --deckBg:#0e1815;
   }
   html,body{margin:0;height:100%;background:linear-gradient(180deg,var(--bg-top),var(--bg-bot));color:var(--text);font-family:ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial;overscroll-behavior:none}
   *{box-sizing:border-box}
@@ -67,46 +68,46 @@
   .mini-spin{width:14px;height:14px;border-radius:50%;border:2px solid rgba(156,255,224,.35);border-top-color:var(--mintL);animation:spin 1s linear infinite}
   @keyframes spin{to{transform:rotate(360deg)}}
 
-  /* Tips overlay under photo */
-  #tips{position:relative;width:min(94vw,980px);min-height:14px}
-  .tip{
-    position:relative;
-    opacity:0;transform:translateY(8px);
-    transition:all .5s cubic-bezier(.2,.9,.2,1);
-    background:rgba(255,255,255,.06);
+  /* Tip bubbles IN the photo (absolute, random) */
+  .tipAbs{
+    position:absolute;
+    min-width:120px; max-width:46%;
+    background:rgba(15,25,22,.86);
     border:1px solid var(--stroke);
-    backdrop-filter:blur(8px);
     color:var(--text);
-    padding:.55rem .75rem;border-radius:10px;
+    padding:.55rem .7rem;border-radius:10px;
     box-shadow:0 0 18px rgba(156,255,224,.25);
-    margin:.35rem auto;max-width:92%;
+    font-size:13px; line-height:1.3;
+    opacity:0; transform:translateY(8px);
+    transition:all .45s cubic-bezier(.2,.9,.2,1);
+    pointer-events:none;
   }
-  .tip.show{opacity:1;transform:translateY(0)}
-  .tip.small{max-width:50%;font-size:13px}
+  .tipAbs.show{opacity:1;transform:translateY(0)}
 
   /* HUD tabs */
   .hud{display:none;gap:8px;margin-top:8px;flex-wrap:wrap;justify-content:center}
   .tab{padding:.45rem .8rem;border:1px solid var(--stroke);border-radius:999px;background:rgba(255,255,255,.04);color:var(--textDim);font-size:12px}
 
-  /* Garage (opaque, no translucency) */
+  /* Garage (opaque) */
   #garageDoor{position:fixed;left:0;right:0;top:0;height:0;overflow:hidden;z-index:70;pointer-events:none}
   #garageDoor .door{
-    height:460px;background:var(--opaque);
+    height:520px;background:var(--opaque);
     border-bottom:1px solid var(--stroke);
     box-shadow:0 10px 40px rgba(0,0,0,.55);
     display:flex;flex-direction:column;align-items:center;gap:12px;padding:18px 12px; position:relative; color:var(--text);
   }
-  #garageDoor.open{height:460px;pointer-events:auto;transition:height .9s cubic-bezier(.2,.9,.2,1)}
+  #garageDoor.open{height:520px;pointer-events:auto;transition:height .9s cubic-bezier(.2,.9,.2,1)}
   #garageDoor.close{height:0;transition:height .8s cubic-bezier(.2,.9,.2,1)}
   .gTitle{font-weight:900;letter-spacing:.16em;color:var(--mintL);margin-top:2px}
   .gClose{position:absolute;right:10px;top:10px;border:1px solid var(--stroke);background:#0e1815;color:var(--text);border-radius:999px;padding:.35rem .6rem;cursor:pointer}
-  .gRow{display:flex;gap:12px;max-width:1040px;width:calc(100% - 24px);justify-content:center;flex-wrap:wrap;margin-top:6px}
+  .gRow{display:flex;gap:12px;max-width:1120px;width:calc(100% - 24px);justify-content:center;flex-wrap:wrap;margin-top:6px}
   .card{flex:1 1 280px;max-width:340px;background:#0e1815;border:1px solid var(--stroke);border-radius:14px;padding:12px 12px 14px;box-shadow:0 0 26px rgba(156,255,224,.12)}
   .tag{display:inline-block;border:1px solid var(--mint);color:var(--mintL);padding:.25rem .5rem;border-radius:999px;font-size:11px;margin-bottom:8px}
   .price{margin-top:8px;opacity:.9}
   .card .btn-row{justify-content:flex-start}
+  .card a.action{display:inline-block;margin-top:8px;color:var(--mintL);text-decoration:underline;cursor:pointer}
 
-  /* Paywall (only for Access+ if daily free limit exceeded) */
+  /* Paywall (daily limit for uploads only) */
   .overlay{display:none;position:fixed;inset:0;background:rgba(3,8,6,.86);backdrop-filter:blur(6px);align-items:center;justify-content:center;z-index:90}
   .panel{max-width:560px;margin:20px;background:#0f1916;border:1px solid var(--stroke);border-radius:16px;padding:1.1rem 1.3rem;text-align:center;box-shadow:0 0 32px rgba(156,255,224,.28)}
 
@@ -115,13 +116,14 @@
   #bootWheel{display:flex;gap:.6rem;align-items:center;border:1px solid var(--stroke);background:#0e1815;padding:.7rem 1rem;border-radius:999px}
   #bootWheel .mini-spin{border-color:rgba(156,255,224,.35);border-top-color:var(--mintL)}
   #bootMsg{margin-top:12px;color:var(--textDim);font-size:14px}
+  #btnEnableAudio{margin-top:14px}
 
-  /* Addie/Jared voice controls (hidden UI) */
-  .voiceDock{position:fixed;left:50%;bottom:88px;transform:translateX(-50%);z-index:25;display:flex;gap:10px}
-  .vbtn{border:1px solid var(--stroke);background:var(--glass);color:var(--text);border-radius:999px;padding:.45rem .8rem;font-size:12px;cursor:pointer}
-  .vbtn.locked{opacity:.5;cursor:not-allowed}
+  /* Dedication */
+  #dedication{position:fixed;inset:0;z-index:94;display:none;align-items:center;justify-content:center;flex-direction:column;background:radial-gradient(80% 60% at 50% 40%, rgba(156,255,224,.06), transparent 60%)}
+  #dedication .line{font-weight:800;letter-spacing:.18em;color:var(--mintL);text-align:center}
+  #dedication .sub{margin-top:8px;color:var(--textDim);font-size:14px}
 
-  /* Toast (push-style summary) */
+  /* Toast push */
   #toast{
     position:fixed;left:50%;transform:translateX(-50%) translateY(120%);bottom:16px;
     width:min(90vw,480px);background:rgba(15,25,22,.96);border:1px solid var(--stroke);border-radius:14px;
@@ -134,12 +136,44 @@
   #toast .t-actions{display:flex;gap:8px;margin-top:10px;flex-wrap:wrap}
   #toast .t-actions .btn{padding:.55rem .9rem;text-transform:none;font-weight:700;border-color:var(--stroke);color:var(--text)}
 
+  /* Deck Mode (Founders Deck) */
+  #deckOverlay{
+    position:fixed; inset:0; z-index:92; display:none; background:linear-gradient(180deg,#0a1411,#07110e);
+  }
+  .deckWrap{
+    position:absolute; inset:56px 0 0 0; display:flex; align-items:center; justify-content:center; padding:24px;
+  }
+  .slide{
+    width:min(1100px,92vw); min-height:min(72vh,760px);
+    background:linear-gradient(180deg,rgba(255,255,255,.04),rgba(255,255,255,.02));
+    border:1px solid var(--stroke); border-radius:18px; padding:28px;
+    color:var(--text); box-shadow:0 0 26px rgba(156,255,224,.14);
+    display:none;
+  }
+  .slide.show{display:block;animation:slideIn .35s ease}
+  @keyframes slideIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+  .sTitle{font-weight:900; letter-spacing:.12em; color:var(--mintL); font-size:clamp(20px,3.4vw,32px); margin-bottom:8px}
+  .sSub{opacity:.9;margin-bottom:14px}
+  .sGrid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+  .sCard{background:#0e1815;border:1px solid var(--stroke);border-radius:12px;padding:12px}
+  .navDeck{position:absolute; left:0; right:0; top:56px; height:44px; display:flex; align-items:center; justify-content:center; gap:8px}
+  .deckBtn{border:1px solid var(--stroke);background:var(--glass);color:var(--text);border-radius:999px;padding:.35rem .8rem;font-size:12px;cursor:pointer}
+  .deckRight{position:absolute; right:12px; top:6px; display:flex; gap:8px}
+  .deckPager{position:absolute; bottom:18px; left:50%; transform:translateX(-50%); font-size:12px; color:var(--textDim)}
+  @media print{
+    body{background:#fff;color:#111}
+    #deckOverlay{display:block !important; background:#fff}
+    .slide{width:100%; min-height:auto; color:#111; border-color:#ccc; box-shadow:none}
+    .sCard{background:#fff;border-color:#ddd}
+    .topbar, .stage, #garageDoor, #bootVeil, #dedication{display:none !important}
+    .navDeck, .deckRight{display:none !important}
+  }
+
   /* Footer */
   .footer{position:fixed;left:50%;transform:translateX(-50%);bottom:14px;font-size:12px;color:rgba(233,255,246,.7);letter-spacing:.12em;text-transform:uppercase}
 
   /* Mobile safe area */
   @supports(padding:max(0px)){
-    .voiceDock{bottom:calc(88px + env(safe-area-inset-bottom))}
     .footer{bottom:calc(14px + env(safe-area-inset-bottom))}
     #toast{bottom:calc(16px + env(safe-area-inset-bottom))}
   }
@@ -151,6 +185,7 @@
     <div class="menu">
       <button class="pill" id="btnFull">Full Screen</button>
       <button class="pill" id="btnGarage">Open Cardinal Garage</button>
+      <button class="pill" id="btnOpenDeck">Open Founders Deck</button>
     </div>
   </div>
 
@@ -158,17 +193,26 @@
   <div id="bootVeil" aria-hidden="true">
     <div id="bootWheel"><div class="mini-spin"></div><span>Waking up…</span></div>
     <div id="bootMsg">Server configuring • Back end live • Please give Jared time to wake up</div>
-    <button class="pill" id="btnEnableAudio" style="margin-top:14px">Enable Sound</button>
+    <button class="pill" id="btnEnableAudio">Enable Sound</button>
+  </div>
+
+  <!-- Dedication -->
+  <div id="dedication">
+    <div class="line" style="font-size:clamp(16px,2.6vw,22px);opacity:.9">Dedicated to Addison</div>
+    <div class="line" style="font-size:clamp(22px,4.2vw,38px);margin-top:6px">Precision meets Grit</div>
+    <div class="line" style="font-size:clamp(18px,3.2vw,28px);opacity:.9">Heart meets Hustle</div>
+    <div class="sub">— glow —</div>
   </div>
 
   <div class="stage">
     <div class="stack">
       <!-- Primary controls -->
       <div class="btn-row">
-        <button class="btn" id="btnUpload">⬆ Upload Photo</button>
-        <button class="btn" id="btnCameraTop">📷 Camera</button>
-        <button class="btn" id="btnAnalyze">🔍 Analyze</button>
-        <button class="btn hidden" id="btnExport">📄 Download Log (.txt)</button>
+        <button class="btn" id="btnUpload">Upload Photo</button>
+        <button class="btn" id="btnCameraTop">Camera</button>
+        <button class="btn" id="btnAnalyze">Analyze</button>
+        <button class="btn" id="btnReset">Reset</button>
+        <button class="btn hidden" id="btnExport">Download Log (.txt)</button>
       </div>
 
       <!-- Preview -->
@@ -178,9 +222,6 @@
         <div class="wheel" id="wheel" style="display:none;"><div class="mini-spin"></div><span id="wheelText">Analyzing…</span></div>
         <div id="dashHint" style="position:absolute;inset:0;opacity:.0;pointer-events:none;"></div>
       </div>
-
-      <!-- Tips only (no chat boxes) -->
-      <div id="tips"></div>
 
       <!-- Modules hint -->
       <div class="hud" id="hudTabs">
@@ -194,13 +235,6 @@
 
       <input type="file" id="file" accept="image/*" hidden />
     </div>
-  </div>
-
-  <!-- Voice controls (skip/replay Addie; stop Jared) -->
-  <div class="voiceDock">
-    <button class="vbtn" id="btnAddieReplay">Replay Intro</button>
-    <button class="vbtn" id="btnAddieSkip">Skip Intro</button>
-    <button class="vbtn" id="btnJaredStop">Stop Reading</button>
   </div>
 
   <!-- Toast push summary -->
@@ -226,21 +260,30 @@
           <span class="tag">Access+</span>
           <div>Unlimited uploads & analyses. Controls daily caps only.</div>
           <div class="price">$25 / month</div>
-          <div class="btn-row"><button class="btn" id="btnAccessActivate">Activate (PayPal)</button></div>
+          <div class="btn-row">
+            <button class="btn" id="btnAccessActivate">Activate (PayPal)</button>
+            <a class="action" id="linkAccess" href="#" target="_blank" rel="noopener">Open Payment Page</a>
+          </div>
         </div>
 
         <div class="card" id="cardBestPractices">
           <span class="tag">Best Practices</span>
           <div>Situational playbooks for confident execution.</div>
           <div class="price">$29 one-time</div>
-          <div class="btn-row"><button class="btn" id="btnBPBuy">Buy (PayPal)</button></div>
+          <div class="btn-row">
+            <button class="btn" id="btnBPBuy">Buy (PayPal)</button>
+            <a class="action" id="linkBP" href="#" target="_blank" rel="noopener">Open Payment Page</a>
+          </div>
         </div>
 
         <div class="card" id="cardFieldGuides">
           <span class="tag">Field Guides</span>
           <div>Tools + materials lists with quick methods.</div>
           <div class="price">$19 one-time</div>
-          <div class="btn-row"><button class="btn" id="btnFGBuy">Buy (PayPal)</button></div>
+          <div class="btn-row">
+            <button class="btn" id="btnFGBuy">Buy (PayPal)</button>
+            <a class="action" id="linkFG" href="#" target="_blank" rel="noopener">Open Payment Page</a>
+          </div>
         </div>
 
         <div class="card" id="cardSalesU">
@@ -250,13 +293,15 @@
           <div class="btn-row">
             <button class="btn" id="btnSalesUEnter">Enter</button>
             <button class="btn" id="btnSalesUExtraDemo">Grant 1 Extra Demo</button>
+            <a class="action" id="linkSU" href="#" target="_blank" rel="noopener">Open Payment Page</a>
           </div>
         </div>
 
         <div class="card" id="cardFounders">
           <span class="tag">Founders</span>
-          <div>Control center, ledger, projections, deck generation.</div>
+          <div>Control center, ledger, projections, detailed deck.</div>
           <div class="btn-row">
+            <button class="btn" id="btnOpenDeck2">Open Founders Deck</button>
             <button class="btn" id="btnDownloadLogs">Download Logs</button>
           </div>
         </div>
@@ -264,7 +309,7 @@
     </div>
   </div>
 
-  <!-- Paywall (only for daily limit; exports are always free txt) -->
+  <!-- Paywall (uploads daily cap only) -->
   <div class="overlay" id="paywall">
     <div class="panel">
       <h3 id="paywallTitle">Access Limit Reached</h3>
@@ -276,6 +321,145 @@
     </div>
   </div>
 
+  <!-- Deck Mode -->
+  <div id="deckOverlay">
+    <div class="navDeck">
+      <button class="deckBtn" id="deckPrev">‹ Prev</button>
+      <button class="deckBtn" id="deckNext">Next ›</button>
+      <div class="deckRight">
+        <button class="deckBtn" id="deckPrint">Print</button>
+        <button class="deckBtn" id="deckExit">Exit Deck</button>
+      </div>
+    </div>
+    <div class="deckWrap">
+      <!-- Slides -->
+      <div class="slide show">
+        <div class="sTitle">HeroHUD — Value Engine for the Field</div>
+        <div class="sSub">Upload → Analyze → Send • Dark-mint glass UI • Voice-assisted coaching</div>
+        <div class="sGrid">
+          <div class="sCard"><b>Mission</b><br/>Give pros, teens, and teams a precise, voice-guided way to turn a yard photo into confident work and sales.</div>
+          <div class="sCard"><b>Tagline</b><br/>Precision meets Grit.</div>
+        </div>
+      </div>
+
+      <div class="slide">
+        <div class="sTitle">What It Is</div>
+        <div class="sGrid">
+          <div class="sCard"><b>Command Deck</b><br/>Single-file, high-performance UI: upload, camera, analyze, tip overlays, log export.</div>
+          <div class="sCard"><b>Two Voices</b><br/>Addie (payments, Sales U), Jared (analysis & coaching). No chat boxes — tips overlay on the photo.</div>
+        </div>
+      </div>
+
+      <div class="slide">
+        <div class="sTitle">How It Works</div>
+        <div class="sGrid">
+          <div class="sCard"><b>Analyze</b><br/>Image → backend → structured summary + tools/materials/technique lines. Jared reads; tips float.</div>
+          <div class="sCard"><b>Export</b><br/>One-click .txt log export (free). Pro PDFs optional later; today we keep it light & fast.</div>
+        </div>
+      </div>
+
+      <div class="slide">
+        <div class="sTitle">Triple Market</div>
+        <div class="sGrid">
+          <div class="sCard"><b>Pros</b><br/>Close more with Pro Sales Insight and repeatable best practices.</div>
+          <div class="sCard"><b>Parents & Teens (14–18)</b><br/>Junior portal to earn with a mower + guidance; Addie leads training.</div>
+        </div>
+        <div class="sCard" style="margin-top:12px"><b>Partners</b><br/>Suppliers & brands — digital franchise & licensed training.</div>
+      </div>
+
+      <div class="slide">
+        <div class="sTitle">Organic Leverage & Groups</div>
+        <div class="sGrid">
+          <div class="sCard"><b>Community First</b><br/>Share results into neighborhood & trade groups; “before/after + tips” templates.</div>
+          <div class="sCard"><b>Seeding Play</b><br/>Target global lawncare, landscaping, handyman groups; consistent tone & cadence.</div>
+        </div>
+      </div>
+
+      <div class="slide">
+        <div class="sTitle">Public Momentum</div>
+        <div class="sGrid">
+          <div class="sCard"><b>Launch</b><br/>Weekly challenges, featured juniors, transparent build logs.</div>
+          <div class="sCard"><b>Proof Loops</b><br/>User wins → screenshots → shares → new users → more wins.</div>
+        </div>
+      </div>
+
+      <div class="slide">
+        <div class="sTitle">Flywheel</div>
+        <div class="sGrid">
+          <div class="sCard"><b>Input</b><br/>Uploads & training.</div>
+          <div class="sCard"><b>Output</b><br/>Better quotes, faster ops, social proof, referrals, partners.</div>
+        </div>
+      </div>
+
+      <div class="slide">
+        <div class="sTitle">Tech Stack (Today)</div>
+        <div class="sGrid">
+          <div class="sCard"><b>Front</b><br/>Single index.html • Web Speech • Dark-mint glass CSS • Mobile-first.</div>
+          <div class="sCard"><b>Back</b><br/>Render Node/Express endpoints: /analyze-image, /export (txt), future: /founder-metrics.</div>
+        </div>
+      </div>
+
+      <div class="slide">
+        <div class="sTitle">Efficiency Ratio (Method)</div>
+        <div class="sGrid">
+          <div class="sCard"><b>Definition</b><br/>Revenue added or time saved per analysis minute (RAM/TSM).</div>
+          <div class="sCard"><b>Example</b><br/>If 10 min analysis yields +$80 margin confidence → 8.0 RAM; time saved 25 min → 2.5 TSM.</div>
+        </div>
+      </div>
+
+      <div class="slide">
+        <div class="sTitle">Unit Economics (Illustrative)</div>
+        <div class="sGrid">
+          <div class="sCard"><b>Access+</b><br/>$25/mo. Goal: ≥8 analyses/mo → <$3.13/analysis.</div>
+          <div class="sCard"><b>Pro Add-ons</b><br/>Best Practices $29; Field Guides $19; Sales U $99/wk.</div>
+        </div>
+      </div>
+
+      <div class="slide">
+        <div class="sTitle">Digital Franchise</div>
+        <div class="sGrid">
+          <div class="sCard"><b>Cardinal Garage</b><br/>Licensing + playbooks + brand trust + payment rails.</div>
+          <div class="sCard"><b>Compliance</b><br/>Clear boundaries: analysis ≠ binding quote; local pricing inputs.</div>
+        </div>
+      </div>
+
+      <div class="slide">
+        <div class="sTitle">Roadmap</div>
+        <div class="sGrid">
+          <div class="sCard"><b>Near</b><br/>Faster tips, more field templates, partner pilots.</div>
+          <div class="sCard"><b>Next</b><br/>Region price models, AR overlays, multi-crew workflows.</div>
+        </div>
+      </div>
+
+      <div class="slide">
+        <div class="sTitle">Risks & Mitigations</div>
+        <div class="sGrid">
+          <div class="sCard"><b>Quality</b><br/>Human-in-the-loop, best-practice guardrails.</div>
+          <div class="sCard"><b>Adoption</b><br/>Junior success stories + pro testimonials + transparent training.</div>
+        </div>
+      </div>
+
+      <div class="slide">
+        <div class="sTitle">Team & Voices</div>
+        <div class="sGrid">
+          <div class="sCard"><b>Addie</b><br/>Payments • Sales U • Garage.</div>
+          <div class="sCard"><b>Jared</b><br/>Analysis reader • tools/tips/techniques coach.</div>
+        </div>
+      </div>
+
+      <div class="slide">
+        <div class="sTitle">Ask / Next Step</div>
+        <div class="sGrid">
+          <div class="sCard"><b>Momentum</b><br/>We’re a value machine — compounding outcomes, not noise.</div>
+          <div class="sCard"><b>Join</b><br/>Pilot partners • junior cohorts • local franchises.</div>
+        </div>
+        <div class="sSub" style="margin-top:12px">Powered by Cardinal-Garage_MND Inc.</div>
+      </div>
+
+      <div class="deckPager" id="deckPager">1 / 14</div>
+    </div>
+  </div>
+
   <div class="footer">Powered by Cardinal-Garage_MND Inc.</div>
 
 <script>
@@ -284,6 +468,7 @@
   const API = (location.hostname.includes("localhost")||location.hostname.includes("127.0.0.1"))
     ? "http://localhost:3001"
     : "https://jared-hero2-backend.onrender.com";
+  const PAYPAL_URL = "https://www.paypal.com/ncp/payment/MVWW6VPEHJKKU";
 
   /* ========= ELEMENTS ========= */
   const el = {
@@ -291,6 +476,7 @@
     btnUpload: qs('#btnUpload'),
     btnCameraTop: qs('#btnCameraTop'),
     btnAnalyze: qs('#btnAnalyze'),
+    btnReset: qs('#btnReset'),
     btnExport: qs('#btnExport'),
     preview: qs('#preview'),
     previewImg: qs('#previewImg'),
@@ -298,12 +484,14 @@
     wheel: qs('#wheel'),
     wheelText: qs('#wheelText'),
     dashHint: qs('#dashHint'),
-    tips: qs('#tips'),
     hudTabs: qs('#hudTabs'),
     btnFull: qs('#btnFull'),
     btnGarage: qs('#btnGarage'),
+    btnOpenDeck: qs('#btnOpenDeck'),
     bootVeil: qs('#bootVeil'),
+    bootMsg: qs('#bootMsg'),
     btnEnableAudio: qs('#btnEnableAudio'),
+    dedication: qs('#dedication'),
     toast: qs('#toast'),
     toastBody: qs('#toastBody'),
     toastViewLog: qs('#toastViewLog'),
@@ -317,12 +505,20 @@
     btnSalesUEnter: qs('#btnSalesUEnter'),
     btnSalesUExtraDemo: qs('#btnSalesUExtraDemo'),
     btnDownloadLogs: qs('#btnDownloadLogs'),
+    linkAccess: qs('#linkAccess'),
+    linkBP: qs('#linkBP'),
+    linkFG: qs('#linkFG'),
+    linkSU: qs('#linkSU'),
     paywall: qs('#paywall'),
     btnPaywallClose: qs('#btnPaywallClose'),
     btnPayAccess: qs('#btnPayAccess'),
-    btnAddieReplay: qs('#btnAddieReplay'),
-    btnAddieSkip: qs('#btnAddieSkip'),
-    btnJaredStop: qs('#btnJaredStop'),
+    btnOpenDeck2: qs('#btnOpenDeck2'),
+    deckOverlay: qs('#deckOverlay'),
+    deckPrev: qs('#deckPrev'),
+    deckNext: qs('#deckNext'),
+    deckPrint: qs('#deckPrint'),
+    deckExit: qs('#deckExit'),
+    deckPager: qs('#deckPager'),
   };
 
   /* ========= STATE ========= */
@@ -335,10 +531,12 @@
     analyzing: false,
     audioEnabled: false,
     addieFinished: false,
+    deckIndex: 0,
   };
 
   /* ========= UTIL ========= */
   function qs(s){ return document.querySelector(s); }
+  function qsa(s){ return Array.from(document.querySelectorAll(s)); }
   function nowKey(){ const d=new Date(); return `${d.getFullYear()}-${d.getMonth()+1}-${d.getDate()}` }
   function getUploadsToday(){
     const key = localStorage.getItem('herohud_uploads_key');
@@ -357,8 +555,8 @@
   function wait(ms){ return new Promise(r=>setTimeout(r,ms)) }
   function log(kind, payload){ STATE.logs.entries.push({ t:Date.now(), kind, payload }); localStorage.setItem('herohud_logs', JSON.stringify(STATE.logs)); }
   function loadLogs(){ const raw=localStorage.getItem('herohud_logs'); return raw?JSON.parse(raw):{ startedAt: Date.now(), entries: [] } }
-
   function rand(min,max){ return Math.random()*(max-min)+min }
+  function clamp(v,min,max){ return Math.max(min,Math.min(max,v)); }
 
   /* ========= SPEECH (Addie/Jared) ========= */
   let speaking = false;
@@ -368,14 +566,14 @@
     const voices = window.speechSynthesis.getVoices();
     if(!voices || !voices.length) return null;
     if(preferFemale){
-      return voices.find(v=>/female|Samantha|Google US English|Victoria|Amelia|Zira|Jenny|Neural/i.test(v.name)) || voices[0];
+      return voices.find(v=>/Amelia|Jenny|Zira|Samantha|Google US English|Female|Neural/i.test(v.name)) || voices[0];
     }else{
-      return voices.find(v=>/male|Daniel|Alex|Matthew|Guy|Neural/i.test(v.name)) || voices[0];
+      return voices.find(v=>/Daniel|Alex|Matthew|Guy|Male|Neural/i.test(v.name)) || voices[0];
     }
   }
 
   function speak(text, {female=false, rate=1.02, pitch=1.0, onend}={}){
-    if(!STATE.audioEnabled) return onend && onend(); // silent fallback
+    if(!STATE.audioEnabled){ onend && onend(); return; }
     try{
       if(activeUtter){ window.speechSynthesis.cancel(); activeUtter=null; speaking=false; }
       const u = new SpeechSynthesisUtterance(text);
@@ -393,24 +591,26 @@
 
   /* ========= BOOT SEQUENCE ========= */
   async function boot(){
-    // Force 2.5–3.2s chamber spin; mobile requires a tap to enable audio
-    await wait(2500 + Math.floor(Math.random()*700));
-    // Addie dedication (non-verbal text only; she greets AFTER veil)
+    // 2.5–3.2s chamber spin (mobile waits for tap to enable audio first)
+    await wait(2600 + Math.floor(Math.random()*700));
+
+    // Start Addie near the end of boot (sounds like she's arriving)
+    const startAddie = () => {
+      const script =
+        "Hey—I'm Addie. This dark-mint deck is your command space. " +
+        "Upload a photo, tap Analyze, and Jared—your field strategist—reads the findings with precise tips. " +
+        "I handle payments, Sales University, and the Cardinal Garage. " +
+        "You can replay me later; for now, let’s get you moving.";
+      speak(script, { female:true, rate:1.0, pitch:1.06, onend:()=>{ STATE.addieFinished=true; }});
+    };
+
+    if(STATE.audioEnabled) startAddie();
+
+    // Fade boot → dedication (3s) → HUD
     el.bootVeil.style.display='none';
-
-    // Addie greets (female); can be skipped/replayed; never paywalls
-    runAddieIntro();
-  }
-
-  function runAddieIntro(){
-    STATE.addieFinished = false;
-    const script =
-      "Hi—I'm Addie. This space is your dark-mint command deck. " +
-      "Here’s how we’ll work together. Upload a photo of the job. Tap Analyze. " +
-      "Jared—your field strategist—reads the findings and surfaces precise tips. " +
-      "I handle payments, Sales University, and upgrades in the Cardinal Garage. " +
-      "You can skip or replay me anytime. Ready when you are.";
-    speak(script, { female:true, rate:1.0, pitch:1.05, onend:()=>{ STATE.addieFinished=true; }});
+    el.dedication.style.display='flex';
+    await wait(3000);
+    el.dedication.style.display='none';
   }
 
   /* ========= FULLSCREEN / GARAGE ========= */
@@ -419,6 +619,8 @@
     else document.exitFullscreen();
   };
   el.btnGarage.onclick = () => openGarage();
+  el.btnOpenDeck.onclick = openDeck;
+  el.btnOpenDeck2.onclick = openDeck;
 
   function openGarage(target){
     el.garageDoor.classList.remove('close'); el.garageDoor.classList.add('open');
@@ -429,21 +631,33 @@
   el.garageCloseBtn.onclick = closeGarage;
 
   /* ========= DAILY GATE (uploads only) ========= */
-  function canUpload(){ return STATE.accessUnlocked || STATE.uploadsToday < 2; }
+  function canUpload(){
+    const extraDemo = Number(localStorage.getItem('herohud_extra_demo')||0);
+    const freeLimit = 2 + extraDemo;
+    return STATE.accessUnlocked || STATE.uploadsToday < freeLimit;
+  }
   function enforceUploadGate(){
     if(canUpload()) return true;
     el.paywall.style.display='flex';
     return false;
   }
   el.btnPaywallClose.onclick = ()=> el.paywall.style.display='none';
-  el.btnPayAccess.onclick = ()=> openGarage(); // route to Access+ card
-  el.btnAccessActivate.onclick = ()=> {
-    // PayPal placeholder
-    alert("PayPal checkout placeholder for Access+");
-    localStorage.setItem('herohud_access_unlocked','1');
-    STATE.accessUnlocked = true;
-    el.paywall.style.display='none';
-  };
+
+  /* ========= PAYMENTS (PayPal URL) ========= */
+  function openPaypal(product){
+    const url = `${PAYPAL_URL}?product=${encodeURIComponent(product)}`;
+    window.open(url,'_blank','noopener');
+  }
+  // Garage buttons
+  el.btnAccessActivate.onclick = ()=> { openPaypal('AccessPlus'); };
+  el.btnBPBuy.onclick = ()=> { openPaypal('BestPractices'); };
+  el.btnFGBuy.onclick = ()=> { openPaypal('FieldGuides'); };
+  el.linkAccess.onclick = (e)=>{ e.preventDefault(); openPaypal('AccessPlus'); };
+  el.linkBP.onclick = (e)=>{ e.preventDefault(); openPaypal('BestPractices'); };
+  el.linkFG.onclick = (e)=>{ e.preventDefault(); openPaypal('FieldGuides'); };
+  el.linkSU.onclick = (e)=>{ e.preventDefault(); openPaypal('SalesUniversity'); };
+  // Paywall primary CTA
+  el.btnPayAccess.onclick = ()=> { openPaypal('AccessPlus'); };
 
   /* ========= CAMERA ========= */
   el.btnCameraTop.onclick = openCamera;
@@ -456,8 +670,8 @@
       camVideo=document.createElement("video");
       camVideo.playsInline=true; camVideo.muted=true; camVideo.srcObject=stream; await camVideo.play();
       el.preview.style.display='block'; previewReplaceWithNode(camVideo); ensureCaptureBtn();
-      tip("Camera online. Capture when ready.", true, true);
-    }catch(e){ tip("Camera access denied.", true, true); }
+      tipAbs("Camera online. Capture when ready.", .12, .82);
+    }catch(e){ tipAbs("Camera access denied.", .14, .16); }
   }
   function ensureCaptureBtn(){
     if(captureBtn) captureBtn.remove();
@@ -477,7 +691,7 @@
       const url=URL.createObjectURL(blob); previewReplaceWithImage(url);
       el.preview.style.display='block'; el.dashHint.style.opacity=.25;
       el.file._capturedBlob = blob;
-      bumpUploads(); tip("Captured — tap Analyze.", true, true);
+      bumpUploads(); tipAbs("Captured — tap Analyze.", .78, .86);
       log('camera_capture', { size: blob.size });
     };
   }
@@ -493,25 +707,30 @@
     if(old) old.replaceWith(node); else el.preview.prepend(node);
   }
 
-  /* ========= TIPS ========= */
-  function tip(text, small=false, right=false){
+  /* ========= TIPS (absolute inside photo) ========= */
+  function tipAbs(text, fracX, fracY){
+    // fracX/Y 0..1 relative to preview
     const t = document.createElement('div');
-    t.className = 'tip'+(small?' small':'');
+    t.className = 'tipAbs';
     t.textContent = text;
-    // random slight offset look
-    t.style.transform = `translateY(${Math.round(rand(6,12))}px)`;
-    el.tips.appendChild(t);
+    el.preview.appendChild(t);
+    // position after added (measure)
+    const rect = el.preview.getBoundingClientRect();
+    const w = rect.width, h = rect.height;
+    const tx = clamp(fracX ?? Math.random()*0.8+0.1, 0.06, 0.86);
+    const ty = clamp(fracY ?? Math.random()*0.8+0.1, 0.08, 0.88);
+    t.style.left = Math.round(w*tx) + 'px';
+    t.style.top  = Math.round(h*ty) + 'px';
     requestAnimationFrame(()=>t.classList.add('show'));
-    // stay until reset (per your request for lingering hints)
+    return t;
   }
-  function clearTips(){ el.tips.innerHTML=""; }
+  function clearTipAbs(){ qsa('.tipAbs').forEach(n=>n.remove()); }
 
   function showAnalysisTips(summary){
-    // Create up to 3 clean hints (no emojis)
     const bits=(summary||"Define bed edge; set mulch depth; align shrub spacing.")
       .replace(/\s+/g,' ').trim().split(/[.;]/).map(s=>s.trim()).filter(Boolean).slice(0,3);
-    let delay=200;
-    bits.forEach((b,i)=>{ setTimeout(()=>tip(b,true,i%2===1), delay); delay+=900; });
+    const spots = [[.15,.78],[.76,.18],[.58,.72]];
+    bits.forEach((b,i)=> setTimeout(()=> tipAbs(b, spots[i]?.[0], spots[i]?.[1]), 200 + i*900));
   }
 
   /* ========= EXPORT (.txt ONLY — ALWAYS FREE) ========= */
@@ -521,7 +740,7 @@
     log('export_txt', {});
   };
   function buildTxtLog(){
-    const tipsTxt=[...document.querySelectorAll('.tip')].map(e=>e.textContent.trim()).join("\n");
+    const tipsTxt=qsa('.tipAbs').map(e=>e.textContent.trim()).join("\n");
     const payload = {
       summary: STATE.lastSummary || "",
       recommendation: STATE.lastRecommendation || "",
@@ -556,7 +775,7 @@
     return `${d.getFullYear()}${z(d.getMonth()+1)}${z(d.getDate())}_${z(d.getHours())}${z(d.getMinutes())}${z(d.getSeconds())}`;
   }
 
-  /* ========= PUSH-STYLE TOAST (SUMMARY + CTA) ========= */
+  /* ========= PUSH-STYLE TOAST ========= */
   function showToast(summary, recommendation){
     const firstLine = (summary||"").split(/[.;]/).map(s=>s.trim()).filter(Boolean)[0] || "Analysis ready.";
     const topRec = (recommendation||"").split(/[.;]/).map(s=>s.trim()).filter(Boolean)[0] || "";
@@ -570,23 +789,23 @@
 
   /* ========= ANALYZE ========= */
   el.btnAnalyze.onclick = async ()=>{
-    if(!el.preview.style.display || el.preview.style.display==='none'){ tip("Upload or capture a photo first.", true, true); return; }
+    if(!el.preview.style.display || el.preview.style.display==='none'){ tipAbs("Upload or capture a photo first.", .5, .5); return; }
     const blob = el.file._capturedBlob;
     const fileEl = el.file.files && el.file.files[0];
-    if(!blob && !fileEl){ tip("No image found.", true, true); return; }
+    if(!blob && !fileEl){ tipAbs("No image found.", .5, .5); return; }
 
     STATE.analyzing = true;
-    clearTips();
+    clearTipAbs();
     el.preview.classList.add('glow-on');
     el.wheel.style.display='flex'; el.wheelText.textContent = "Analyzing…";
-    stopSpeech(); // ensure Addie not overlapping
+    stopSpeech(); // prevent overlap with Addie
+
     log('analyze_start', {});
 
     const formData=new FormData();
     if(blob) formData.append("file",blob,"capture.jpg"); else formData.append("file",fileEl);
 
     try{
-      // Jared reads analysis once response arrives
       const resp = await fetch(`${API}/analyze-image`, { method:"POST", body:formData });
       const data = await resp.json();
       const summary = data.summary || "Analysis complete.";
@@ -595,9 +814,8 @@
       STATE.lastRecommendation = rec;
       log('analyze_result', { summary, recommendation: rec });
 
-      // Speak slowly, human-like (male/neutral)
+      // Jared voice (neutral/male), human cadence
       speak(summary, { female:false, rate:0.98, pitch:1.0, onend:()=> {
-        // After voice completes, show toast
         showToast(summary, rec);
       }});
       showAnalysisTips(summary);
@@ -605,7 +823,7 @@
       el.btnExport.classList.remove('hidden');
       el.dashHint.style.opacity=.6;
     }catch(e){
-      tip("Analysis failed. Please try again.", true, true);
+      tipAbs("Analysis failed. Please try again.", .5, .5);
       log('analyze_error', { msg:String(e) });
     } finally {
       el.wheel.style.display='none';
@@ -615,7 +833,6 @@
   };
 
   function deriveRecommendation(summary){
-    // simple heuristic to extract a concise recommendation line
     const s = (summary||"").replace(/\s+/g,' ').trim();
     if(!s) return "Proceed with standard site prep and edging pass.";
     const first = s.split(/[.;]/).map(x=>x.trim()).filter(Boolean)[0] || s;
@@ -631,8 +848,19 @@
     el.preview.style.display='block';
     el.dashHint.style.opacity=.25;
     bumpUploads();
-    tip("Photo loaded — tap Analyze.", true, true);
+    tipAbs("Photo loaded — tap Analyze.", .84, .86);
     log('upload', { name:f.name, size:f.size });
+  };
+
+  /* ========= RESET ========= */
+  el.btnReset.onclick = ()=>{
+    clearTipAbs();
+    el.preview.style.display='none';
+    el.file.value = "";
+    el.file._capturedBlob = null;
+    STATE.lastSummary = "";
+    STATE.lastRecommendation = "";
+    stopSpeech();
   };
 
   /* ========= FOUNDERS OPS ========= */
@@ -643,59 +871,71 @@
 
   /* ========= SALES U / DEMO ========= */
   el.btnSalesUEnter.onclick = ()=> {
-    alert("Sales University entry — placeholder.");
+    alert("Sales University entry — placeholder (Addie will guide modules).");
   };
   el.btnSalesUExtraDemo.onclick = ()=> {
-    // grant 1 extra upload slot today (soft)
     const extra = Number(localStorage.getItem('herohud_extra_demo')||0) + 1;
     localStorage.setItem('herohud_extra_demo', String(extra));
-    tip("One additional demo granted via Sales University.", true, true);
+    tipAbs("One additional demo granted via Sales University.", .22, .16);
   };
 
-  /* ========= GARAGE PURCHASE PLACEHOLDERS ========= */
-  el.btnBPBuy.onclick = ()=> alert("PayPal checkout placeholder for Best Practices");
-  el.btnFGBuy.onclick = ()=> alert("PayPal checkout placeholder for Field Guides");
-
-  /* ========= AUDIO ENABLE (MOBILE SAFETY) ========= */
+  /* ========= AUDIO ENABLE ========= */
   function enableAudio(){
     STATE.audioEnabled = true;
-    // prime voices (some browsers need it)
     try{ window.speechSynthesis.getVoices(); }catch{}
     el.btnEnableAudio.classList.add('locked');
     el.btnEnableAudio.disabled = true;
   }
-  el.btnEnableAudio.onclick = ()=> {
-    enableAudio();
-    // Start boot after audio ready
-    boot();
-  };
-
-  // If desktop, allow auto-start after a tiny delay; mobile needs tap
+  el.btnEnableAudio.onclick = ()=> { enableAudio(); boot(); };
   window.addEventListener('load', async ()=>{
-    // try to auto-enable (desktop)
-    if(!/Mobi|Android/i.test(navigator.userAgent)){
-      enableAudio();
-      boot();
+    if(!/Mobi|Android|iPhone|iPad/i.test(navigator.userAgent)){
+      enableAudio(); boot();
     }
   });
 
-  /* ========= VOICE CONTROL BUTTONS ========= */
-  el.btnAddieReplay.onclick = ()=> {
-    if(STATE.analyzing) return;
-    stopSpeech();
-    runAddieIntro();
-  };
-  el.btnAddieSkip.onclick = ()=> {
-    stopSpeech();
-    STATE.addieFinished = true;
-    tip("Intro skipped. Upload a photo to begin.", true, true);
-  };
-  el.btnJaredStop.onclick = ()=> { stopSpeech(); };
+  /* ========= HIDDEN SHORTCUTS (no visible skip/replay UI) ========= */
+  window.addEventListener('keydown', (e)=>{
+    if(e.key==='s' || e.key==='S'){ // skip speech
+      stopSpeech();
+    }else if(e.key==='r' || e.key==='R'){ // replay Addie
+      stopSpeech();
+      const script =
+        "Hi again—Addie here. Upload a photo, tap Analyze, and Jared will walk the site with you in plain language. " +
+        "I can unlock Access Plus, Best Practices, Field Guides, and the Sales University in the Cardinal Garage.";
+      speak(script, { female:true, rate:1.0, pitch:1.06 });
+    }
+  });
 
-  /* ========= PAYWALL BEHAVIOR ========= */
-  // Export is always free (txt). Only uploads can hit paywall when >2/day and no Access+.
+  /* ========= DECK MODE ========= */
+  function openDeck(){
+    closeGarage();
+    el.deckOverlay.style.display='block';
+    STATE.deckIndex = 0; updateDeck();
+    stopSpeech(); // silence while in deck
+  }
+  function closeDeck(){ el.deckOverlay.style.display='none'; }
+  el.deckPrev.onclick = ()=> { STATE.deckIndex = Math.max(0, STATE.deckIndex-1); updateDeck(); };
+  el.deckNext.onclick = ()=> { STATE.deckIndex = Math.min(deckSlides().length-1, STATE.deckIndex+1); updateDeck(); };
+  el.deckPrint.onclick = ()=> { window.print(); };
+  el.deckExit.onclick = closeDeck;
+  document.addEventListener('keydown', (e)=>{
+    if(el.deckOverlay.style.display==='block'){
+      if(e.key==='ArrowRight') el.deckNext.click();
+      if(e.key==='ArrowLeft') el.deckPrev.click();
+      if(e.key==='Escape') closeDeck();
+    }
+  });
+  function deckSlides(){ return qsa('#deckOverlay .slide'); }
+  function updateDeck(){
+    const slides = deckSlides();
+    slides.forEach((s,i)=> s.classList.toggle('show', i===STATE.deckIndex));
+    el.deckPager.textContent = `${STATE.deckIndex+1} / ${slides.length}`;
+  }
+
+  /* ========= HELPERS ========= */
+  function tip(text){ tipAbs(text, .5, .5); } // alias
+
 })();
 </script>
 </body>
 </html>
-
