@@ -346,20 +346,21 @@
     }catch(e){ console.log('TTS error:',e); setMicState('idle'); }
   }
 
-  // ===== Greeting =====
-  async function greeting(){
-    if(greeted) return; greeted=true;
-    await new Promise(r=>setTimeout(r,1100));
-    boot.style.display='none';
-    const lines = [
-      "Yo, yo, yo — Addison here. I’m in beta mode, so please be patient with me.",
-      "im basically like your personal sales coach, ready to calculate costs, send estimates, Addison can look at your work, call out what she sees, price, and make recommendations based on our propietary insights and analysis to identify upsell opportunities, training, and documents and help you price like a pro
-       .",
-      "Upload a photo, hit estimate, and let’s see what this thing can do."
-    ];
-    for(const line of lines){ await speak(line); await new Promise(r=>setTimeout(r,260)); }
+async function greeting(){
+  if(greeted) return; greeted = true;
+  await new Promise(r => setTimeout(r, 1100));
+  boot.style.display = 'none';
+  const lines = [
+    "Yo, yo, yo — Addison here. I’m in beta mode, so please be patient with me.",
+    "Im basically like your personal sales coach, ready to calculate costs, send estimates — Addison can look at your work, call out what she sees, price, and make recommendations based on proprietary insights and analysis to identify upsell opportunities, training, and documents to help you price like a pro.",
+    "Upload a photo, hit estimate, and let’s see what this thing can do."
+  ];
+  for (const line of lines) {
+    await speak(line);
+    await new Promise(r => setTimeout(r, 260));
   }
-  window.addEventListener('load', greeting, { once:true });
+}
+
 
   // ===== Upload flow =====
   btnUpload.onclick = ()=> file.click();
