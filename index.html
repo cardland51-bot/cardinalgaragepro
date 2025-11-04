@@ -3,247 +3,18 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,maximum-scale=1,user-scalable=no" />
-<title>HERO PRO • JARED • Upload → Estimate → Send</title>
+<title>Hero Pro • JARED HUD</title>
 <meta name="theme-color" content="#0b1b16" />
 <style>
-  :root{
-    --bg-top:#0b1b16; --bg-bot:#06121a;
-    --mintL:#9CFFE0; --mint:#34D1A0; --aqua:#2FB0E9; --teal:#0E8B67;
-    --text:#E9FFF6; --textDim:rgba(233,255,246,.85);
-    --glass:rgba(255,255,255,0.05); --stroke:rgba(156,255,224,0.28);
-  }
-  html,body{margin:0;height:100%;background:linear-gradient(180deg,var(--bg-top),var(--bg-bot));color:var(--text);font-family:ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial}
-  *{box-sizing:border-box}
-
-  /* Layered dual-tone background “multi-pass render” */
-  body::before, body::after{
-    content:""; position:fixed; inset:0; pointer-events:none;
-  }
-  body::before{
-    background:
-      radial-gradient(130% 90% at 50% 6%, rgba(156,255,224,.10), transparent 45%),
-      radial-gradient(120% 80% at 50% 95%, rgba(47,176,233,.12), transparent 55%);
-    animation:film1 14s ease-in-out infinite alternate;
-  }
-  body::after{
-    background:
-      linear-gradient( to right, transparent 0%, rgba(156,255,224,.05) 30%, transparent 60%),
-      linear-gradient( to left, transparent 0%, rgba(47,176,233,.05) 30%, transparent 60%);
-    mix-blend-mode:screen;
-    animation:film2 18s linear infinite;
-  }
-  @keyframes film1{to{transform:translateY(-2%)}}
-  @keyframes film2{to{transform:translateX(-2%)}}
-
-  /* Top controls */
-  .topleft, .topright{position:fixed;top:12px;z-index:20}
-  .topleft{left:12px}
-  .topright{right:12px;display:flex;gap:8px}
-  .pill{border:1px solid var(--stroke);background:rgba(255,255,255,.05);color:var(--mintL);
-        padding:.5rem .75rem;border-radius:999px;backdrop-filter:blur(6px);cursor:pointer;
-        display:flex;align-items:center;gap:.5rem;font-size:12px;box-shadow:0 0 12px rgba(156,255,224,.18)}
-  .iconbtn{width:42px;height:42px;border-radius:50%;border:1px solid var(--stroke);
-           background:rgba(255,255,255,.05);display:grid;place-items:center;cursor:pointer;
-           box-shadow:0 0 12px rgba(156,255,224,.14)}
-
-  /* Brand bar */
-  .topbar{position:fixed;inset:0 0 auto 0;height:64px;display:grid;place-items:center;pointer-events:none}
-  .brand{pointer-events:auto;font-weight:900;letter-spacing:.08em}
-  .brand .hero{font-weight:900;color:var(--mintL)}
-  .brand .pro{font-weight:500;color:var(--text);opacity:.9;margin-left:.2ch}
-
-  /* Stage */
-  .stage{position:fixed;inset:64px 0 148px 0;display:grid;place-items:center;padding:18px}
-  .stack{display:flex;flex-direction:column;align-items:center;text-align:center;gap:12px;max-width:960px;width:100%}
-
-  /* Button core style */
-  .btn{appearance:none;border:1px solid var(--mint);background:var(--glass);color:var(--mintL);
-    padding:.85rem 1.4rem;border-radius:999px;letter-spacing:.08em;text-transform:uppercase;
-    font-weight:700;backdrop-filter:blur(6px);cursor:pointer;transition:box-shadow .2s,transform .1s;
-    box-shadow:0 0 16px rgba(156,255,224,.14), 0 0 0 0 rgba(47,176,233,.0); font-size:13px; position:relative; overflow:hidden}
-  .btn:hover{box-shadow:0 0 26px rgba(156,255,224,.45), 0 0 24px rgba(47,176,233,.25)}
-  .btn:active{transform:translateY(1px)}
-  .btn::after{content:""; position:absolute; inset:-2px; border-radius:inherit; pointer-events:none;
-    background:radial-gradient(50% 50% at 50% 50%, rgba(47,176,233,.18), transparent 60%);
-    opacity:0; transition:opacity .2s}
-  .btn:focus-visible::after, .btn:hover::after{opacity:1}
-  .btn.hidden{display:none}
-  .btn-row{display:flex;gap:10px;flex-wrap:wrap;justify-content:center}
-
-  /* Upload/Camera module */
-  .primary-row{gap:10px}
-  .module{display:flex;gap:10px;flex-wrap:wrap;justify-content:center}
-
-  /* Preview */
-  #preview{display:none;position:relative;width:min(94vw,960px);aspect-ratio:16/10;border-radius:16px;overflow:hidden;border:1px solid var(--stroke);box-shadow:0 0 24px rgba(156,255,224,.14)}
-  #preview img, #preview video{width:100%;height:100%;object-fit:cover}
-  #edgeGlow{position:absolute;inset:0;border-radius:16px;pointer-events:none;opacity:0;
-    box-shadow:0 0 28px rgba(156,255,224,.6), inset 0 0 18px rgba(14,139,103,.55);transition:opacity .25s}
-  .glow-on #edgeGlow{opacity:1}
-  .wheel{position:absolute;inset:auto auto 10px 10px;background:rgba(0,0,0,.35);border:1px solid var(--stroke);
-    border-radius:999px;padding:.35rem .6rem;font-size:12px;display:flex;gap:.5rem;align-items:center}
-  .mini-spin{width:14px;height:14px;border-radius:50%;border:2px solid rgba(156,255,224,.35);border-top-color:var(--mintL);animation:spin 1s linear infinite}
-  @keyframes spin{to{transform:rotate(360deg)}}
-
-  /* Tips */
-  .tips{position:fixed;top:14%;left:0;right:0;pointer-events:none}
-  .tip{position:absolute;max-width:340px;background:rgba(255,255,255,.06);border:1px solid var(--stroke);
-    backdrop-filter:blur(8px);color:var(--text);padding:.7rem .9rem;border-radius:12px;
-    box-shadow:0 0 18px rgba(156,255,224,.25);opacity:0;transform:translateX(-40px);
-    transition:transform .6s cubic-bezier(.2,.9,.2,1),opacity .6s}
-  .tip.right{right:16px;left:auto;transform:translateX(40px)}
-  .tip.show{opacity:1;transform:translateX(0)}
-
-  /* HUD tabs */
-  .hud{display:none;gap:8px;margin-top:10px;flex-wrap:wrap;justify-content:center}
-  .tab{padding:.45rem .8rem;border:1px solid var(--stroke);border-radius:999px;background:rgba(255,255,255,.04);color:var(--textDim);font-size:12px}
-
-  /* Draggable Mic */
-  .mic-dock{position:fixed;left:50%;bottom:88px;transform:translateX(-50%);z-index:25}
-  .mic{width:68px;height:68px;border-radius:50%;border:1px solid var(--mint);
-    background:linear-gradient(180deg, rgba(156,255,224,.07), rgba(47,176,233,.06));
-    display:grid;place-items:center;cursor:grab;box-shadow:0 0 16px rgba(156,255,224,.2)}
-  .mic:active{cursor:grabbing}
-  .mic .ring{width:42px;height:42px;border:3px solid var(--mint);border-radius:50%}
-  .mic.idle .ring{box-shadow:0 0 10px rgba(156,255,224,.25)}
-  .mic.listening .ring{animation:breathe 1.2s ease-in-out infinite; box-shadow:0 0 14px rgba(156,255,224,.45)}
-  .mic.processing .ring{animation:slowpulse 1.6s ease-in-out infinite; border-color:var(--aqua)}
-  .mic.speaking .ring{box-shadow:0 0 18px rgba(47,176,233,.55), 0 0 28px rgba(156,255,224,.35)}
-  @keyframes breathe{0%,100%{transform:scale(1)}50%{transform:scale(1.08)}}
-  @keyframes slowpulse{0%,100%{transform:scale(1)}50%{transform:scale(1.04)}}
-  .mic-note{margin-top:6px;text-align:center;font-size:12px;color:var(--textDim);user-select:none}
-
-  /* Footer/garage */
-  .footer{position:fixed;left:50%;transform:translateX(-50%);bottom:18px;font-size:12px;color:rgba(233,255,246,.6);letter-spacing:.12em;text-transform:uppercase}
-  .garage{position:fixed;right:14px;bottom:46px;background:rgba(255,255,255,.05);border:1px solid var(--stroke);
-    border-radius:12px;padding:.45rem .65rem;display:flex;align-items:center;gap:.45rem;cursor:pointer;
-    box-shadow:0 0 12px rgba(156,255,224,.18);font-size:12px;z-index:15}
-  .garage.locked{opacity:.65}
-
-  /* Overlays */
-  .overlay{display:none;position:fixed;inset:0;background:rgba(3,8,6,.82);backdrop-filter:blur(6px);align-items:center;justify-content:center;z-index:60}
-  .panel{max-width:540px;margin:20px;background:rgba(255,255,255,.06);border:1px solid var(--stroke);
-    border-radius:16px;padding:1.1rem 1.3rem;text-align:center;box-shadow:0 0 32px rgba(156,255,224,.28)}
-  .panel h3{margin:.2rem 0 .2rem}
-  .panel .sub{color:var(--textDim);font-size:13px}
-
-  /* Startup overlay */
-  .boot{position:fixed;inset:0;display:grid;place-items:center;background:rgba(3,8,6,.78);backdrop-filter:blur(4px);z-index:70}
-  .spinner{width:74px;height:74px;border-radius:50%;border:3px solid rgba(156,255,224,.3);border-top-color:var(--mintL);
-    animation:spin 1s linear infinite;box-shadow:0 0 22px rgba(156,255,224,.35)}
-  .boot p{margin:.9rem 0 0;color:var(--textDim)}
-  .caption{font-size:12px;color:rgba(233,255,246,.7)}
-
-  /* Pulse when toggling fullscreen */
-  .pulse{position:fixed;inset:0;pointer-events:none;opacity:0;background:
-    radial-gradient(60% 50% at 50% 50%, rgba(156,255,224,.25), transparent 60%);transition:opacity .8s}
-  .pulse.show{opacity:1}
-
-  /* Mobile */
-  @media (max-width:540px){
-    .stage{inset:64px 0 168px 0}
-    #preview{width:94vw}
+  html,body {
+    margin:0; height:100%; background:#0b1b16; overflow:hidden;
+    touch-action:none; -webkit-user-select:none; user-select:none;
+    -webkit-tap-highlight-color:transparent;
   }
 </style>
 </head>
 <body>
-
-<!-- BOOT -->
-<div class="boot" id="boot">
-  <div class="stack">
-    <div class="spinner"></div>
-    <p><strong>Please give Jared a moment to wake up.</strong><br/>
-      <span class="caption">Booting systems — calibrating voice.</span>
-    </p>
-  </div>
-</div>
-<div class="pulse" id="pulse"></div>
-
-<!-- TOP CONTROLS -->
-<div class="topleft">
-  <div class="pill" id="btnAnim"><span>✨</span><span id="animLabel">Animations: On</span></div>
-</div>
-<div class="topright">
-  <div class="iconbtn" id="btnFS" title="Fullscreen">⛶</div>
-</div>
-
-<!-- BRAND -->
-<div class="topbar">
-  <div class="brand" aria-label="HERO PRO">
-    <span class="hero">HERO</span><span class="pro">PRO</span>
-  </div>
-</div>
-
-<!-- STAGE -->
-<div class="stage">
-  <div class="stack">
-
-    <!-- Primary Actions -->
-    <div class="module primary-row">
-      <button class="btn" id="btnUpload">⬆ Upload Photo</button>
-      <button class="btn" id="btnCamera">📷 Camera</button>
-      <button class="btn" id="btnEstimate">🔍 Estimate</button>
-      <button class="btn hidden" id="btnExport">📤 Export Estimate & Sales Insight</button>
-    </div>
-
-    <!-- Preview -->
-    <div id="preview">
-      <img id="previewImg" alt="preview" />
-      <div id="edgeGlow"></div>
-      <div class="wheel" id="wheel" style="display:none;">
-        <div class="mini-spin"></div><span id="wheelText">Analyzing…</span>
-      </div>
-      <!-- Pro dashboard hint -->
-      <div class="dash-hint" id="dashHint" style="position:absolute;inset:0;opacity:.0;pointer-events:none;"></div>
-    </div>
-
-    <!-- Draggable Mic -->
-    <div class="mic-dock" id="micDock">
-      <div class="mic idle" id="mic"><div class="ring"></div></div>
-      <div class="mic-note" id="micLabel">Tap to Talk — Tap again to Send</div>
-    </div>
-
-    <!-- HUD Tabs -->
-    <div class="hud" id="hudTabs">
-      <div class="tab">Workflow</div>
-      <div class="tab">Insights</div>
-      <div class="tab">Join Our Journey</div>
-      <div class="tab">Sales University</div>
-    </div>
-
-    <input type="file" id="file" accept="image/*" hidden />
-  </div>
-</div>
-
-<!-- Tips -->
-<div class="tips" id="tips"></div>
-
-<!-- Garage + Footer -->
-<div class="garage locked" id="garage">🔧 Garage • Field Manual</div>
-<div class="footer">Powered by Cardinal Garage _MND</div>
-
-<!-- Overlays -->
-<div class="overlay" id="paywallGarage">
-  <div class="panel">
-    <h3>Exclusive Beta Access</h3>
-    <p class="sub">Unlock the roll-down Garage to view A–Z field techniques.</p>
-    <div class="btn-row" style="justify-content:center">
-      <button class="btn" id="btnBetaGarage">🚪 Join Beta</button>
-      <button class="btn" id="btnCloseGarage">Close</button>
-    </div>
-  </div>
-</div>
-
-<div class="overlay" id="paywallPro">
-  <div class="panel">
-    <h3>Pro Estimate with Sales Insight</h3>
-    <p class="sub">Unlock detailed dashboard, downloadable & shareable exports.</p>
-    <div class="btn-row" style="justify-content:center">
-      <button class="btn" id="btnBetaPro">⚡ Join Pro Beta</button>
-      <button class="btn" id="btnClosePro">Close</button>
-    </div>
-  </div>
-</div>
+<canvas id="hud"></canvas>
 
 <script>
 (() => {
@@ -252,332 +23,360 @@
     ? "http://localhost:3001"
     : "https://jared-hero2-backend.onrender.com";
 
-  // ===== Elements =====
-  const boot = document.getElementById('boot');
-  const pulse = document.getElementById('pulse');
-  const btnAnim = document.getElementById('btnAnim');
-  const animLabel = document.getElementById('animLabel');
-  const btnFS = document.getElementById('btnFS');
+  // ===== Brand =====
+  const BRAND = {
+    bgTop:'#0b1b16', bgBot:'#07100d',
+    mintL:'#77FFCE', mintB:'#34D1A0', text:'#E9FFF6', textDim:'rgba(233,255,246,.85)',
+    auraS:'rgba(119,255,206,.15)', auraM:'rgba(119,255,206,.35)', auraH:'rgba(119,255,206,.55)'
+  };
 
-  const file = document.getElementById('file');
-  const btnUpload = document.getElementById('btnUpload');
-  const btnCamera = document.getElementById('btnCamera');
-  const btnEstimate = document.getElementById('btnEstimate');
-  const btnExport = document.getElementById('btnExport');
+  // ===== Icons =====
+  const defs = [
+    { id:'upload',  label:'Upload', icon:'⬆️' },
+    { id:'camera',  label:'Camera', icon:'📷' },
+    { id:'analyze', label:'Estimate', icon:'🧮' },
+    { id:'talk',    label:'Talk to JARED', icon:'🎤' },
+    { id:'export',  label:'Export Estimate', icon:'📤' },
+    { id:'school',  label:'Sales University', icon:'🎓' },
+    { id:'full',    label:'Fullscreen', icon:'⛶' },
+  ];
+  const ICONS = [];
 
-  const preview = document.getElementById('preview');
-  const previewImg = document.getElementById('previewImg');
-  const edgeGlow = document.getElementById('edgeGlow');
-  const wheel = document.getElementById('wheel');
-  const wheelText = document.getElementById('wheelText');
+  // ===== Canvas Setup =====
+  const cvs = document.getElementById('hud');
+  const ctx = cvs.getContext('2d', { alpha:false });
+  let DPR = Math.max(1, Math.min(3, devicePixelRatio||1));
+  const S = { w:0,h:0,t:0, tx:0,ty:0 };
 
-  const tips = document.getElementById('tips');
-  const hudTabs = document.getElementById('hudTabs');
-  const garage = document.getElementById('garage');
-  const paywallGarage = document.getElementById('paywallGarage');
-  const btnBetaGarage = document.getElementById('btnBetaGarage');
-  const btnCloseGarage = document.getElementById('btnCloseGarage');
-  const paywallPro = document.getElementById('paywallPro');
-  const btnBetaPro = document.getElementById('btnBetaPro');
-  const btnClosePro = document.getElementById('btnClosePro');
+  function layoutIcons() {
+    ICONS.length = 0;
+    const sodH = Math.max(120, Math.min(220, S.h * 0.22));
+    const baseY = S.h - sodH + 8;
+    const pad = 50;
+    const gap = (S.w - pad * 2) / (defs.length - 1);
+    defs.forEach((d, i) => {
+      ICONS.push({ ...d, x: pad + i * gap, y: S.h + 120, targetY: baseY - 80, r: 46, hover:false });
+    });
+  }
 
-  const micDock = document.getElementById('micDock');
-  const mic = document.getElementById('mic');
-  const micLabel = document.getElementById('micLabel');
-  const dashHint = document.getElementById('dashHint');
+  function resize(){
+    DPR = Math.max(1, Math.min(3, devicePixelRatio||1));
+    S.w = innerWidth; S.h = innerHeight;
+    cvs.width = Math.floor(S.w*DPR);
+    cvs.height = Math.floor(S.h*DPR);
+    cvs.style.width = S.w+'px';
+    cvs.style.height = S.h+'px';
+    ctx.setTransform(DPR,0,0,DPR,0,0);
+    layoutIcons();
+  }
+  addEventListener('resize', resize, {passive:true});
+  resize();
 
-  // ===== Session gating =====
-  let uploadCount = Number(localStorage.getItem("jared_uploads")||0);
-  let lastSummary = "";
-  let animationsOn = true;
+  // ====== State ======
+  const bubbles = [];
+  const tips = [];
+  const savedInsights = [];
+  let talkState = 'idle', greeted=false, firstPreviewDone=false, firstAnalysisDone=false;
+  let rec=null, canListen=true, speechAudio=null, micPrimed=false;
+  let lastFile=null;
+  const photo={img:null,url:null,w:0,h:0,x:0,y:0,show:false,glow:0.4};
 
-  // ===== Voice Recognition =====
-  let rec=null, canListen=true, speechAudio=null, greeted=false;
+  // ===== File + Camera =====
+  const fileInput = document.createElement("input");
+  fileInput.type="file"; fileInput.accept="image/*"; fileInput.style.display="none";
+  document.body.appendChild(fileInput);
+  function chooseFile(){ fileInput.value=""; fileInput.click(); }
+  fileInput.onchange=()=>{ loadPhoto(fileInput.files[0]); };
 
+  async function takePhoto() {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ video:true });
+      const video = document.createElement('video');
+      video.srcObject = stream;
+      await video.play();
+      const canvas = document.createElement('canvas');
+      canvas.width = video.videoWidth; canvas.height = video.videoHeight;
+      const cctx = canvas.getContext('2d');
+      cctx.drawImage(video,0,0);
+      stream.getTracks().forEach(t=>t.stop());
+      canvas.toBlob(blob => loadPhoto(new File([blob],'photo.jpg',{type:'image/jpeg'})));
+    } catch(e){ toast('Camera access denied.'); }
+  }
+
+  function loadPhoto(f){
+    if (!f) return;
+    lastFile=f;
+    if (photo.url) URL.revokeObjectURL(photo.url);
+    photo.url=URL.createObjectURL(f);
+    photo.img=new Image();
+    photo.img.onload=()=>{
+      photo.w=photo.img.width; photo.h=photo.img.height;
+      photo.show=true; photo.glow=0.8;
+      toast("✅ Photo loaded. Tap Estimate.");
+      if (!firstPreviewDone) firstPreviewDone=true;
+    };
+    photo.img.src=photo.url;
+  }
+
+  // ===== Drawing Helpers =====
+  function roundRect(g,x,y,w,h,r){ const rr=Math.min(r,w/2,h/2); g.beginPath(); g.moveTo(x+rr,y); g.arcTo(x+w,y,x+w,y+h,rr); g.arcTo(x+w,y+h,x,y+h,rr); g.arcTo(x,y+h,x,y,rr); g.arcTo(x,y,x+w,y,rr); g.closePath(); }
+  function halo(r,color,blur){ ctx.save(); ctx.shadowColor=color; ctx.shadowBlur=blur; ctx.beginPath(); ctx.arc(0,0,r,0,Math.PI*2); ctx.strokeStyle='transparent'; ctx.stroke(); ctx.restore(); }
+
+  // ===== Background =====
+  function drawBackground(t){
+    const g=ctx.createLinearGradient(0,0,0,S.h);
+    g.addColorStop(0,BRAND.bgTop);
+    g.addColorStop(1,BRAND.bgBot);
+    ctx.fillStyle=g; ctx.fillRect(0,0,S.w,S.h);
+    const rg=ctx.createRadialGradient(S.w/2,S.h*0.85,0,S.w/2,S.h*0.85,Math.max(S.w,S.h)*0.55);
+    rg.addColorStop(0,BRAND.auraM); rg.addColorStop(1,'transparent');
+    ctx.fillStyle=rg; ctx.fillRect(0,0,S.w,S.h);
+  }
+
+  // ===== Photo Display =====
+  function drawPhoto(){
+    if (!photo.show||!photo.img) return;
+    const maxW=S.w*0.9, maxH=S.h*0.45;
+    let w=photo.w,h=photo.h; const scale=Math.min(maxW/w,maxH/h);
+    w*=scale; h*=scale;
+    photo.x=(S.w-w)/2; photo.y=S.h*0.12;
+    ctx.save(); ctx.globalAlpha=photo.glow;
+    ctx.drawImage(photo.img,photo.x,photo.y,w,h);
+    ctx.restore();
+  }
+
+  // ===== Floating Tips =====
+  function spawnTip(msg){
+    if(tips.length>=3) tips.shift();
+    const x=photo.x+Math.random()*photo.w;
+    const y=photo.y+Math.random()*photo.h;
+    tips.push({msg,x,y,start:performance.now(),life:3000});
+  }
+  function drawTips(){
+    const now=performance.now();
+    tips.forEach(tip=>{
+      const a=1-(now-tip.start)/tip.life;
+      if(a<=0) return;
+      ctx.save();
+      ctx.globalAlpha=a*0.8;
+      ctx.fillStyle='rgba(119,255,206,0.25)';
+      ctx.beginPath(); ctx.arc(tip.x, tip.y-(1-a)*40, 24, 0, Math.PI*2); ctx.fill();
+      ctx.fillStyle=BRAND.text; ctx.font='600 12px system-ui'; ctx.textAlign='center';
+      ctx.fillText(tip.msg, tip.x, tip.y-(1-a)*40+4);
+      ctx.restore();
+    });
+  }
+
+  // ===== AI Analyze =====
+  async function analyze(){
+    if(!lastFile){ toast("Upload first."); return; }
+
+    // 🧱 Paywall triggers ONLY after first successful analysis
+    if (firstAnalysisDone) { showPaywall(); return; }
+
+    const formData=new FormData(); formData.append("file",lastFile);
+    toast("Analyzing...");
+    try{
+      const resp=await fetch(`${API}/analyze-image`,{method:"POST",body:formData});
+      const data=await resp.json();
+      toast(data.summary||"No summary.");
+
+      spawnTip("Upsell mulch color");
+      setTimeout(()=>spawnTip("Check slope depth"),800);
+      setTimeout(()=>spawnTip("Add edging estimate"),1600);
+
+      await speak(data.summary);
+      savedInsights.push(`PHOTO:\n${data.summary}\n`);
+      firstAnalysisDone = true;
+
+    }catch(e){ toast("❌ Analysis failed."); }
+  }
+
+  // ===== Paywall =====
+  function showPaywall() {
+    const overlay = document.createElement("div");
+    Object.assign(overlay.style, {
+      position:"fixed",top:0,left:0,width:"100%",height:"100%",
+      background:"rgba(0,0,0,0.85)",color:"#77FFCE",
+      display:"flex",flexDirection:"column",alignItems:"center",
+      justifyContent:"center",fontFamily:"system-ui",zIndex:9999,textAlign:"center"
+    });
+    overlay.innerHTML=`
+      <h1 style="font-weight:700;margin-bottom:10px;">Join Beta Access</h1>
+      <p style="max-width:300px;">You've hit your free session limit.<br>
+      Sign up to unlock unlimited analyses, insights, and your full dashboard.</p>
+      <button style="margin-top:20px;padding:10px 20px;border:none;background:#34D1A0;color:#0b1b16;font-weight:600;border-radius:8px;">Join Now</button>
+    `;
+    overlay.querySelector("button").onclick=()=>overlay.remove();
+    document.body.appendChild(overlay);
+  }
+
+  function exportInsights(){
+    if(!savedInsights.length){ toast("No insights."); return; }
+    const blob=new Blob([savedInsights.join("\n\n")],{type:"text/plain"});
+    const a=document.createElement("a");
+    a.href=URL.createObjectURL(blob); a.download="jared_estimates.txt"; a.click();
+    toast("Insights exported!");
+  }
+  function openSchool(){ window.open("https://cardland51-bot.github.io/sales-university/","_blank"); }
+  function toggleFull(){ if(!document.fullscreenElement)cvs.requestFullscreen(); else document.exitFullscreen(); }
+
+  // ===== Voice =====
   function initRecognition(){
     if(!('webkitSpeechRecognition' in window)) return null;
-    const r = new webkitSpeechRecognition();
+    const r=new webkitSpeechRecognition();
     r.lang='en-US'; r.interimResults=false; r.continuous=false;
-    r.onstart = ()=> setMicState('listening');
-    r.onend   = ()=> { canListen=true; setMicState('processing'); }; // waiting for response
-    r.onresult= async (e)=>{
-      const text = e.results[0][0].transcript;
+    r.onstart=()=>{talkState='listening';};
+    r.onend=()=>{ if(talkState==='listening') talkState='thinking'; canListen=true; };
+    r.onresult=async(e)=>{
+      const text=e.results[0][0].transcript;
       try{
-        showTip("…thinking", true);
         const resp=await fetch(`${API}/inference`,{
-          method:'POST',headers:{'Content-Type':'application/json'},
+          method:'POST', headers:{'Content-Type':'application/json'},
           body:JSON.stringify({ text })
         });
-        const data=await resp.json();
-        await speak(data.content||'');
-      }catch{}
+        const data=await resp.json(); const content=data.content||'No response';
+        savedInsights.push(`[${new Date().toLocaleString()}]\nVOICE: "${text}"\n${content}\n`);
+        toast(content); await speak(content);
+      }catch(err){ toast('JARED unavailable.'); }
+      talkState='idle';
     };
     return r;
   }
-  rec = initRecognition();
+  rec=initRecognition();
 
-  function setMicState(state){
-    mic.classList.remove('idle','listening','processing','speaking');
-    mic.classList.add(state);
-    if(state==='idle') micLabel.textContent = "Tap to Talk — Tap again to Send";
-    if(state==='listening') micLabel.textContent = "Listening… tap to Send";
-    if(state==='processing') micLabel.textContent = "Processing…";
-    if(state==='speaking') micLabel.textContent = "Jared is speaking…";
+  function primeMic(){ if(micPrimed||!rec)return; try{rec.start();rec.abort();micPrimed=true;}catch(e){} }
+  addEventListener('touchstart',()=>primeMic(),{once:true,passive:true});
+  addEventListener('click',()=>primeMic(),{once:true,passive:true});
+
+  async function greet(){
+    if(localStorage.getItem("jaredGreeted")==="true") return;
+    localStorage.setItem("jaredGreeted","true");
+    await new Promise(r=>setTimeout(r,700));
+    await speak("Hola hola — yo yo yo, Jared here. I'm still in beta, so be patient, my friend. Click Upload Photo to start, then hit Estimate to see what I can do. This is your Hero Pro sandbox — where you learn to price, build, and sell like a beast.");
   }
-  setMicState('idle');
+  window.addEventListener('load',greet,{once:true});
 
-  function startListening(){ if(!rec||!canListen) return; canListen=false; rec.start(); }
+  function startListening(){ if(!rec||!canListen)return; canListen=false; rec.start(); }
   function stopListening(){ if(rec) rec.stop(); }
 
   async function speak(text){
-    if(!text) return;
+    if(!text)return;
     try{
       if(speechAudio){ speechAudio.pause(); speechAudio=null; }
       const r=await fetch(`${API}/speak`,{
-        method:'POST', headers:{'Content-Type':'application/json'},
+        method:'POST',headers:{'Content-Type':'application/json'},
         body:JSON.stringify({ text })
       });
-      if(!r.ok) throw new Error('tts');
+      if(!r.ok) throw new Error('TTS failed');
       const b=await r.blob(); const u=URL.createObjectURL(b);
-      speechAudio=new Audio(u);
-      setMicState('speaking');
-      await speechAudio.play();
-      setMicState('idle');
-    }catch(e){ console.log('TTS error:',e); setMicState('idle'); }
+      speechAudio=new Audio(u); await speechAudio.play();
+    }catch(e){ console.log('TTS error:',e); }
   }
 
-  // ===== Greeting =====
-  async function greeting(){
-    if(greeted) return; greeted=true;
-    await new Promise(r=>setTimeout(r,1100));
-    boot.style.display='none';
-    const lines = [
-      "Yo, yo, yo — Jared here. I’m a beta, so be patient with me, Jared can look at your work, call out what he sees, and help you price like a pro, Upload a photo, hit estimate, and let’s see what this thing can do."
-    ];
-    for(const line of lines){ await speak(line); await new Promise(r=>setTimeout(r,260)); }
-  }
-  window.addEventListener('load', greeting, { once:true });
-
-  // ===== Upload flow =====
-  btnUpload.onclick = ()=> file.click();
-  file.onchange = ()=>{
-    const f = file.files[0]; if(!f) return;
-    if(uploadCount >= 1){ // show pro paywall after first upload (demo)
-      paywallPro.style.display='flex';
-      dashHint.style.opacity = .6;
-      return;
-    }
-    uploadCount++; localStorage.setItem("jared_uploads", String(uploadCount));
-    const url = URL.createObjectURL(f);
-    previewReplaceWithImage(url);
-    preview.style.display='block';
-    dashHint.style.opacity = .25; // hint exists but dim until pro
-  };
-
-  // ===== Camera flow =====
-  let camStream = null, camVideo = null, captureBtn = null;
-  btnCamera.onclick = openCamera;
-
-  async function openCamera(){
-    try{
-      const stream = await navigator.mediaDevices.getUserMedia({ video: true });
-      camStream = stream;
-      camVideo = document.createElement("video");
-      camVideo.playsInline = true;
-      camVideo.muted = true;
-      camVideo.srcObject = stream;
-      await camVideo.play();
-
-      preview.style.display = 'block';
-      previewReplaceWithNode(camVideo);
-
-      ensureCaptureBtn();
-    }catch(e){
-      showTip("Camera access denied.", true);
-    }
-  }
-
-  function ensureCaptureBtn(){
-    if(captureBtn) captureBtn.remove();
-    captureBtn = document.createElement("button");
-    captureBtn.textContent = "📸 Capture";
-    captureBtn.className = "btn";
-    captureBtn.style.position = "absolute";
-    captureBtn.style.right = "10px";
-    captureBtn.style.bottom = "10px";
-    preview.appendChild(captureBtn);
-    captureBtn.onclick = async ()=>{
-      if(!camVideo) return;
-      const canvas = document.createElement("canvas");
-      canvas.width = camVideo.videoWidth || 1280;
-      canvas.height = camVideo.videoHeight || 720;
-      const g = canvas.getContext("2d");
-      g.drawImage(camVideo, 0, 0, canvas.width, canvas.height);
-      const blob = await new Promise(res=>canvas.toBlob(res, 'image/jpeg', 0.92));
-      if(camStream){ camStream.getTracks().forEach(t=>t.stop()); camStream=null; }
-      camVideo = null;
-      const url = URL.createObjectURL(blob);
-      previewReplaceWithImage(url);
-      file._capturedBlob = blob; // store for estimate
-      showTip("Captured — tap Estimate.", true);
-    };
-  }
-
-  function previewReplaceWithImage(url){
-    const img = document.createElement("img");
-    img.id = "previewImg";
-    img.alt = "preview";
-    img.src = url;
-    previewReplaceWithNode(img);
-  }
-
-  function previewReplaceWithNode(node){
-    const old = preview.querySelector("img, video");
-    if(old) old.replaceWith(node);
-    else preview.prepend(node);
-  }
-
-  // ===== Analyze =====
-  btnEstimate.onclick = async ()=>{
-    if(!preview.style.display || preview.style.display==='none'){
-      showTip("Upload or capture a photo first.", true); return;
-    }
-    const blob = file._capturedBlob;
-    const fileEl = file.files && file.files[0];
-
-    if(!blob && !fileEl){ showTip("No image found.", true); return; }
-
-    preview.classList.add('glow-on');
-    wheel.style.display='flex';
-    wheelText.textContent = "Analyzing…";
-
-    const formData = new FormData();
-    if(blob){
-      formData.append("file", blob, "capture.jpg");
-    } else {
-      formData.append("file", fileEl);
-    }
-
-    try{
-      showTip("Analyzing image…", false);
-      const resp = await fetch(`${API}/analyze-image`, { method:"POST", body:formData });
-      const data = await resp.json();
-      lastSummary = data.summary || "No summary.";
-      showAnalysisTips(lastSummary);
-      await speak(lastSummary);
-      hudTabs.style.display='flex';
-      btnExport.classList.remove('hidden'); // export appears after analysis
-      dashHint.style.opacity = .6; // “power behind” glow
-    }catch{
-      showTip("❌ Analysis failed.", true);
-    }finally{
-      wheel.style.display='none';
-      preview.classList.remove('glow-on');
-    }
-  };
-
-  // ===== Export (Pro-gated) =====
-  btnExport.onclick = ()=>{
-    if(!localStorage.getItem("jared_pro_unlocked")){
-      paywallPro.style.display='flex'; return;
-    }
-    const content = collectExportText();
-    const blob = new Blob([content], { type:"text/plain" });
-    const a = document.createElement("a");
-    a.href = URL.createObjectURL(blob);
-    a.download = "jared_estimate_and_sales_insight.txt";
-    a.click();
-  };
-
-  function collectExportText(){
-    const tipsTxt = [...document.querySelectorAll('.tip')].map(e=>e.textContent.trim()).join("\n");
-    return `HERO PRO — Estimate & Sales Insight\n\n${lastSummary}\n\nTIPS:\n${tipsTxt || "- none -"}\n`;
-  }
-
-  // ===== Mic drag + click =====
-  mic.addEventListener('pointerdown', startDrag);
-  let dragOffX=0, dragOffY=0, dragging=false, moved=false;
-  function startDrag(e){
-    dragging=true; moved=false; mic.setPointerCapture(e.pointerId);
-    const r = micDock.getBoundingClientRect();
-    dragOffX = e.clientX - r.left; dragOffY = e.clientY - r.top;
-  }
-  mic.addEventListener('pointermove', (e)=>{
-    if(!dragging) return;
-    moved=true;
-    micDock.style.left = (e.clientX - dragOffX) + 'px';
-    micDock.style.top  = (e.clientY - dragOffY) + 'px';
-    micDock.style.transform = 'translate(0,0)';
-  });
-  mic.addEventListener('pointerup', (e)=>{
-    if(!dragging) return; dragging=false; mic.releasePointerCapture(e.pointerId);
-    if(!moved){
-      if(mic.classList.contains('listening')) stopListening();
-      else startListening();
-    }
-  });
-
-  // ===== Fullscreen =====
-  btnFS.onclick = async ()=>{
-    if(!document.fullscreenElement) await document.documentElement.requestFullscreen();
-    else await document.exitFullscreen();
-    pulse.classList.add('show');
-    setTimeout(()=>pulse.classList.remove('show'), 900);
-  };
-
-  // ===== Animations toggle =====
-  btnAnim.onclick = ()=>{
-    animationsOn = !animationsOn;
-    animLabel.textContent = `Animations: ${animationsOn ? 'On' : 'Off'}`;
-    const state = animationsOn ? 'running' : 'paused';
-    document.body.style.animationPlayState = state;
-    document.body.style.setProperty('--anim-state', state);
-  };
-
-  // ===== Garage =====
-  garage.onclick = ()=>{
-    if(garage.classList.contains('locked')) paywallGarage.style.display='flex';
-    else alert("Garage roll-down (mock) — Field Manuals A–Z.");
-  };
-  btnBetaGarage.onclick = ()=>{
-    garage.classList.remove('locked');
-    paywallGarage.style.display='none';
-  };
-  btnCloseGarage.onclick = ()=> paywallGarage.style.display='none';
-
-  // ===== Pro paywall =====
-  btnBetaPro.onclick = ()=>{
-    localStorage.setItem("jared_pro_unlocked","1");
-    paywallPro.style.display='none';
-    showTip("Pro unlocked — Export & Dashboard enabled.", true);
-    dashHint.style.opacity = .85;
-  };
-  btnClosePro.onclick = ()=> paywallPro.style.display='none';
-
-  // ===== Tips =====
-  function showTip(text, right=false){
-    const el=document.createElement('div');
-    el.className='tip'+(right?' right':'');
-    el.style.left = right ? '' : '16px';
-    el.innerHTML = text;
-    tips.appendChild(el);
-    requestAnimationFrame(()=>el.classList.add('show'));
-    setTimeout(()=>{ el.classList.remove('show'); setTimeout(()=>el.remove(),420); }, 4200);
-  }
-
-  function showAnalysisTips(summary){
-    const bits = (summary.replace(/\s+/g,' ').trim() || "Looks good. Consider fresh mulch; adjust shrub spacing; check edging.")
-      .split(/[.;]/).map(s=>s.trim()).filter(Boolean).slice(0,3);
-    let delay = 240;
-    bits.forEach((b,i)=>{
-      setTimeout(()=>showTip("💡 "+b, i%2===1), delay);
-      delay += 1500;
+  // ===== Toast =====
+  function toast(msg,ms=1600){ bubbles.push({msg,t:performance.now(),ms}); }
+  function drawToasts(){
+    const now=performance.now();
+    bubbles.forEach((b,i)=>{
+      const age=now-b.t;if(age>b.ms)return;
+      const a=age<200?age/200:age>b.ms-250?(b.ms-age)/250:1;
+      const w=Math.min(460,S.w*0.9),h=46,x=(S.w-w)/2,y=S.h-90-i*56;
+      ctx.save(); ctx.globalAlpha=a*.95;
+      ctx.fillStyle='rgba(10,26,20,.92)'; ctx.strokeStyle=BRAND.auraM; ctx.lineWidth=2;
+      roundRect(ctx,x,y,w,h,12); ctx.fill(); ctx.stroke();
+      ctx.fillStyle=BRAND.text; ctx.font='600 14px system-ui'; ctx.textAlign='center';
+      ctx.textBaseline='middle'; ctx.fillText(b.msg,x+w/2,y+h/2+1);
+      ctx.restore();
     });
-    setTimeout(()=>showTip("🧾 Estimate ready — Export or upgrade to Pro.", true), delay+300);
+    for(let i=bubbles.length-1;i>=0;i--) if(performance.now()-bubbles[i].t>bubbles[i].ms)bubbles.splice(i,1);
   }
+
+  // ===== Icons =====
+  function drawIcon(it,t){
+    it.y+=(it.targetY-it.y)*0.12;
+    const x=it.x,y=it.y,r=it.r;
+    ctx.save(); ctx.translate(x,y);
+    if(it.id==='talk'){
+      if(talkState==='listening') halo(r+18,BRAND.auraH,24);
+      else if(talkState==='thinking') halo(r+10,BRAND.auraM,18);
+      else halo(r+12,BRAND.auraS,14);
+    } else halo(r+12,it.hover?BRAND.auraM:BRAND.auraS,14);
+    const grd=ctx.createRadialGradient(-r*.5,-r*.6,r*.2,0,0,r*1.2);
+    grd.addColorStop(0,'#10281f'); grd.addColorStop(1,'#0a1a14');
+    ctx.fillStyle=grd; roundRect(ctx,-r,-r,r*2,r*2,r*.42); ctx.fill();
+    ctx.strokeStyle=it.hover?BRAND.mintL:BRAND.mintB;
+    ctx.lineWidth=3; ctx.beginPath(); ctx.arc(0,0,r-3,0,Math.PI*2); ctx.stroke();
+    ctx.font=Math.floor(r*.9)+'px serif'; ctx.textAlign='center'; ctx.textBaseline='middle';
+    ctx.fillText(it.icon,0,2);
+    ctx.font='600 13px system-ui'; ctx.fillStyle=BRAND.textDim;
+    ctx.fillText(it.label,0,r+18);
+    ctx.restore();
+  }
+
+  // ===== Sod =====
+  function drawSod(t){
+    const sodTop=S.h - Math.max(120, Math.min(220,S.h*0.22));
+    const grd=ctx.createLinearGradient(0,sodTop,0,S.h);
+    grd.addColorStop(0,'#0e241c'); grd.addColorStop(1,'#08130f');
+    ctx.fillStyle=grd; ctx.fillRect(0,sodTop,S.w,S.h-sodTop);
+    const blades=Math.floor(S.w/9);
+    for(let i=0;i<blades;i++){
+      const x=(i/(blades-1))*S.w;
+      const h=22+Math.sin((i*0.6)+t*0.002)*6;
+      const sway=Math.sin(t*0.003+i)*2+S.tx*1.2;
+      ctx.strokeStyle=i%7===0?BRAND.mintL:BRAND.mintB;
+      ctx.lineWidth=2; ctx.beginPath();
+      ctx.moveTo(x,sodTop+2);
+      ctx.quadraticCurveTo(x+sway,sodTop-h*0.6,x+sway*0.8,sodTop-h);
+      ctx.stroke();
+    }
+  }
+
+  // ===== Input =====
+  let pressedIcon=null;
+  function dist2(x1,y1,x2,y2){const dx=x2-x1,dy=y2-y1;return dx*dx+dy*dy;}
+  function pickIcon(x,y){ let best=null,bestD=Infinity;
+    for(const it of ICONS){ const R=it.r+20; const d2=dist2(x,y,it.x,it.y);
+      if(d2<R*R&&d2<bestD){best=it.id;bestD=d2;} it.hover=(best===it.id);
+    } return best; }
+  function handlePress(x,y){ const id=pickIcon(x,y); if(!id)return; pressedIcon=id;
+    if(id==='upload') chooseFile();
+    if(id==='camera') takePhoto();
+    if(id==='talk') startListening();
+  }
+  function handleRelease(){ if(!pressedIcon)return;
+    const id=pressedIcon; pressedIcon=null;
+    if(id==='talk') stopListening();
+    if(id==='analyze') analyze();
+    if(id==='export') exportInsights();
+    if(id==='school') openSchool();
+    if(id==='full') toggleFull();
+  }
+  function getXY(e){ const r=cvs.getBoundingClientRect();
+    if(e.touches&&e.touches[0])return{x:e.touches[0].clientX-r.left,y:e.touches[0].clientY-r.top};
+    return{x:e.clientX-r.left,y:e.clientY-r.top}; }
+  cvs.addEventListener('pointerdown',e=>{const p=getXY(e);handlePress(p.x,p.y);e.preventDefault();});
+  addEventListener('pointerup',e=>{handleRelease();e.preventDefault();});
+  cvs.addEventListener('touchstart',e=>{const p=getXY(e);handlePress(p.x,p.y);e.preventDefault();});
+  addEventListener('touchend',e=>{handleRelease();e.preventDefault();});
+
+  // ===== Main Loop =====
+  function tick(t){
+    S.t=t;
+    drawBackground(t);
+    drawPhoto();
+    drawTips();
+    drawSod(t);
+    ICONS.forEach(it=>drawIcon(it,t));
+    drawToasts();
+    requestAnimationFrame(tick);
+  }
+  requestAnimationFrame(tick);
 
 })();
 </script>
 </body>
 </html>
+
 
