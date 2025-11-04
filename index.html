@@ -6,240 +6,574 @@
 <title>HeroHUD • Upload → Analyze → Send</title>
 <meta name="theme-color" content="#0b1b16" />
 <style>
-:root{
-  --bg-top:#0b1b16;--bg-bot:#06121a;
-  --mintL:#9CFFE0;--mint:#34D1A0;--aqua:#2FB0E9;--teal:#0E8B67;
-  --text:#E9FFF6;--textDim:rgba(233,255,246,.85);
-  --glass:rgba(255,255,255,0.06);--stroke:rgba(156,255,224,0.28);
-  --warn:#f6bf3a;
-}
-html,body{margin:0;height:100%;background:linear-gradient(180deg,var(--bg-top),var(--bg-bot));
-  color:var(--text);font-family:ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial;overflow-x:hidden}
-*{box-sizing:border-box;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none}
-.btn{appearance:none;border:1px solid var(--mint);background:var(--glass);color:var(--mintL);
-  padding:.85rem 1.4rem;border-radius:999px;letter-spacing:.08em;text-transform:uppercase;font-weight:700;
-  backdrop-filter:blur(6px);cursor:pointer;transition:box-shadow .2s,transform .1s,opacity .2s;
-  box-shadow:0 0 16px rgba(156,255,224,.14);font-size:13px;margin:4px}
-.btn:hover{box-shadow:0 0 26px rgba(156,255,224,.45)}
-.pill{border:1px solid var(--stroke);background:var(--glass);color:var(--text);cursor:pointer;border-radius:999px;
-  padding:.45rem .85rem;font-size:12px}
-.topbar{position:fixed;inset:0 0 auto 0;height:56px;display:flex;align-items:center;justify-content:space-between;
-  padding:0 12px;background:rgba(0,0,0,.4);border-bottom:1px solid var(--stroke);z-index:40}
-.brand{font-weight:900;letter-spacing:.08em;color:var(--mintL)}
-main{padding-top:70px;text-align:center}
-.row{display:flex;gap:10px;flex-wrap:wrap;justify-content:center}
-#preview{display:none;position:relative;width:min(94vw,980px);aspect-ratio:16/10;border-radius:16px;overflow:hidden;
-  border:1px solid var(--stroke);margin:12px auto;box-shadow:0 0 24px rgba(156,255,224,.14)}
-#preview img,#preview video{width:100%;height:100%;object-fit:cover}
-#edgeGlow{position:absolute;inset:0;border-radius:16px;pointer-events:none;opacity:0;
-  box-shadow:0 0 28px rgba(156,255,224,.6),inset 0 0 18px rgba(14,139,103,.55);transition:opacity .25s}
-.glow-on #edgeGlow{opacity:1}
-#tips{width:min(94vw,980px);margin:10px auto}
-.tip{opacity:0;transform:translateY(8px);transition:all .5s cubic-bezier(.2,.9,.2,1);
-  background:rgba(255,255,255,.06);border:1px solid var(--stroke);backdrop-filter:blur(8px);
-  color:var(--text);padding:.55rem .75rem;border-radius:10px;margin:.35rem auto;max-width:92%}
-.tip.show{opacity:1;transform:translateY(0)}
-#panel{display:none;width:min(94vw,980px);margin:12px auto;padding:10px;border:1px solid var(--stroke);
-  border-radius:14px;background:rgba(255,255,255,.05);backdrop-filter:blur(6px)}
-.kpis{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
-.k{border:1px solid var(--stroke);border-radius:12px;padding:10px;background:rgba(255,255,255,.04);
-  display:flex;gap:10px;align-items:center}
-.k .i{font-size:18px}.k .v{font-weight:800}.k .s{font-size:12px;color:var(--textDim)}
-@media(max-width:720px){.kpis{grid-template-columns:1fr}}
-#voiceOrb{position:fixed;left:18px;bottom:88px;width:56px;height:56px;border-radius:999px;border:1px solid var(--mint);
-  background:radial-gradient(circle at 60% 40%,rgba(156,255,224,.25),rgba(47,176,233,.12));
-  box-shadow:0 0 16px rgba(156,255,224,.25);display:grid;place-items:center;z-index:45}
-#voiceOrb.speaking{box-shadow:0 0 20px rgba(156,255,224,.45),0 0 28px rgba(47,176,233,.35)}
-#talkBtn{position:fixed;right:18px;bottom:128px}
-#stopBtn{position:fixed;right:18px;bottom:80px;border-color:var(--warn);color:var(--warn)}
-.footer{position:fixed;left:50%;transform:translateX(-50%);bottom:14px;font-size:12px;color:rgba(233,255,246,.7);
-  letter-spacing:.12em;text-transform:uppercase}
-#bootVeil{position:fixed;inset:0;background:#03100c;z-index:90;display:flex;align-items:center;justify-content:center;
-  flex-direction:column;color:var(--mintL)}
-#garage{display:none;position:fixed;inset:0;z-index:100;background:rgba(0,0,0,.85);color:var(--text)}
-.garage-box{position:absolute;inset:6% 6%;border:1px solid var(--stroke);background:#0e1815;border-radius:16px;
-  display:flex;flex-direction:column;box-shadow:0 0 40px rgba(0,0,0,.55);overflow:hidden}
-.gar-head{display:flex;justify-content:space-between;align-items:center;padding:12px 14px;border-bottom:1px solid var(--stroke)}
-.gar-body{flex:1;overflow-y:auto;padding:20px}
-.tier{border:1px solid var(--stroke);border-radius:12px;padding:12px;margin-bottom:14px;background:rgba(255,255,255,.04)}
-.tier h3{margin:0;color:var(--mintL)}
-.tier p{margin:6px 0;color:var(--textDim)}
+  :root{
+    --bg-top:#0b1b16; --bg-bot:#06121a;
+    --mintL:#9CFFE0; --mint:#34D1A0; --aqua:#2FB0E9; --teal:#0E8B67;
+    --text:#E9FFF6; --textDim:rgba(233,255,246,.85);
+    --glass:rgba(255,255,255,0.06); --stroke:rgba(156,255,224,0.28);
+    --warn:#f6bf3a; --ink:#0e1815;
+  }
+  html,body{margin:0;height:100%;background:linear-gradient(180deg,var(--bg-top),var(--bg-bot));color:var(--text);font-family:ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial}
+  *{box-sizing:border-box}
+  .hidden{display:none!important}
+
+  /* Topbar */
+  .topbar{position:fixed;inset:0 0 auto 0;height:56px;display:flex;align-items:center;justify-content:space-between;padding:0 12px;background:linear-gradient(180deg, rgba(0,0,0,.45), rgba(0,0,0,.1));border-bottom:1px solid var(--stroke);z-index:50;backdrop-filter:blur(6px)}
+  .brand{font-weight:900;letter-spacing:.08em;color:var(--mintL)}
+  .menu{display:flex;gap:8px;align-items:center}
+  .pill{border:1px solid var(--stroke);background:var(--glass);color:var(--text);cursor:pointer;border-radius:999px;padding:.45rem .85rem;font-size:12px;user-select:none}
+  .lang{display:flex;gap:6px}
+  .lang button{border:1px solid var(--stroke);background:rgba(255,255,255,.05);color:var(--text);border-radius:999px;padding:.25rem .55rem;font-size:11px;cursor:pointer}
+  .lang .on{border-color:var(--mint);color:var(--mintL)}
+
+  /* Cinematic boot */
+  #boot{position:fixed;inset:0;background:radial-gradient(120% 80% at 50% 20%, rgba(156,255,224,.12), transparent 60%), #03100c;z-index:99;display:grid;place-items:center}
+  .bootbox{border:1px solid var(--stroke);background:rgba(15,25,22,.78);backdrop-filter:blur(8px);border-radius:16px;padding:18px 20px;max-width:640px;width:min(92vw,640px);text-align:center;box-shadow:0 0 40px rgba(0,0,0,.6)}
+  .bootline{opacity:0;transform:translateY(6px);transition:all .5s}
+  .bootline.show{opacity:1;transform:none}
+  .bootstep{font-family:ui-monospace,Menlo,Consolas,monospace;color:var(--textDim);margin:6px 0}
+  .big{font-weight:800;letter-spacing:.12em;color:var(--mintL);margin:6px 0 2px}
+  #wake{margin-top:12px}
+
+  /* Stage */
+  main{padding-top:70px;text-align:center}
+  .btn{appearance:none;border:1px solid var(--mint);background:var(--glass);color:var(--mintL);
+    padding:.85rem 1.4rem;border-radius:999px;letter-spacing:.08em;text-transform:uppercase;font-weight:700;
+    backdrop-filter:blur(6px);cursor:pointer;transition:box-shadow .2s,transform .1s,opacity .2s;
+    box-shadow:0 0 16px rgba(156,255,224,.14);font-size:13px;user-select:none}
+  .btn:hover{box-shadow:0 0 26px rgba(156,255,224,.45)}
+  .btn-row{display:flex;gap:10px;flex-wrap:wrap;justify-content:center;margin:8px 0}
+
+  /* Camera & Upload preview */
+  #preview{display:none;position:relative;width:min(94vw,980px);aspect-ratio:16/10;border-radius:16px;overflow:hidden;border:1px solid var(--stroke);margin:12px auto;box-shadow:0 0 24px rgba(156,255,224,.14)}
+  #preview img,#preview video{width:100%;height:100%;object-fit:cover}
+  #edgeGlow{position:absolute;inset:0;border-radius:16px;pointer-events:none;opacity:0;box-shadow:0 0 28px rgba(156,255,224,.6),inset 0 0 18px rgba(14,139,103,.55);transition:opacity .25s}
+  .glow-on #edgeGlow{opacity:1}
+  .capBtn{position:absolute;right:10px;bottom:10px}
+
+  /* Tips & results */
+  #tips{position:relative;width:min(94vw,980px);margin:10px auto 0}
+  .tip{opacity:0;transform:translateY(8px);transition:all .5s cubic-bezier(.2,.9,.2,1);
+    background:rgba(255,255,255,.06);border:1px solid var(--stroke);backdrop-filter:blur(8px);
+    color:var(--text);padding:.6rem .75rem;border-radius:10px;margin:.4rem auto;max-width:92%}
+  .tip.show{opacity:1;transform:translateY(0)}
+  .chips{display:flex;gap:6px;flex-wrap:wrap;margin-top:6px}
+  .chip{border:1px solid var(--stroke);background:rgba(255,255,255,.06);border-radius:999px;padding:.2rem .5rem;font-size:11px}
+  .ok{border-color:#3ddc97}
+  .risk{border-color:#f6bf3a}
+  .up{border-color:#2FB0E9}
+
+  /* Voice orb (drag, speak, stop) */
+  #orb{position:fixed;left:18px;bottom:86px;width:56px;height:56px;border-radius:999px;border:1px solid var(--mint);
+    background:radial-gradient(circle at 60% 40%, rgba(156,255,224,.25), rgba(47,176,233,.12));box-shadow:0 0 16px rgba(156,255,224,.25);display:grid;place-items:center;z-index:60}
+  #orb.idle{box-shadow:0 0 10px rgba(156,255,224,.2)}
+  #orb.speaking{box-shadow:0 0 20px rgba(156,255,224,.45),0 0 28px rgba(47,176,233,.35)}
+  .orbStop{position:absolute;inset:auto auto -28px 50%;transform:translateX(-50%);font-size:11px;opacity:.85}
+
+  /* Toast */
+  #toast{position:fixed;left:50%;transform:translateX(-50%) translateY(120%);bottom:16px;width:min(92vw,540px);
+    background:rgba(15,25,22,.96);border:1px solid var(--stroke);border-radius:14px;box-shadow:0 18px 40px rgba(0,0,0,.45), 0 0 24px rgba(156,255,224,.18);
+    color:var(--text);z-index:70;padding:12px 12px 10px;transition:transform .35s ease, opacity .35s ease;opacity:0}
+  #toast.show{transform:translateX(-50%) translateY(0);opacity:1}
+  .t-title{font-weight:700;margin-bottom:4px;color:var(--mintL)}
+  .t-body{font-size:13px;color:var(--textDim)}
+  .t-actions{display:flex;gap:8px;margin-top:10px;flex-wrap:wrap}
+  .t-actions .btn{padding:.55rem .9rem;text-transform:none;font-weight:700}
+
+  /* Garage (tiers + portals) */
+  #garage{position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:80;display:none}
+  .garageWrap{position:absolute;inset:5% 4%;background:var(--ink);border:1px solid var(--stroke);border-radius:16px;box-shadow:0 0 40px rgba(0,0,0,.6);display:flex;flex-direction:column}
+  .gHead{display:flex;justify-content:space-between;align-items:center;padding:12px 14px;border-bottom:1px solid var(--stroke)}
+  .gTitle{font-weight:800;letter-spacing:.12em;color:var(--mintL)}
+  .gBody{flex:1;overflow:auto;padding:16px}
+  .gGrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:12px}
+  .card{background:#0f1916;border:1px solid var(--stroke);border-radius:14px;padding:12px 12px 14px}
+  .tag{display:inline-block;border:1px solid var(--mint);color:var(--mintL);padding:.25rem .5rem;border-radius:999px;font-size:11px;margin-bottom:6px}
+  .price{margin-top:8px;opacity:.9}
+  .card .btn-row{justify-content:flex-start}
+  .link{color:var(--mintL);text-decoration:underline;cursor:pointer}
+
+  .footer{position:fixed;left:50%;transform:translateX(-50%);bottom:14px;font-size:12px;color:rgba(233,255,246,.7);letter-spacing:.12em;text-transform:uppercase}
 </style>
 </head>
 <body>
-<div class="topbar">
-  <div class="brand">HeroHUD</div>
-  <div class="menu"><button class="pill" id="btnGarage">🚪 Garage</button></div>
-</div>
-
-<main>
-  <div class="row">
-    <button class="btn" id="btnCamera">📷 Camera</button>
-    <button class="btn" id="btnUpload">⬆ Upload</button>
-    <button class="btn" id="btnAnalyze">🔍 Analyze</button>
-  </div>
-  <div id="preview"><img id="previewImg"/><div id="edgeGlow"></div></div>
-  <section id="panel">
-    <div class="kpis">
-      <div class="k"><div class="i">💲</div><div><div class="v" id="kCost">—</div><div class="s">Estimated Cost</div></div></div>
-      <div class="k"><div class="i">⚠️</div><div><div class="v" id="kRisk">—</div><div class="s">Risk Factors</div></div></div>
-      <div class="k"><div class="i">📈</div><div><div class="v" id="kUpsell">—</div><div class="s">Upsell Opportunities</div></div></div>
-    </div>
-  </section>
-  <div id="tips"></div>
-</main>
-
-<button id="talkBtn" class="btn">💬 Talk to Addie</button>
-<button id="stopBtn" class="btn">⛔ Stop</button>
-<div id="voiceOrb" title="Voice Status"></div>
-<div class="footer">Powered by Cardinal-Garage_MND Inc.</div>
-
-<div id="garage">
-  <div class="garage-box">
-    <div class="gar-head">
-      <div style="font-weight:800;letter-spacing:.08em;color:var(--mintL)">Garage Access</div>
-      <button class="pill" id="closeGarage">Close</button>
-    </div>
-    <div class="gar-body">
-      <h2>Tiered Access Plans</h2>
-      <div class="tier"><h3>🔰 Basic</h3>
-        <p>1 Free Demo • Basic photo estimate</p>
-        <p>Ideal for first-time users testing the HUD system.</p>
+  <!-- Top -->
+  <div class="topbar">
+    <div class="brand">HeroHUD</div>
+    <div class="menu">
+      <div class="lang">
+        <button id="langEn" class="on">EN</button>
+        <button id="langEs">ES</button>
+        <button id="langPt">PT</button>
       </div>
-      <div class="tier"><h3>💎 Unlimited</h3>
-        <p>Unlimited analyses • Voice AI & export access</p>
-        <p>For contractors running full daily estimates.</p>
-      </div>
-      <div class="tier"><h3>🚀 Pro</h3>
-        <p>Unlimited + Sales Logic • Export Logs • Addie Coaching</p>
-        <p>Includes advanced AI sales insight and upgrade logic training.</p>
-      </div>
-
-      <h2>Portals</h2>
-      <ul>
-        <li><a class="btn" href="./GarageMind_Founder_Black_Book_v1.2_InvestorPrintEdition.pdf" target="_blank">📘 Founder Black Book</a></li>
-        <li><a class="btn" href="https://cardinal-systems-university.example.com" target="_blank">🏫 Sales University Portal</a></li>
-        <li><a class="btn" href="https://docs.cardinal-systems.example.com" target="_blank">📚 Docs Portal</a></li>
-      </ul>
-
-      <h2>Exports</h2>
-      <button class="btn" id="btnExport">📤 Export Last Analysis</button>
-      <button class="btn" id="btnLogs">🧾 Export Logs CSV</button>
+      <button class="pill" id="btnGarage">Garage</button>
+      <button class="pill" id="btnFull">Full Screen</button>
     </div>
   </div>
-</div>
+
+  <!-- Cinematic Boot -->
+  <div id="boot" aria-hidden="true">
+    <div class="bootbox">
+      <div class="bootline big" id="b1">Initializing System…</div>
+      <div class="bootline bootstep" id="b2">Calibrating HUD modules</div>
+      <div class="bootline bootstep" id="b3">Routing voice I/O</div>
+      <div class="bootline big" id="b4">Activating your sales coach</div>
+      <div class="bootline bootstep" id="b5">Loading Addie + Jared</div>
+      <button class="pill bootline" id="wake">Tap to Wake</button>
+      <div class="bootline bootstep" id="ded">Precision meets grit. Heart meets hustle. — Dedicated to Addison</div>
+    </div>
+  </div>
+
+  <!-- Main -->
+  <main>
+    <div class="btn-row">
+      <button class="btn" id="btnUpload">⬆ Upload Photo</button>
+      <button class="btn" id="btnCamera">📷 Camera</button>
+      <button class="btn" id="btnAnalyze">🔍 Analyze</button>
+      <button class="btn" id="btnTalkAddie" aria-label="Hold to talk to Addie">🎙️ Hold to Talk</button>
+    </div>
+
+    <div id="preview">
+      <img id="previewImg" alt="preview"/>
+      <div id="edgeGlow"></div>
+      <!-- Camera capture lives here when active -->
+    </div>
+
+    <!-- Result chips (cost / risks / upsell) appear as tips -->
+    <div id="tips"></div>
+  </main>
+
+  <!-- Voice orb with STOP -->
+  <div id="orb" class="idle" title="Stop speaking">
+    ⏹
+    <div class="orbStop">Stop</div>
+  </div>
+
+  <!-- Toast -->
+  <div id="toast">
+    <div class="t-title">Analysis Complete</div>
+    <div class="t-body" id="toastBody">Summary will appear here…</div>
+    <div class="t-actions">
+      <button class="btn" id="btnExportTxt">Export Analysis (.txt)</button>
+      <button class="btn" id="btnExportLogs">Export Logs (.json)</button>
+      <button class="btn" id="btnOpenGarage">Upgrades</button>
+    </div>
+  </div>
+
+  <!-- Garage (tiers + portals + founders link) -->
+  <div id="garage" class="hidden" aria-hidden="true">
+    <div class="garageWrap">
+      <div class="gHead">
+        <div class="gTitle">CARDINAL GARAGE • Tiers & Portals</div>
+        <div class="btn-row">
+          <a class="pill" id="founderBook" href="./GarageMind_Founder_Black_Book.pdf" target="_blank" rel="noopener">Founders Black Book</a>
+          <button class="pill" id="gClose">Close</button>
+        </div>
+      </div>
+      <div class="gBody">
+        <div class="gGrid">
+          <!-- BASIC -->
+          <div class="card">
+            <span class="tag">BASIC • Demo</span>
+            <div>One full Analyze run (photo → cost, risks, upsells). Exports included.</div>
+            <div class="price">$0</div>
+            <div class="chips">
+              <span class="chip ok">Photo → Estimate</span>
+              <span class="chip ok">TXT Export</span>
+              <span class="chip">Garage Access (read-only)</span>
+            </div>
+          </div>
+          <!-- UNLIMITED -->
+          <div class="card">
+            <span class="tag">Unlimited Analyses</span>
+            <div>Removes daily caps. Run as many photo analyses as you want.</div>
+            <div class="price">$25 / month</div>
+            <div class="btn-row">
+              <a class="btn" href="https://www.paypal.com/ncp/payment/MVWW6VPEHJKKU" target="_blank" rel="noopener">Activate</a>
+            </div>
+          </div>
+          <!-- PRO ESTIMATE -->
+          <div class="card">
+            <span class="tag">Pro Estimate</span>
+            <div>Sales logic, premium upsell scripts, and risk banding + client handoff.</div>
+            <div class="price">$39 / report</div>
+            <div class="chips">
+              <span class="chip up">Upsell Playbooks</span>
+              <span class="chip risk">Risk Bands</span>
+              <span class="chip">Client Script</span>
+            </div>
+            <div class="btn-row">
+              <a class="btn" href="https://www.paypal.com/ncp/payment/MVWW6VPEHJKKU" target="_blank" rel="noopener">Upgrade</a>
+            </div>
+          </div>
+          <!-- SALES TRAINING LIVE -->
+          <div class="card">
+            <span class="tag">Sales Training • Live Roleplay</span>
+            <div>Addie-led interactive drills, tone/objection handling, junior/pro tracks.</div>
+            <div class="price">$99 / week</div>
+            <div class="btn-row">
+              <a class="btn" href="https://www.paypal.com/ncp/payment/MVWW6VPEHJKKU" target="_blank" rel="noopener">Enroll</a>
+            </div>
+          </div>
+          <!-- PORTALS -->
+          <div class="card">
+            <span class="tag">Portals</span>
+            <div class="btn-row">
+              <button class="btn" id="btnSalesUPortal">Sales University</button>
+              <button class="btn" id="btnDocsPortal">Docs Portal</button>
+            </div>
+            <div style="margin-top:8px">Best Practices • Field Guides • Templates</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="footer">Powered by Cardinal-Garage_MND Inc.</div>
 
 <script>
 (() => {
-const API="https://jared-hero2-backend.onrender.com";
-const PAYPAL_URL="https://www.paypal.com/ncp/payment/MVWW6VPEHJKKU";
-const el={
- btnCamera:qs('#btnCamera'),btnUpload:qs('#btnUpload'),btnAnalyze:qs('#btnAnalyze'),
- preview:qs('#preview'),previewImg:qs('#previewImg'),edgeGlow:qs('#edgeGlow'),
- tips:qs('#tips'),panel:qs('#panel'),kCost:qs('#kCost'),kRisk:qs('#kRisk'),kUpsell:qs('#kUpsell'),
- talkBtn:qs('#talkBtn'),stopBtn:qs('#stopBtn'),voiceOrb:qs('#voiceOrb'),
- btnGarage:qs('#btnGarage'),garage:qs('#garage'),closeGarage:qs('#closeGarage'),
- btnExport:qs('#btnExport'),btnLogs:qs('#btnLogs')
-};
-const STATE={audioEnabled:false,analyzeCount:Number(localStorage.getItem('hero_analyzes')||0),speechQueue:[],speaking:false,logs:[]};
-function qs(s){return document.querySelector(s);}
-function tip(t){const d=document.createElement("div");d.className="tip";d.textContent=t;el.tips.appendChild(d);requestAnimationFrame(()=>d.classList.add("show"));}
-function clearTips(){el.tips.innerHTML="";}
-function setAnalyzes(n){STATE.analyzeCount=n;localStorage.setItem('hero_analyzes',String(n));}
+  /* ========= CONFIG ========= */
+  const API = (location.hostname.includes("localhost")||location.hostname.includes("127.0.0.1"))
+    ? "http://localhost:3001"
+    : "https://jared-hero2-backend.onrender.com";
+  const PAYPAL_URL = "https://www.paypal.com/ncp/payment/MVWW6VPEHJKKU";
 
-/* Garage */
-el.btnGarage.onclick=()=>el.garage.style.display='block';
-el.closeGarage.onclick=()=>el.garage.style.display='none';
+  /* ========= ELEMENTS ========= */
+  const el = {
+    // top
+    btnFull: qs('#btnFull'),
+    btnGarage: qs('#btnGarage'),
+    garage: qs('#garage'),
+    gClose: qs('#gClose'),
+    founderBook: qs('#founderBook'),
+    btnSalesUPortal: qs('#btnSalesUPortal'),
+    btnDocsPortal: qs('#btnDocsPortal'),
+    // lang
+    langEn: qs('#langEn'), langEs: qs('#langEs'), langPt: qs('#langPt'),
+    // boot
+    boot: qs('#boot'), b1: qs('#b1'), b2: qs('#b2'), b3: qs('#b3'), b4: qs('#b4'), b5: qs('#b5'), wake: qs('#wake'), ded: qs('#ded'),
+    // main
+    btnUpload: qs('#btnUpload'), btnCamera: qs('#btnCamera'), btnAnalyze: qs('#btnAnalyze'), btnTalkAddie: qs('#btnTalkAddie'),
+    preview: qs('#preview'), previewImg: qs('#previewImg'), edgeGlow: qs('#edgeGlow'), tips: qs('#tips'),
+    // orb / toast
+    orb: qs('#orb'), toast: qs('#toast'), toastBody: qs('#toastBody'), btnExportTxt: qs('#btnExportTxt'), btnExportLogs: qs('#btnExportLogs'), btnOpenGarage: qs('#btnOpenGarage')
+  };
 
-/* Exports */
-el.btnExport.onclick=()=>{
-  const last=STATE.logs[STATE.logs.length-1];if(!last)return alert("No analysis yet.");
-  const blob=new Blob([JSON.stringify(last,null,2)],{type:"application/json"});
-  const a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download="HeroHUD_LastAnalysis.json";a.click();
-};
-el.btnLogs.onclick=()=>{
-  if(!STATE.logs.length)return alert("No logs yet.");
-  const csv="Date,Cost,Risks,Upsells\n"+STATE.logs.map(l=>[l.date,l.cost,l.risk,l.upsell].join(",")).join("\n");
-  const blob=new Blob([csv],{type:"text/csv"});const a=document.createElement("a");
-  a.href=URL.createObjectURL(blob);a.download="HeroHUD_Logs.csv";a.click();
-};
+  /* ========= STATE ========= */
+  const STATE = {
+    lang: localStorage.getItem('herohud_lang') || 'en',
+    audioEnabled: false,
+    uploadsToday: getUploadsToday(),
+    accessUnlocked: localStorage.getItem('herohud_access_unlocked')==='1',
+    logs: loadLogs(),
+    lastSummary: "", lastRecommendation: "", lastCost: "", lastRisks: [], lastUpsells: [],
+    analyzing: false,
+    camStream: null, camVideo: null, capBtn: null,
+    activeUtter: null
+  };
 
-/* Speech */
-let activeUtter=null;
-function pickVoice(f=true){const v=speechSynthesis.getVoices();if(!v.length)return null;
- const us=v.filter(x=>x.lang.toLowerCase().includes("en-us"));
- const fList=["Google US English","Samantha","Jenny","Aria","Amelia","Sara","Coral"];
- const mList=["Daniel","Alex","Matthew","Guy"];
- return f?us.find(x=>fList.includes(x.name))||us[0]:us.find(x=>mList.includes(x.name))||us[0];
-}
-function speakQueued(text,{female=true,rate=1.1,pitch=1.25}={}){STATE.speechQueue.push({text,female,rate,pitch});processQueue();}
-function processQueue(){if(STATE.speaking||!STATE.speechQueue.length||!STATE.audioEnabled)return;
- const {text,female,rate,pitch}=STATE.speechQueue.shift();speakNow(text,{female,rate,pitch,onend:()=>{STATE.speaking=false;processQueue();}});}
-function speakNow(text,{female,rate,pitch,onend}={}){stopSpeech();try{
- const u=new SpeechSynthesisUtterance(text);const v=pickVoice(female);if(v)u.voice=v;u.rate=rate;u.pitch=pitch;
- u.onend=()=>{activeUtter=null;el.voiceOrb.classList.remove('speaking');onend&&onend();};
- activeUtter=u;STATE.speaking=true;el.voiceOrb.classList.add('speaking');speechSynthesis.speak(u);}catch{onend&&onend();}}
-function stopSpeech(){try{if(activeUtter){speechSynthesis.cancel();activeUtter=null;}}catch{}el.voiceOrb.classList.remove('speaking');}
-el.stopBtn.onclick=stopSpeech;
+  /* ========= UTIL ========= */
+  function qs(s){ return document.querySelector(s); }
+  function wait(ms){ return new Promise(r=>setTimeout(r,ms)); }
+  function nowKey(){ const d=new Date(); return `${d.getFullYear()}-${d.getMonth()+1}-${d.getDate()}` }
+  function getUploadsToday(){
+    const key = localStorage.getItem('herohud_uploads_key');
+    const count = Number(localStorage.getItem('herohud_uploads_count')||0);
+    const today = nowKey();
+    return key===today?count:0;
+  }
+  function bumpUploads(){
+    const today = nowKey();
+    localStorage.setItem('herohud_uploads_key', today);
+    const n = STATE.uploadsToday+1;
+    localStorage.setItem('herohud_uploads_count', String(n));
+    STATE.uploadsToday = n;
+  }
+  function log(kind, payload){ STATE.logs.entries.push({ t:Date.now(), kind, payload }); localStorage.setItem('herohud_logs', JSON.stringify(STATE.logs)); }
+  function loadLogs(){ const raw=localStorage.getItem('herohud_logs'); return raw?JSON.parse(raw):{ startedAt: Date.now(), entries: [] } }
+  function dateStamp(){ const d=new Date(); const z=n=>String(n).padStart(2,'0'); return `${d.getFullYear()}${z(d.getMonth()+1)}${z(d.getDate())}_${z(d.getHours())}${z(d.getMinutes())}${z(d.getSeconds())}`; }
+  function downloadTxt(filename, text){ const blob=new Blob([text],{type:"text/plain"}); const a=document.createElement("a"); a.href=URL.createObjectURL(blob); a.download=filename; a.click(); }
 
-/* Hold-to-Talk */
-let holdStart=0;
-el.talkBtn.addEventListener('pointerdown',e=>{e.preventDefault();holdStart=Date.now();el.talkBtn.style.boxShadow="0 0 20px rgba(156,255,224,.6)";});
-el.talkBtn.addEventListener('pointerup',e=>{
- e.preventDefault();el.talkBtn.style.boxShadow="";
- const held=Date.now()-holdStart;
- if(!STATE.audioEnabled){STATE.audioEnabled=true;speakQueued("Hi I'm Addie — hold to talk and I'll coach your sales pitch.");return;}
- if(held>300){speakQueued("I'm listening. What do you need — pricing, risk, or how to close the sale?");}
- else{speakQueued("Tap or hold to talk. Upload a photo and I’ll help estimate it!");}
-});
+  /* ========= LANGUAGE ========= */
+  function setLang(l){
+    STATE.lang = l; localStorage.setItem('herohud_lang', l);
+    el.langEn.classList.toggle('on', l==='en'); el.langEs.classList.toggle('on', l==='es'); el.langPt.classList.toggle('on', l==='pt');
+  }
+  el.langEn.onclick=()=>setLang('en');
+  el.langEs.onclick=()=>setLang('es');
+  el.langPt.onclick=()=>setLang('pt');
+  setLang(STATE.lang);
 
-/* Camera */
-el.btnCamera.onclick=async()=>{try{
- const s=await navigator.mediaDevices.getUserMedia({video:{facingMode:"user"},audio:false});
- const v=document.createElement("video");v.srcObject=s;await v.play();el.preview.innerHTML="";el.preview.appendChild(v);el.preview.appendChild(el.edgeGlow);el.preview.style.display="block";
- const snap=document.createElement("div");snap.id="snapHint";snap.textContent="Tap video to snapshot";el.preview.appendChild(snap);
- v.onclick=()=>{const c=document.createElement("canvas");c.width=v.videoWidth;c.height=v.videoHeight;c.getContext("2d").drawImage(v,0,0);
- el.previewImg.src=c.toDataURL("image/jpeg",0.9);el.preview.innerHTML="";el.preview.appendChild(el.previewImg);el.preview.appendChild(el.edgeGlow);
- s.getTracks().forEach(t=>t.stop());tip("Snapshot captured — tap Analyze.");};}
- catch{tip("Camera unavailable.");}};
+  /* ========= CINEMATIC BOOT ========= */
+  (async function bootSeq(){
+    await wait(300); el.b1.classList.add('show');
+    await wait(400); el.b2.classList.add('show');
+    await wait(400); el.b3.classList.add('show');
+    await wait(400); el.b4.classList.add('show');
+    await wait(400); el.b5.classList.add('show');
+    await wait(500); el.wake.classList.add('show'); el.ded.classList.add('show');
+  })();
 
-/* Upload */
-const fileInput=document.createElement("input");fileInput.type="file";fileInput.accept="image/*";
-el.btnUpload.onclick=()=>fileInput.click();
-fileInput.onchange=()=>{const f=fileInput.files[0];if(!f)return;const url=URL.createObjectURL(f);
- el.previewImg.src=url;el.preview.style.display="block";tip("Photo ready — tap Analyze.");};
+  el.wake.onclick=()=>{
+    STATE.audioEnabled = true;
+    speakAddieIntro(); // starts Addie intro (youthful)
+    el.boot.style.display='none';
+  };
 
-/* Analyze */
-function canAnalyze(){return STATE.analyzeCount<1;}
-function showPaywall(){const o=document.createElement("div");o.style="position:fixed;inset:0;background:rgba(0,0,0,.8);display:flex;align-items:center;justify-content:center;z-index:9999;";
- o.innerHTML=`<div style="background:#0f1916;padding:1rem 1.4rem;border-radius:16px;border:1px solid var(--stroke);text-align:center;max-width:480px">
- <h3 style="color:var(--mintL)">Access Limit Reached</h3>
- <p>You’ve finished your demo. Upgrade for unlimited analyses or Pro-level AI sales logic.</p>
- <a class='btn' href='${PAYPAL_URL}' target='_blank'>Upgrade</a>
- <button class='btn' id='closePay'>Close</button></div>`;
- document.body.appendChild(o);o.querySelector('#closePay').onclick=()=>o.remove();
-}
-el.btnAnalyze.onclick=async()=>{
- if(!el.previewImg.src){tip("Upload or capture first.");return;}
- if(!canAnalyze()){showPaywall();return;}
- clearTips();el.preview.classList.add("glow-on");
- speakQueued("Analyzing photo...",{female:false,rate:0.95});
- try{
-  const fd=new FormData();const b=await fetch(el.previewImg.src).then(r=>r.blob());fd.append("file",b,"upload.jpg");
-  const r=await fetch(API+"/analyze-image",{method:"POST",body:fd});const d=await r.json();
-  const cost=d.cost||"$"+Math.round((d.summary||"").length*2.2);
-  const risk=(d.risks||["Low"]).join(", ");
-  const ups=(d.upsells||["Edging","Mulch color"]).join(", ");
-  el.kCost.textContent=cost;el.kRisk.textContent=risk;el.kUpsell.textContent=ups;el.panel.style.display="block";
-  STATE.logs.push({date:new Date().toLocaleString(),cost,risk,upsell:ups});
-  tip(d.summary||"Analysis complete.");tip(d.recommendation||"Standard prep suggested.");
-  speakQueued(d.summary||"Analysis complete.");setAnalyzes(STATE.analyzeCount+1);
- }catch{tip("Analysis failed.");}finally{el.preview.classList.remove("glow-on");}
-};
+  /* ========= SPEECH (no overlap) ========= */
+  function stopSpeech(){ if(STATE.activeUtter){ window.speechSynthesis.cancel(); STATE.activeUtter=null; el.orb.className='idle'; } }
+  el.orb.onclick = stopSpeech; // stop button on orb
+
+  function pickVoice(preferFemale=true){
+    const voices = window.speechSynthesis.getVoices();
+    if(!voices || !voices.length) return null;
+    const us = voices.filter(v=>/en-us/i.test(v.lang) || /en_/i.test(v.lang));
+    // Youthful female names (common across platforms)
+    const femaleNames = ["Google US English", "Samantha", "Jenny", "Aria", "Amelia", "Sara", "Alloy", "Nova", "Olivia", "Emma"];
+    const maleNames   = ["Daniel", "Alex", "Matthew", "Guy", "Christopher"];
+    if(preferFemale){
+      return us.find(v=>femaleNames.includes(v.name)) || us.find(v=>/samantha|jenny|aria|amelia|nova|olivia|emma|female/i.test(v.name)) || us[0] || voices[0];
+    }else{
+      return us.find(v=>maleNames.includes(v.name)) || us.find(v=>/daniel|alex|guy|matthew|male/i.test(v.name)) || us[0] || voices[0];
+    }
+  }
+  window.speechSynthesis.onvoiceschanged = ()=>window.speechSynthesis.getVoices();
+
+  function speak(text,{female=true,rate=1.02,pitch=1.08,onend}={}){
+    if(!STATE.audioEnabled) return onend && onend();
+    stopSpeech(); // ensure never overlaps
+    try{
+      const u = new SpeechSynthesisUtterance(text);
+      const v = pickVoice(female);
+      if(v) u.voice = v;
+      u.rate = rate; u.pitch = pitch;
+      u.onend = ()=>{ STATE.activeUtter=null; el.orb.className='idle'; onend && onend(); };
+      u.onerror = u.onend;
+      STATE.activeUtter = u;
+      el.orb.className='speaking';
+      window.speechSynthesis.speak(u);
+      log('voice', { text, female, lang: STATE.lang });
+    }catch{ onend && onend(); }
+  }
+
+  function speakAddieIntro(){
+    const baseEn = "Welcome to Cardinal’s Garage. I’m Addie — your personal sales coach. This is where a photo becomes a plan. Upload or open the camera, tap Analyze, and Jared will handle tools, timing, risks, and pricing while I guide your sales moves.";
+    const baseEs = " Bienvenidos. Hola — soy Addie, tu coach de ventas. Aquí una foto se convierte en un plan. Sube una imagen o abre la cámara, pulsa Analizar, y Jared cubrirá herramientas, tiempos, riesgos y precios mientras yo guío tus jugadas de venta.";
+    const basePt = " Olá — eu sou a Addie, sua coach de vendas. Aqui uma foto vira um plano. Envie uma imagem ou abra a câmera, toque Analisar, e o Jared cuida de ferramentas, prazos, riscos e preços enquanto eu apoio suas vendas.";
+    let line = baseEn;
+    if(STATE.lang==='es') line = "Hello! Hola." + baseEs;
+    if(STATE.lang==='pt') line = "Hello! Olá." + basePt;
+    speak(line,{female:true,rate:1.05,pitch:1.10});
+  }
+
+  /* ========= TALK TO ADDIE (press & hold) ========= */
+  // Use a button and pointer events (no text selection issues)
+  let holding = false, holdTimer = null;
+  el.btnTalkAddie.addEventListener('pointerdown', e=>{
+    holding = true; e.currentTarget.setPointerCapture(e.pointerId);
+    // Start Addie listening prompt (simulated tip)
+    tip(i18n('Hold detected. Tell me what you see — I’ll coach the pitch.', 'Mantén presionado. Cuéntame qué ves — te ayudo con el guion.', 'Segure pressionado. Diga o que vê — eu ajudo no discurso.'), 'ok');
+    // If we wanted live speech-in, hook Web Speech recognition here later.
+  });
+  el.btnTalkAddie.addEventListener('pointerup', e=>{
+    if(!holding) return; holding=false;
+    tip(i18n('Got it. I’ll tailor the pitch for this job.', 'Listo. Ajusto el discurso para este trabajo.', 'Pronto. Vou ajustar o discurso para este serviço.'), 'up');
+  });
+  el.btnTalkAddie.addEventListener('pointercancel', ()=>{ holding=false; });
+
+  /* ========= FILES / CAMERA ========= */
+  const fileInput = document.createElement('input'); fileInput.type='file'; fileInput.accept='image/*';
+  el.btnUpload.onclick=()=>fileInput.click();
+  fileInput.onchange=()=>{
+    const f=fileInput.files[0]; if(!f) return;
+    const url=URL.createObjectURL(f);
+    showImage(url);
+    bumpUploads();
+    tip(i18n('Photo ready — tap Analyze.', 'Foto lista — pulsa Analizar.', 'Foto pronta — toque Analisar.'), 'ok');
+    log('upload',{name:f.name,size:f.size});
+  };
+
+  el.btnCamera.onclick = openCamera;
+  async function openCamera(){
+    if(!(navigator.mediaDevices&&navigator.mediaDevices.getUserMedia)){ tip(i18n('Camera not supported.', 'Cámara no soportada.', 'Câmera não suportada.'), 'risk'); return; }
+    try{
+      const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode:"user" } }); // forward-facing
+      STATE.camStream = stream;
+      STATE.camVideo = document.createElement('video');
+      STATE.camVideo.playsInline=true; STATE.camVideo.muted=true; STATE.camVideo.srcObject=stream; await STATE.camVideo.play();
+      el.preview.style.display='block'; replacePreview(STATE.camVideo); ensureCapBtn();
+      tip(i18n('Camera online — capture when ready.', 'Cámara lista — captura cuando quieras.', 'Câmera ativa — capture quando quiser.'), 'ok');
+    }catch{ tip(i18n('Camera access denied.', 'Acceso a cámara denegado.', 'Acesso à câmera negado.'), 'risk'); }
+  }
+  function ensureCapBtn(){
+    if(STATE.capBtn) STATE.capBtn.remove();
+    STATE.capBtn = document.createElement('button');
+    STATE.capBtn.textContent = i18n('Capture','Capturar','Capturar');
+    STATE.capBtn.className = 'btn capBtn';
+    el.preview.appendChild(STATE.capBtn);
+    STATE.capBtn.onclick = async ()=>{
+      if(!STATE.camVideo) return;
+      const canvas=document.createElement('canvas');
+      canvas.width=STATE.camVideo.videoWidth||1280; canvas.height=STATE.camVideo.videoHeight||720;
+      const g=canvas.getContext('2d'); g.drawImage(STATE.camVideo,0,0,canvas.width,canvas.height);
+      const blob=await new Promise(res=>canvas.toBlob(res,'image/jpeg',0.92));
+      if(STATE.camStream){ STATE.camStream.getTracks().forEach(t=>t.stop()); STATE.camStream=null; }
+      STATE.camVideo=null;
+      const url=URL.createObjectURL(blob);
+      showImage(url);
+      bumpUploads();
+      tip(i18n('Captured — tap Analyze.', 'Capturado — pulsa Analizar.', 'Capturado — toque Analisar.'),'ok');
+      log('camera_capture',{size:blob.size});
+    };
+  }
+  function showImage(url){ el.previewImg.src=url; el.preview.style.display='block'; replacePreview(el.previewImg); }
+  function replacePreview(node){ const old=el.preview.querySelector('img,video'); if(old) old.replaceWith(node); else el.preview.prepend(node); }
+
+  /* ========= PAYWALL (after second analyze attempt) ========= */
+  function canAnalyze(){
+    if(STATE.accessUnlocked) return true;
+    // allow exactly ONE full analyze run; gate on second attempt
+    return STATE.uploadsToday < 1 && !localStorage.getItem('herohud_demo_used');
+  }
+  function showPaywall(){
+    modal(`
+      <h3 style="margin:0 0 8px;color:var(--mintL)">Access Limit Reached</h3>
+      <p class="sub" style="margin:0 0 12px;opacity:.85">${i18n('Unlock Access+ for unlimited analyses (exports stay free TXT).','Desbloquea Access+ para análisis ilimitados (exportaciones TXT gratis).','Desbloqueie o Access+ para análises ilimitadas (exportações TXT grátis).')}</p>
+      <div class="btn-row" style="justify-content:center">
+        <a class="btn" href="${PAYPAL_URL}" target="_blank" rel="noopener">${i18n('Activate Access+','Activar Access+','Ativar Access+')}</a>
+        <button class="btn" id="pwClose">${i18n('Close','Cerrar','Fechar')}</button>
+      </div>
+    `, (root)=>{ root.querySelector('#pwClose').onclick=()=>root.remove(); });
+  }
+
+  /* ========= ANALYZE ========= */
+  el.btnAnalyze.onclick = async ()=>{
+    if(!el.previewImg.src){ tip(i18n('Upload or capture a photo first.','Sube o captura una foto primero.','Envie ou capture uma foto primeiro.'),'risk'); return; }
+    if(!canAnalyze()){ showPaywall(); return; }
+
+    STATE.analyzing=true; clearTips(); el.preview.classList.add('glow-on'); stopSpeech();
+    speak(i18n('Analyzing photo — one moment…','Analizando foto — un momento…','Analisando foto — um instante…'),{female:false,rate:0.96,pitch:1.0});
+    log('analyze_start',{});
+
+    try{
+      // Build form
+      const formData=new FormData();
+      const blob=await fetch(el.previewImg.src).then(r=>r.blob());
+      formData.append('file', blob, 'upload.jpg');
+      formData.append('lang', STATE.lang);
+
+      const res=await fetch(API+'/analyze-image',{method:'POST',body:formData});
+      const data=await res.json();
+
+      // expected fields (fallbacks if backend returns only summary/recommendation)
+      const summary = data.summary || i18n('Analysis complete.','Análisis completo.','Análise concluída.');
+      const recommendation = data.recommendation || deriveRecommendation(summary);
+      const cost = data.cost_estimate || i18n('Estimated cost: $—','Costo estimado: $—','Custo estimado: R$—');
+      const risks = Array.isArray(data.risks)?data.risks: (data.risks?String(data.risks).split(/[;,]/):[]);
+      const upsells = Array.isArray(data.upsells)?data.upsells: (data.upsells?String(data.upsells).split(/[;,]/):[]);
+
+      STATE.lastSummary=summary; STATE.lastRecommendation=recommendation; STATE.lastCost=cost;
+      STATE.lastRisks=risks; STATE.lastUpsells=upsells;
+
+      // Visual tips
+      tip('💵 '+cost,'ok');
+      tip('🛠️ '+recommendation,'ok');
+      risks.slice(0,3).forEach(r=> tip('⚠️ '+r.trim(),'risk'));
+      upsells.slice(0,3).forEach(u=> tip('⬆️ '+u.trim(),'up'));
+
+      // Speak the summary (Jared voice)
+      speak(summary,{female:false,rate:0.98,pitch:1.0, onend:()=>showToast(summary, recommendation)});
+
+      // mark demo used after first successful run
+      if(!localStorage.getItem('herohud_demo_used')) localStorage.setItem('herohud_demo_used','1');
+
+    }catch(e){
+      tip(i18n('Analysis failed. Please try again.','El análisis falló. Inténtalo de nuevo.','A análise falhou. Tente novamente.'),'risk');
+      log('analyze_error',{msg:String(e)});
+    }finally{
+      STATE.analyzing=false; el.preview.classList.remove('glow-on'); el.orb.className='idle';
+    }
+  };
+
+  function deriveRecommendation(summary){
+    const s=(summary||"").replace(/\s+/g,' ').trim();
+    const first=(s.split(/[.;]/).map(x=>x.trim()).filter(Boolean)[0]||s);
+    return first.length>108?first.slice(0,108)+'…':first;
+  }
+
+  /* ========= TOAST + EXPORTS ========= */
+  function showToast(summary,recommendation){
+    const first = (summary||'').split(/[.;]/).map(s=>s.trim()).filter(Boolean)[0] || i18n('Analysis ready.','Análisis listo.','Análise pronta.');
+    const topRec = (recommendation||'').split(/[.;]/).map(s=>s.trim()).filter(Boolean)[0] || '';
+    el.toastBody.textContent = topRec? `${first} • ${topRec}` : first;
+    el.toast.classList.add('show');
+    setTimeout(()=> el.toast.classList.remove('show'), 7000);
+  }
+  el.btnExportTxt.onclick = ()=>{
+    const tipsTxt=[...document.querySelectorAll('.tip')].map(e=>e.textContent.trim()).join("\n");
+    const text = [
+      "HeroHUD Analysis Log",
+      "====================",
+      "",
+      `Summary: ${STATE.lastSummary}`,
+      `Recommendation: ${STATE.lastRecommendation}`,
+      `Cost: ${STATE.lastCost}`,
+      "",
+      "Risks:",
+      (STATE.lastRisks||[]).map(x=>`- ${x}`).join("\n"),
+      "",
+      "Upsells:",
+      (STATE.lastUpsells||[]).map(x=>`- ${x}`).join("\n"),
+      "",
+      "Screen Tips:",
+      tipsTxt,
+      ""
+    ].join("\n");
+    downloadTxt(`herohud_analysis_${dateStamp()}.txt`, text);
+    log('export_txt',{});
+  };
+  el.btnExportLogs.onclick = ()=>{ downloadTxt(`herohud_logs_${dateStamp()}.json`, JSON.stringify(STATE.logs,null,2)); };
+  el.btnOpenGarage.onclick = ()=> openGarage();
+
+  /* ========= GARAGE ========= */
+  function openGarage(){ el.garage.classList.remove('hidden'); el.garage.style.display='block'; }
+  function closeGarage(){ el.garage.style.display='none'; }
+  el.btnGarage.onclick=openGarage; el.gClose.onclick=closeGarage;
+
+  el.btnSalesUPortal.onclick=()=> alert(i18n('Sales U portal opening (placeholder).','Abriendo portal de Sales U (placeholder).','Abrindo portal Sales U (placeholder).'));
+  el.btnDocsPortal.onclick=()=> alert(i18n('Docs portal opening (placeholder).','Abriendo portal de Documentos (placeholder).','Abrindo portal de Documentos (placeholder).'));
+
+  /* ========= FULLSCREEN ========= */
+  el.btnFull.onclick=()=>{ if(!document.fullscreenElement) document.documentElement.requestFullscreen().catch(()=>{}); else document.exitFullscreen().catch(()=>{}); };
+
+  /* ========= TIPS ========= */
+  function tip(text, kind){
+    const t=document.createElement('div'); t.className='tip'; t.textContent=text;
+    if(kind==='ok') t.classList.add('ok'); if(kind==='risk') t.classList.add('risk'); if(kind==='up') t.classList.add('up');
+    el.tips.appendChild(t); requestAnimationFrame(()=>t.classList.add('show'));
+  }
+  function clearTips(){ el.tips.innerHTML=''; }
+
+  /* ========= MODAL (paywall) ========= */
+  function modal(innerHTML, after){
+    const overlay=document.createElement('div');
+    overlay.style="position:fixed;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,.8);z-index:9999;";
+    overlay.innerHTML=`
+      <div style="background:#0f1916;border:1px solid var(--stroke);padding:1rem 1.3rem;border-radius:16px;text-align:center;max-width:560px;width:min(92vw,560px);color:var(--text);box-shadow:0 0 32px rgba(156,255,224,.28)">
+        ${innerHTML}
+      </div>`;
+    document.body.appendChild(overlay); after && after(overlay);
+  }
+
+  /* ========= i18n helper ========= */
+  function i18n(en,es,pt){ return STATE.lang==='es'?es: STATE.lang==='pt'?pt: en; }
+
 })();
 </script>
 </body>
 </html>
+
 
 
 
