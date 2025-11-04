@@ -11,6 +11,7 @@
     --mintL:#9CFFE0; --mint:#34D1A0; --aqua:#2FB0E9; --teal:#0E8B67;
     --text:#E9FFF6; --textDim:rgba(233,255,246,.85);
     --glass:rgba(255,255,255,0.05); --stroke:rgba(156,255,224,0.28);
+    --doorTint:rgba(12,24,20,.82);
   }
   html,body{margin:0;height:100%;background:linear-gradient(180deg,var(--bg-top),var(--bg-bot));color:var(--text);font-family:ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial}
   *{box-sizing:border-box}
@@ -33,11 +34,12 @@
   /* Top branding */
   .topbar{position:fixed;inset:0 0 auto 0;height:64px;display:grid;place-items:center;z-index:10}
   .brand{font-weight:900;letter-spacing:.08em}
-  .brand .hero{color:var(--mintL)} .brand .pro{opacity:.9;margin-left:.2ch}
+  .brand .hero{color:var(--mintL)}
+  .tagline{position:fixed;top:12px;left:12px;font-size:11px;color:var(--textDim);opacity:.85}
 
   /* Stage */
-  .stage{position:fixed;inset:64px 0 160px 0;display:grid;place-items:center;padding:18px}
-  .stack{display:flex;flex-direction:column;align-items:center;text-align:center;gap:12px;max-width:960px;width:100%}
+  .stage{position:fixed;inset:64px 0 180px 0;display:grid;place-items:center;padding:18px}
+  .stack{display:flex;flex-direction:column;align-items:center;text-align:center;gap:12px;max-width:1100px;width:100%}
 
   /* Buttons */
   .btn{appearance:none;border:1px solid var(--mint);background:var(--glass);color:var(--mintL);
@@ -51,7 +53,7 @@
   .btn-row{display:flex;gap:10px;flex-wrap:wrap;justify-content:center}
 
   /* Preview */
-  #preview{display:none;position:relative;width:min(94vw,960px);aspect-ratio:16/10;border-radius:16px;overflow:hidden;border:1px solid var(--stroke);box-shadow:0 0 24px rgba(156,255,224,.14)}
+  #preview{display:none;position:relative;width:min(96vw,1040px);aspect-ratio:16/10;border-radius:16px;overflow:hidden;border:1px solid var(--stroke);box-shadow:0 0 24px rgba(156,255,224,.14)}
   #preview img,#preview video{width:100%;height:100%;object-fit:cover}
   #edgeGlow{position:absolute;inset:0;border-radius:16px;pointer-events:none;opacity:0;
     box-shadow:0 0 28px rgba(156,255,224,.6),inset 0 0 18px rgba(14,139,103,.55);transition:opacity .25s}
@@ -62,53 +64,64 @@
   @keyframes spin{to{transform:rotate(360deg)}}
 
   /* Rolling HUD text under photo */
-  #hudStream{position:relative;width:min(94vw,960px);min-height:36px}
+  #hudStream{position:relative;width:min(96vw,1040px);min-height:40px;margin-top:6px}
   .line{opacity:0;transform:translateY(-6px);transition:all .35s ease;background:rgba(255,255,255,.04);
-    border:1px solid var(--stroke);border-radius:10px;padding:.5rem .75rem;margin:.35rem auto;max-width:92%;text-align:left}
+    border:1px solid var(--stroke);border-radius:10px;padding:.5rem .75rem;margin:.35rem auto;max-width:98%;text-align:left}
   .line.show{opacity:1;transform:translateY(0)}
   .line small{opacity:.8}
 
-  /* Tip bubbles (float, auto-hide) */
-  #tips{position:relative;width:min(94vw,960px);min-height:14px}
+  /* Tip bubbles */
+  #tips{position:relative;width:min(96vw,1040px);min-height:14px}
   .tip{opacity:0;transform:translateY(8px);transition:all .4s ease;background:rgba(255,255,255,.06);
     border:1px solid var(--stroke);backdrop-filter:blur(8px);color:var(--text);padding:.55rem .75rem;border-radius:10px;
-    box-shadow:0 0 18px rgba(156,255,224,.25);margin:.35rem auto;max-width:92%}
+    box-shadow:0 0 18px rgba(156,255,224,.25);margin:.35rem auto;max-width:98%}
   .tip.show{opacity:1;transform:translateY(0)}
   .tip.right{text-align:right}
 
   /* Tabs */
-  .hud{display:none;gap:8px;margin-top:8px;flex-wrap:wrap;justify-content:center}
-  .tab{padding:.45rem .8rem;border:1px solid var(--stroke);border-radius:999px;background:rgba(255,255,255,.04);color:var(--textDim);font-size:12px}
+  .hud{display:flex;gap:8px;margin-top:8px;flex-wrap:wrap;justify-content:center}
+  .tab{padding:.45rem .8rem;border:1px solid var(--stroke);border-radius:999px;background:rgba(255,255,255,.04);color:var(--textDim);font-size:12px;cursor:pointer}
+  .tab.active{color:var(--mintL);border-color:var(--mint)}
 
-  /* Footer + Shop trigger */
-  .footer{position:fixed;left:50%;transform:translateX(-50%);bottom:18px;font-size:12px;color:rgba(233,255,246,.6);letter-spacing:.12em;text-transform:uppercase}
-  .shop-trigger{position:fixed;right:14px;bottom:48px;background:rgba(255,255,255,.05);border:1px solid var(--stroke);
+  /* Side panels (modules) */
+  .panelSlide{position:fixed; right:-420px; top:64px; bottom:180px; width:400px;
+    background:rgba(6,18,26,.78); border-left:1px solid var(--stroke);
+    backdrop-filter:blur(10px); transition:right .6s cubic-bezier(.2,.9,.2,1); z-index:35; overflow:auto; padding:14px}
+  .panelSlide.open{right:0}
+  .panelSlide h3{margin:.2rem 0 .4rem;font-weight:900;color:var(--mintL);letter-spacing:.06em}
+  .panelSlide .hint{font-size:12px;color:var(--textDim);margin-bottom:8px}
+  .pill{display:inline-block;border:1px solid var(--stroke);border-radius:999px;padding:.2rem .5rem;font-size:11px;margin:.1rem .2rem}
+
+  /* Footer + Garage trigger */
+  .footer{position:fixed;left:50%;transform:translateX(-50%);bottom:18px;font-size:12px;color:rgba(233,255,246,.8);letter-spacing:.12em;text-transform:uppercase;text-align:center}
+  .garage-trigger{position:fixed;right:14px;bottom:54px;background:rgba(255,255,255,.05);border:1px solid var(--stroke);
     border-radius:12px;padding:.45rem .65rem;display:flex;align-items:center;gap:.45rem;cursor:pointer;
-    box-shadow:0 0 12px rgba(156,255,224,.18);font-size:12px;z-index:15}
-  .shop-trigger.pulse{animation:pulse 1.6s ease-in-out 3}
+    box-shadow:0 0 12px rgba(156,255,224,.18);font-size:12px;z-index:30}
+  .garage-trigger.pulse{animation:pulse 1.6s ease-in-out 3}
   @keyframes pulse{0%,100%{box-shadow:0 0 10px rgba(156,255,224,.2)}50%{box-shadow:0 0 22px rgba(156,255,224,.55)}}
 
   /* Overlays */
   .overlay{display:none;position:fixed;inset:0;background:rgba(3,8,6,.82);backdrop-filter:blur(6px);align-items:center;justify-content:center;z-index:60}
 
-  /* SHOP: roll-down door */
-  #shopDoor{position:fixed;left:0;right:0;top:0;height:0;overflow:hidden;z-index:70;pointer-events:none}
-  #shopDoor .door{height:380px;background:
-      linear-gradient(180deg, rgba(255,255,255,.08), rgba(255,255,255,.03)),
-      repeating-linear-gradient(180deg, rgba(156,255,224,.08), rgba(156,255,224,.08) 6px, rgba(255,255,255,0.02) 6px, rgba(255,255,255,0.02) 14px);
-    border-bottom:1px solid var(--stroke); box-shadow:0 10px 40px rgba(0,0,0,.45), inset 0 -8px 24px rgba(156,255,224,.12);
+  /* GARAGE: roll-down door */
+  #garageDoor{position:fixed;left:0;right:0;top:0;height:0;overflow:hidden;z-index:40;pointer-events:none}
+  #garageDoor .door{height:420px;background:
+      linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.02)),
+      repeating-linear-gradient(180deg, rgba(156,255,224,.07), rgba(156,255,224,.07) 6px, rgba(255,255,255,0.02) 6px, rgba(255,255,255,0.02) 16px),
+      var(--doorTint);
+    border-bottom:1px solid var(--stroke); box-shadow:0 10px 40px rgba(0,0,0,.35), inset 0 -8px 24px rgba(156,255,224,.12);
     display:flex;flex-direction:column;align-items:center;justify-content:flex-start;gap:12px;padding:14px 10px}
-  #shopDoor.open{height:380px;pointer-events:auto;transition:height .9s cubic-bezier(.2,.9,.2,1)}
-  #shopDoor.close{height:0;transition:height .8s cubic-bezier(.2,.9,.2,1)}
-
-  .shopTitle{font-weight:900;letter-spacing:.16em;color:var(--mintL);margin-top:4px}
-  .shopRow{display:flex;gap:12px;max-width:980px;width:calc(100% - 20px);justify-content:center;flex-wrap:wrap;margin-top:6px}
-  .card{flex:1 1 280px;max-width:320px;background:rgba(255,255,255,.05);border:1px solid var(--stroke);border-radius:14px;padding:12px 12px 14px;
+  #garageDoor.open{height:420px;pointer-events:auto;transition:height .9s cubic-bezier(.2,.9,.2,1)}
+  #garageDoor.close{height:0;transition:height .8s cubic-bezier(.2,.9,.2,1)}
+  .garageTitle{font-weight:900;letter-spacing:.16em;color:var(--mintL);margin-top:4px}
+  .garageSub{opacity:.9;font-size:12px}
+  .garageRow{display:flex;gap:12px;max-width:1100px;width:calc(100% - 20px);justify-content:center;flex-wrap:wrap;margin-top:6px}
+  .card{flex:1 1 280px;max-width:340px;background:rgba(255,255,255,.05);border:1px solid var(--stroke);border-radius:14px;padding:12px 12px 14px;
     box-shadow:0 0 26px rgba(156,255,224,.18)}
   .tag{display:inline-block;border:1px solid var(--mint);color:var(--mintL);padding:.25rem .5rem;border-radius:999px;font-size:11px;margin-bottom:8px}
   .price{margin-top:8px;opacity:.9}
-  .shopBtns{display:flex;gap:8px;margin-top:10px;flex-wrap:wrap}
-  .shopClose{position:absolute;right:10px;top:10px;border:1px solid var(--stroke);background:rgba(255,255,255,.04);color:var(--text);border-radius:999px;padding:.35rem .6rem;cursor:pointer}
+  .garageBtns{display:flex;gap:8px;margin-top:10px;flex-wrap:wrap}
+  .garageClose{position:absolute;right:10px;top:10px;border:1px solid var(--stroke);background:rgba(255,255,255,.04);color:var(--text);border-radius:999px;padding:.35rem .6rem;cursor:pointer}
 
   /* Paywall overlay (export / upload gate) */
   #paywall{display:none}
@@ -119,10 +132,17 @@
   #bootTitles{position:fixed;inset:64px 0 0 0;display:grid;place-items:center;pointer-events:none;z-index:50}
   .bt{font-weight:900;letter-spacing:.22em;color:var(--mintL);font-size:clamp(22px,6vw,64px);opacity:0;transform:translateY(8px);transition:all .5s ease}
   .bt.show{opacity:1;transform:translateY(0)}
+
+  /* Founders modal */
+  #founders{display:none}
+  #founders .panel{max-width:720px;margin:20px;background:rgba(255,255,255,.06);border:1px solid var(--stroke);
+    border-radius:16px;padding:1.1rem 1.3rem;text-align:left;box-shadow:0 0 32px rgba(156,255,224,.28)}
+  #founders h3{margin:.2rem 0 .6rem;color:var(--mintL);letter-spacing:.06em}
 </style>
 </head>
 <body>
-  <div class="topbar"><div class="brand"><span class="hero">HEROHUD</span><span class="pro"></span></div></div>
+  <div class="tagline">Precision Meets Grit</div>
+  <div class="topbar"><div class="brand"><span class="hero">HEROHUD</span></div></div>
 
   <div id="bootTitles">
     <div class="bt" id="bt1">UPLOAD</div>
@@ -130,37 +150,39 @@
     <div class="bt" id="bt3">SEND</div>
   </div>
 
-  <div id="shopDoor" class="close">
-    <div class="door">
-      <button class="shopClose" id="shopCloseBtn">Close</button>
-      <div class="shopTitle">SHOP</div>
-      <div style="opacity:.8;font-size:12px;margin-top:-4px">Upgrades for access, exports, and AI tools</div>
-      <div class="shopRow">
+  <!-- GARAGE roll-down (replaces Shop) -->
+  <div id="garageDoor" class="close" aria-label="Garage Door">
+    <div class="door" aria-live="polite">
+      <button class="garageClose" id="garageCloseBtn">Close</button>
+      <div class="garageTitle">THE GARAGE</div>
+      <div class="garageSub">Tools • Systems • Training — Powered by Cardinal-Garage_Mnd.inc</div>
+      <div class="garageRow">
         <div class="card">
           <span class="tag">🧠 Access+</span>
           <div>Unlimited uploads & daily analyses</div>
           <div class="price">Demo Active ✓</div>
-          <div class="shopBtns">
+          <div class="garageBtns">
             <button class="btn locked" disabled>Unlock (demo)</button>
           </div>
         </div>
         <div class="card">
-          <span class="tag">⚡ Pro Export</span>
-          <div>Full report & sales insights</div>
+          <span class="tag">⚡ Pro Estimate</span>
+          <div>Full report & sales insights export</div>
           <div class="price">Demo Active ✓</div>
-          <div class="shopBtns">
+          <div class="garageBtns">
             <button class="btn locked" disabled>Unlock (demo)</button>
           </div>
         </div>
         <div class="card">
           <span class="tag">🧰 Hero Complete</span>
-          <div>Everything • Voice • Field Guides</div>
+          <div>Everything • Voice • Field Guides • Ledger</div>
           <div class="price">Demo Active ✓</div>
-          <div class="shopBtns">
+          <div class="garageBtns">
             <button class="btn locked" disabled>Unlock (demo)</button>
           </div>
         </div>
       </div>
+      <div class="garageSub" style="margin-top:6px;opacity:.85">“Precision Meets Grit” — Cardinal Garage MND Inc.</div>
     </div>
   </div>
 
@@ -186,18 +208,80 @@
       <div id="hudStream"></div>
       <div id="tips"></div>
 
+      <!-- HUD tabs (modules) -->
       <div class="hud" id="hudTabs">
-        <div class="tab">Workflow</div><div class="tab">Insights</div><div class="tab">Join Our Journey</div><div class="tab">Sales University</div>
+        <div class="tab" data-panel="panelInsights">Insights</div>
+        <div class="tab" data-panel="panelGuides">Field Guides</div>
+        <div class="tab" data-panel="panelSalesU">Sales U.</div>
+        <div class="tab" data-panel="panelBest">Best Practices</div>
+        <div class="tab" data-panel="panelLedger">Ledger</div>
+        <div class="tab" data-panel="panelJourney">Join Our Journey</div>
+        <div class="tab" id="tabFounders">Founders</div>
+      </div>
+
+      <!-- Panels -->
+      <div id="panelInsights" class="panelSlide" aria-label="Insights">
+        <h3>Insights</h3>
+        <div class="hint">Context-aware notes Jared derives from your photo.</div>
+        <div id="insightList"></div>
+      </div>
+
+      <div id="panelGuides" class="panelSlide" aria-label="Field Guides">
+        <h3>Field Guides</h3>
+        <div class="hint">Tools • Materials • Techniques</div>
+        <div id="guideTools"><span class="pill">Tools</span></div>
+        <div id="guideMaterials" style="margin-top:6px"><span class="pill">Materials</span></div>
+        <div id="guideTech" style="margin-top:6px"><span class="pill">Techniques</span></div>
+      </div>
+
+      <div id="panelSalesU" class="panelSlide" aria-label="Sales University">
+        <h3>Sales University</h3>
+        <div class="hint">Actionable techniques to close more jobs.</div>
+        <ul id="salesTips" style="padding-left:18px;line-height:1.5">
+          <!-- populated per analysis -->
+        </ul>
+      </div>
+
+      <div id="panelBest" class="panelSlide" aria-label="Best Practices">
+        <h3>Best Practices</h3>
+        <div class="hint">Industry-proven sequences & checklists.</div>
+        <ul style="padding-left:18px;line-height:1.5" id="bestList">
+          <li>Edge before you mulch to lock the frame.</li>
+          <li>Trim shrubs to consistent height for a unified line.</li>
+          <li>Use fabric selectively—drainage first, then aesthetics.</li>
+        </ul>
+      </div>
+
+      <div id="panelLedger" class="panelSlide" aria-label="Estimate Ledger">
+        <h3>Ledger</h3>
+        <div class="hint">Recent analyses (local, private)</div>
+        <div id="ledgerList" style="font-size:13px"></div>
+        <div class="btn-row" style="margin-top:8px">
+          <button class="btn" id="btnLedgerExport">Export Ledger (.txt)</button>
+          <button class="btn" id="btnLedgerClear">Clear Ledger</button>
+        </div>
+      </div>
+
+      <div id="panelJourney" class="panelSlide" aria-label="Journey">
+        <h3>Join Our Journey</h3>
+        <div class="hint">Stories, before/afters, releases</div>
+        <div id="journeyFeed">
+          <div class="line show"><small>Update</small><br>Welcome to the Cardinal Garage edition of HeroHUD. Precision meets grit.</div>
+          <div class="line show"><small>Community</small><br>Share your best before/after — inspire the feed.</div>
+        </div>
       </div>
 
       <input type="file" id="file" accept="image/*" hidden />
     </div>
   </div>
 
-  <div class="shop-trigger" id="shopTrigger">🛒 Shop</div>
-  <div class="footer">Powered by Cardinal Systems • HeroHUD</div>
+  <div class="garage-trigger" id="garageTrigger">🧰 Garage</div>
+  <div class="footer">
+    Powered by Cardinal-Garage_Mnd.inc • Precision Meets Grit<br/>
+    <span style="opacity:.85">Founders tab: About Me</span>
+  </div>
 
-  <!-- Generic paywall overlay (export or upload gate) -->
+  <!-- Paywall overlay -->
   <div class="overlay" id="paywall">
     <div class="panel">
       <h3 id="paywallTitle">Pro Required</h3>
@@ -207,6 +291,16 @@
         <button class="btn" id="btnProMonthly">$75 / month</button>
         <button class="btn" id="btnPaywallClose">Close</button>
       </div>
+    </div>
+  </div>
+
+  <!-- Founders overlay -->
+  <div class="overlay" id="founders">
+    <div class="panel">
+      <h3>Founders</h3>
+      <p style="opacity:.9">Cardinal Systems • Cardinal Garage MND Inc.</p>
+      <p style="opacity:.85">About Me: Built from hands-on fieldwork and engineering discipline — HeroHUD bridges AI precision with real-world grit. Every feature is designed to help crews move faster, sell smarter, and deliver consistent results.</p>
+      <div class="btn-row"><button class="btn" id="btnFoundersClose">Close</button></div>
     </div>
   </div>
 
@@ -232,32 +326,50 @@
     hudTabs: q('#hudTabs'),
     hudStream: q('#hudStream'),
     tips: q('#tips'),
-    shopTrigger: q('#shopTrigger'),
-    shopDoor: q('#shopDoor'),
-    shopCloseBtn: q('#shopCloseBtn'),
+    garageTrigger: q('#garageTrigger'),
+    garageDoor: q('#garageDoor'),
+    garageCloseBtn: q('#garageCloseBtn'),
     paywall: q('#paywall'),
     paywallTitle: q('#paywallTitle'),
     paywallMsg: q('#paywallMsg'),
     btnProOnce: q('#btnProOnce'),
     btnProMonthly: q('#btnProMonthly'),
     btnPaywallClose: q('#btnPaywallClose'),
+    founders: q('#founders'),
+    btnFoundersClose: q('#btnFoundersClose'),
+    tabFounders: q('#tabFounders'),
+    // Panels
+    panelInsights: q('#panelInsights'),
+    panelGuides: q('#panelGuides'),
+    panelSalesU: q('#panelSalesU'),
+    panelBest: q('#panelBest'),
+    panelLedger: q('#panelLedger'),
+    panelJourney: q('#panelJourney'),
+    // Lists
+    insightList: q('#insightList'),
+    guideTools: q('#guideTools'),
+    guideMaterials: q('#guideMaterials'),
+    guideTech: q('#guideTech'),
+    salesTips: q('#salesTips'),
+    ledgerList: q('#ledgerList'),
     boot: { t1:q('#bt1'), t2:q('#bt2'), t3:q('#bt3') }
   };
 
   // ===== State
   const STATE = {
-    demoDone: localStorage.getItem('herohud_demo_done')==='1',
     proUnlocked: localStorage.getItem('herohud_pro_unlocked')==='1',
     accessUnlocked: localStorage.getItem('herohud_access_unlocked')==='1',
     uploadsToday: getUploadsToday(),
     lastSummary: "",
     firstRun: !localStorage.getItem('herohud_first_run'),
     freeDemoAnalysisUsed: localStorage.getItem('herohud_demo_analysis_used')==='1',
-    analyzing: false
+    analyzing: false,
+    ledger: loadLedger()
   };
 
   // ===== Helpers
   function q(s){return document.querySelector(s)}
+  function qa(s){return Array.from(document.querySelectorAll(s))}
   function nowKey(){ const d=new Date(); return d.getFullYear()+'-'+(d.getMonth()+1)+'-'+d.getDate() }
   function getUploadsToday(){
     const key = localStorage.getItem('herohud_uploads_key');
@@ -272,12 +384,27 @@
     localStorage.setItem('herohud_uploads_count', String(n));
     STATE.uploadsToday = n;
   }
+  function escapeHTML(s){return s.replace(/[&<>"']/g,m=>({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]))}
+  function wait(ms){ return new Promise(r=>setTimeout(r,ms)) }
 
-  // ===== Voice (optional: graceful no-op if /speak not present)
+  // ===== Voice (graceful no-op if /speak not present)
+  let voiceEnabled = false; // toggled after a user gesture
+  let currentAudio = null;
   async function speak(text){
+    if(!voiceEnabled) { pushLine(text, "Jared"); return; }
     try{
-      await fetch(`${API}/speak`, {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({text})});
-    }catch(e){ /* ignore for demo */ }
+      // Optional: stream audio; minimal demo uses text to HUD if not available
+      const resp = await fetch(`${API}/speak`, {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({text})});
+      if(!resp.ok) { pushLine(text,"Jared"); return; }
+      const blob = await resp.blob();
+      if(currentAudio){ currentAudio.pause(); }
+      currentAudio = new Audio(URL.createObjectURL(blob));
+      currentAudio.play().catch(()=>{ /* ignore autoplay issues */ });
+      pushLine(text, "Jared");
+    }catch(e){ pushLine(text,"Jared"); }
+  }
+  function stopSpeak(){
+    if(currentAudio){ currentAudio.pause(); currentAudio=null; }
   }
 
   // ===== Rolling HUD text + Tips
@@ -296,28 +423,33 @@
     requestAnimationFrame(()=>t.classList.add('show'));
     setTimeout(()=>{ t.classList.remove('show'); setTimeout(()=>t.remove(),380); }, 4200);
   }
-  function escapeHTML(s){return s.replace(/[&<>"']/g,m=>({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]))}
 
-  // ===== Preview helpers
-  function previewReplaceWithImage(url){
-    const img=document.createElement("img");
-    img.id="previewImg"; img.alt="preview"; img.src=url;
-    previewReplaceWithNode(img);
-  }
-  function previewReplaceWithNode(node){
-    const old=el.preview.querySelector("img,video");
-    if(old) old.replaceWith(node); else el.preview.prepend(node);
-  }
+  // ===== Panels toggle
+  qa('.tab[data-panel]').forEach(tab=>{
+    tab.onclick=()=>{
+      qa('.tab').forEach(t=>t.classList.remove('active'));
+      tab.classList.add('active');
+      const target = tab.getAttribute('data-panel');
+      qa('.panelSlide').forEach(p=>p.classList.remove('open'));
+      q('#'+target).classList.add('open');
+    };
+  });
 
-  // ===== Shop (roll-down door)
-  function openShop(){
-    el.shopDoor.classList.remove('close');
-    el.shopDoor.classList.add('open');
+  // ===== Founders overlay
+  el.tabFounders.onclick = ()=>{ el.founders.style.display='flex'; };
+  el.btnFoundersClose.onclick = ()=>{ el.founders.style.display='none'; };
+
+  // ===== Garage (roll-down door)
+  function openGarage(){
+    el.garageDoor.classList.remove('close');
+    el.garageDoor.classList.add('open');
   }
-  function closeShop(){
-    el.shopDoor.classList.remove('open');
-    el.shopDoor.classList.add('close');
+  function closeGarage(){
+    el.garageDoor.classList.remove('open');
+    el.garageDoor.classList.add('close');
   }
+  el.garageTrigger.onclick = ()=> openGarage();
+  el.garageCloseBtn.onclick = ()=> closeGarage();
 
   // ===== Paywall generic
   function openPaywall(title,msg){
@@ -326,55 +458,8 @@
     el.paywall.style.display='flex';
   }
   function closePaywall(){ el.paywall.style.display='none' }
-
-  // ===== Upload gating (2/day unless access unlocked)
-  function canUpload(){
-    if(STATE.accessUnlocked) return true;
-    return STATE.uploadsToday < 2;
-  }
-  function enforceUploadGate(){
-    if(canUpload()) return true;
-    // Upload gate paywall (different message than export)
-    speak("You've reached today's free upload limit. Visit the Shop to unlock unlimited access.");
-    openPaywall("Daily Access Limit Reached","You’ve used your 2 free uploads today. Unlock Access+ for unlimited uploads.");
-    return false;
-  }
-
-  // ===== Boot sequence + first-run Shop demo
-  async function boot(){
-    // Jared wake-up feel
-    await speak("Give me just a second to wake up.");
-    setTimeout(()=>el.boot.t1.classList.add('show'), 500);
-    await wait(1100);
-    await speak("Alright, I’m online. Let’s get started.");
-    setTimeout(()=>el.boot.t2.classList.add('show'), 1200);
-    setTimeout(()=>el.boot.t3.classList.add('show'), 1900);
-
-    // Show Shop demo once on first run
-    if(STATE.firstRun){
-      await wait(2300);
-      el.shopTrigger.classList.add('pulse');
-      await speak("Shop systems online. Opening the storefront so I can show you around.");
-      openShop();
-      await wait(2000);
-      await speak("Here’s where you’ll unlock unlimited uploads, Pro reports, and advanced tools. This is a demo preview.");
-      await wait(2000);
-      closeShop();
-      el.shopTrigger.classList.remove('pulse');
-      localStorage.setItem('herohud_first_run','1');
-    }
-
-    // Hide boot titles
-    await wait(800);
-    el.boot.t1.style.display='none'; el.boot.t2.style.display='none'; el.boot.t3.style.display='none';
-    await speak("Ready when you are. Upload a photo to begin.");
-  }
-
-  // ===== Wiring
-  el.shopTrigger.onclick = () => openShop();
-  el.shopCloseBtn.onclick = () => closeShop();
-
   el.btnPaywallClose.onclick = () => closePaywall();
+
   el.btnProOnce.onclick = () => { // simulate one-time unlock (export)
     localStorage.setItem('herohud_pro_unlocked','1');
     STATE.proUnlocked = true;
@@ -390,7 +475,56 @@
     closePaywall();
   };
 
-  // Upload
+  // ===== Upload gating (2/day unless access unlocked)
+  function canUpload(){
+    if(STATE.accessUnlocked) return true;
+    return STATE.uploadsToday < 2;
+  }
+  function enforceUploadGate(){
+    if(canUpload()) return true;
+    speak("You've reached today's free upload limit. Open the Garage to unlock unlimited access.");
+    openPaywall("Daily Access Limit Reached","You’ve used your 2 free uploads today. Unlock Access+ for unlimited uploads.");
+    return false;
+  }
+
+  // ===== Voice Enable (one tap to allow audio)
+  // Any button click enables voice for this session
+  [el.btnUpload, el.btnCamera, el.btnAnalyze, el.garageTrigger].forEach(b=>{
+    b.addEventListener('click', ()=>{ voiceEnabled = true; }, { once:true });
+  });
+
+  // ===== Boot sequence + first-run Garage demo
+  async function boot(){
+    await speak("Please wait while I wake up.");
+    setTimeout(()=>el.boot.t1.classList.add('show'), 500);
+    await wait(900);
+    setTimeout(()=>el.boot.t2.classList.add('show'), 950);
+    await wait(900);
+    setTimeout(()=>el.boot.t3.classList.add('show'), 950);
+
+    await speak("Precision meets grit — powered by Cardinal Garage MND Inc.");
+
+    // Show Garage demo once on first run
+    if(STATE.firstRun){
+      await wait(900);
+      el.garageTrigger.classList.add('pulse');
+      await speak("Opening the Garage. This is where you’ll unlock access, exports, and tools.");
+      openGarage();
+      await wait(2200);
+      await speak("This is a demo preview. You can explore upgrades anytime.");
+      await wait(1000);
+      closeGarage();
+      el.garageTrigger.classList.remove('pulse');
+      localStorage.setItem('herohud_first_run','1');
+    }
+
+    // Hide boot titles
+    await wait(800);
+    el.boot.t1.style.display='none'; el.boot.t2.style.display='none'; el.boot.t3.style.display='none';
+    await speak("Ready when you are. Upload a photo to begin.");
+  }
+
+  // ===== Upload
   el.btnUpload.onclick = ()=> {
     if(!enforceUploadGate()) return;
     el.file.click();
@@ -406,7 +540,7 @@
     showTip(STATE.uploadsToday<=2 ? "Photo loaded — tap Analyze." : "Photo loaded.", true);
   };
 
-  // Camera
+  // ===== Camera
   let camStream=null,camVideo=null,captureBtn=null;
   el.btnCamera.onclick = openCamera;
   async function openCamera(){
@@ -441,12 +575,22 @@
     };
   }
 
-  // Analyze
+  // ===== Preview helpers
+  function previewReplaceWithImage(url){
+    const img=document.createElement("img");
+    img.id="previewImg"; img.alt="preview"; img.src=url;
+    previewReplaceWithNode(img);
+  }
+  function previewReplaceWithNode(node){
+    const old=el.preview.querySelector("img,video");
+    if(old) old.replaceWith(node); else el.preview.prepend(node);
+  }
+
+  // ===== Analyze
   el.btnAnalyze.onclick = async ()=>{
     if(!el.preview.style.display || el.preview.style.display==='none'){
       showTip("Upload or capture a photo first.", true); return;
     }
-    // One full demo analysis: only the first time ever
     const isDemoAnalysis = !STATE.freeDemoAnalysisUsed;
 
     const blob = el.file._capturedBlob;
@@ -461,48 +605,66 @@
     if(blob) formData.append("file",blob,"capture.jpg"); else formData.append("file",fileEl);
 
     try{
-      if(isDemoAnalysis){
-        speak("Analyzing image now. I’ll walk you through the results.");
-      } else {
-        speak("Analyzing image.");
-      }
-      pushLine("Analyzing image…");
+      speak("Analyzing image now.");
+      pushLine("Analyzing image…", "System");
       const resp = await fetch(`${API}/analyze-image`, { method:"POST", body:formData });
       const data = await resp.json();
       STATE.lastSummary = data.summary || "No summary.";
 
       // Rolling readout lines
-      pushLine(STATE.lastSummary);
-      // Sample Field Guides (demo show)
-      if(isDemoAnalysis){
-        pushLine("Tools: Steel edging blade; string trimmer.", "Field Guide");
-        pushLine("Materials: Brown mulch ~12 cu ft; landscape fabric.", "Field Guide");
-        pushLine("Technique: Adjust shrub spacing; define bed edge.", "Field Guide");
-      }
+      pushLine(STATE.lastSummary, "Analysis");
+
+      // Populate panels
+      populateInsights(STATE.lastSummary);
+      populateGuides(STATE.lastSummary);
+      populateSalesU(STATE.lastSummary);
 
       // Tips (3)
       showAnalysisTips(STATE.lastSummary);
 
-      el.hudTabs.style.display='flex';
       el.btnExport.classList.remove('hidden');
       el.dashHint.style.opacity=.6;
 
       if(isDemoAnalysis){
         localStorage.setItem('herohud_demo_analysis_used','1');
         STATE.freeDemoAnalysisUsed = true;
-        speak("Analysis complete. This was your full demo run. You can keep analyzing, and export anytime from the Pro button.");
+        speak("Analysis complete. This was your full demo run. You can keep analyzing and export anytime from Pro Estimate.");
       } else {
         speak("Analysis complete.");
       }
+
+      // Save to ledger
+      saveLedgerEntry({ when:(new Date()).toLocaleString(), summary: STATE.lastSummary });
+      renderLedger();
+
     }catch(e){
       showTip("❌ Analysis failed.", true);
-      pushLine("Analysis failed. Please try again.");
+      pushLine("Analysis failed. Please try again.","System");
     } finally {
       el.wheel.style.display='none';
       el.preview.classList.remove('glow-on');
       STATE.analyzing = false;
     }
   };
+
+  function populateInsights(summary){
+    el.insightList.innerHTML = `
+      <div class="line show"><small>Visual</small><br>${escapeHTML(summary)}</div>
+    `;
+  }
+  function populateGuides(summary){
+    // Simple demo extraction; replace with server-side parse if desired
+    el.guideTools.innerHTML = `<span class="pill">Tools</span> <span class="pill">Half-moon edger</span> <span class="pill">String trimmer</span>`;
+    el.guideMaterials.innerHTML = `<span class="pill">Materials</span> <span class="pill">Brown mulch</span> <span class="pill">Landscape fabric</span>`;
+    el.guideTech.innerHTML = `<span class="pill">Techniques</span> <span class="pill">Define bed edge</span> <span class="pill">Uniform trim</span>`;
+  }
+  function populateSalesU(summary){
+    el.salesTips.innerHTML = `
+      <li>🏡 Lead with curb appeal. “Let’s lock in that clean edge for the season.”</li>
+      <li>🌿 Position mulch color as a design choice, not upkeep.</li>
+      <li>💬 Ask for the yes: “Want me to schedule the refresh?”</li>
+    `;
+  }
 
   function showAnalysisTips(summary){
     const bits=(summary.replace(/\s+/g,' ').trim()||"Looks good. Consider fresh mulch; adjust shrub spacing; check edging.")
@@ -512,7 +674,7 @@
     setTimeout(()=>showTip("🧾 Pro Estimate available — tap Export when ready.", true), delay+260);
   }
 
-  // Export (Pro paywall only here)
+  // ===== Export (Pro paywall only here)
   el.btnExport.onclick = ()=>{
     if(!STATE.proUnlocked){
       speak("You’ll need Pro access to export the full report.");
@@ -529,12 +691,10 @@
       const payload = { summary: STATE.lastSummary, tips: tipsTxt, log: logTxt };
       pushLine("Generating Pro Estimate…", "System");
       const resp = await fetch(`${API}/export`, { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(payload) });
-      // Expecting blob or url; fall back to txt if not implemented
       if(resp.ok && resp.headers.get('content-type')?.includes('application/pdf')){
         const blob = await resp.blob();
         const a=document.createElement("a"); a.href=URL.createObjectURL(blob); a.download="herohud_pro_estimate.pdf"; a.click();
       }else{
-        // fallback simple txt
         const text = `HeroHUD Pro Estimate\n\nSummary:\n${STATE.lastSummary}\n\nTips:\n${tipsTxt}\n\nConversation Log:\n${logTxt}`;
         const blob=new Blob([text],{type:"text/plain"});
         const a=document.createElement("a"); a.href=URL.createObjectURL(blob); a.download="herohud_pro_estimate.txt"; a.click();
@@ -546,15 +706,36 @@
     }
   }
 
-  // ===== Init
-  boot();
+  // ===== Ledger (local)
+  function loadLedger(){
+    try{ return JSON.parse(localStorage.getItem('herohud_ledger')||'[]'); }catch(e){ return []; }
+  }
+  function saveLedger(){
+    localStorage.setItem('herohud_ledger', JSON.stringify(STATE.ledger.slice(-20)));
+  }
+  function saveLedgerEntry(entry){
+    STATE.ledger.push(entry);
+    saveLedger();
+  }
+  function renderLedger(){
+    el.ledgerList.innerHTML = STATE.ledger.slice(-20).map(i=>(
+      `<div class="line show"><small>${escapeHTML(i.when)}</small><br>${escapeHTML(i.summary)}</div>`
+    )).join('');
+  }
+  q('#btnLedgerExport').onclick = ()=>{
+    const text = STATE.ledger.map(i=>`${i.when}\n${i.summary}\n`).join('\n');
+    const blob=new Blob([text],{type:"text/plain"});
+    const a=document.createElement("a"); a.href=URL.createObjectURL(blob); a.download="herohud_ledger.txt"; a.click();
+  };
+  q('#btnLedgerClear').onclick = ()=>{
+    STATE.ledger = []; saveLedger(); renderLedger(); showTip("Ledger cleared.", true);
+  };
 
-  // ===== Utility
-  function wait(ms){ return new Promise(r=>setTimeout(r,ms)) }
+  // ===== Init
+  renderLedger();
+  boot();
 
 })();
 </script>
 </body>
 </html>
-
-
