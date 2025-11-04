@@ -29,13 +29,15 @@
       linear-gradient( to left, transparent 0%, rgba(47,176,233,.05) 30%, transparent 60%);
     mix-blend-mode:screen; animation:film2 18s linear infinite; opacity:.7;
   }
-  @keyframes film1{to{transform:translateY(-2%)}}
-  @keyframes film2{to{transform:translateX(-2%)}}
+  @keyframes film1{to{transform:translateY(-2%)}} @keyframes film2{to{transform:translateX(-2%)}}
 
-  /* Top branding */
+  /* Topbar + controls */
   .topbar{position:fixed;inset:0 0 auto 0;height:64px;display:grid;place-items:center;z-index:10}
   .brand{font-weight:900;letter-spacing:.08em}
   .brand .hero{color:var(--mintL)}
+  .topright{position:fixed;top:10px;right:10px;display:flex;gap:8px;z-index:12}
+  .iconbtn{width:40px;height:40px;border-radius:10px;border:1px solid var(--stroke);background:rgba(255,255,255,.06);display:grid;place-items:center;cursor:pointer;box-shadow:0 0 12px rgba(156,255,224,.18)}
+  .iconbtn:active{transform:scale(.98)}
 
   /* Stage */
   .stage{position:fixed;inset:64px 0 160px 0;display:grid;place-items:center;padding:18px}
@@ -55,15 +57,14 @@
   /* Preview */
   #preview{display:none;position:relative;width:min(94vw,960px);aspect-ratio:16/10;border-radius:16px;overflow:hidden;border:1px solid var(--stroke);box-shadow:0 0 24px rgba(156,255,224,.14)}
   #preview img,#preview video{width:100%;height:100%;object-fit:cover}
-  #edgeGlow{position:absolute;inset:0;border-radius:16px;pointer-events:none;opacity:0;
-    box-shadow:0 0 28px rgba(156,255,224,.6),inset 0 0 18px rgba(14,139,103,.55);transition:opacity .25s}
+  #edgeGlow{position:absolute;inset:0;border-radius:16px;pointer-events:none;opacity:0;box-shadow:0 0 28px rgba(156,255,224,.6),inset 0 0 18px rgba(14,139,103,.55);transition:opacity .25s}
   .glow-on #edgeGlow{opacity:1}
   .wheel{position:absolute;inset:auto auto 10px 10px;background:rgba(0,0,0,.45);border:1px solid var(--stroke);
     border-radius:999px;padding:.35rem .6rem;font-size:12px;display:flex;gap:.5rem;align-items:center}
   .mini-spin{width:14px;height:14px;border-radius:50%;border:2px solid rgba(156,255,224,.35);border-top-color:var(--mintL);animation:spin 1s linear infinite}
   @keyframes spin{to{transform:rotate(360deg)}}
 
-  /* Tip bubbles under photo (no chat boxes anywhere else) */
+  /* Tips under photo (no chat boxes) */
   #tips{position:relative;width:min(94vw,960px);min-height:14px}
   .tip{opacity:0;transform:translateY(8px);transition:all .4s ease;background:rgba(255,255,255,.06);
     border:1px solid var(--stroke);backdrop-filter:blur(8px);color:var(--text);padding:.55rem .75rem;border-radius:10px;
@@ -71,31 +72,26 @@
   .tip.show{opacity:1;transform:translateY(0)}
   .tip.right{text-align:right}
 
-  /* Modules tabs (labels only) */
+  /* HUD labels */
   .hud{display:none;gap:8px;margin-top:8px;flex-wrap:wrap;justify-content:center}
   .tab{padding:.45rem .8rem;border:1px solid var(--stroke);border-radius:999px;background:rgba(255,255,255,.04);color:var(--textDim);font-size:12px}
 
-  /* Footer + Garage trigger */
+  /* Footer */
   .footer{position:fixed;left:50%;transform:translateX(-50%);bottom:18px;font-size:12px;color:rgba(233,255,246,.6);letter-spacing:.12em;text-transform:uppercase}
-  .garage-trigger{position:fixed;right:14px;bottom:48px;background:rgba(255,255,255,.05);border:1px solid var(--stroke);
-    border-radius:12px;padding:.45rem .65rem;display:flex;align-items:center;gap:.45rem;cursor:pointer;
-    box-shadow:0 0 12px rgba(156,255,224,.18);font-size:12px;z-index:15}
 
-  /* Garage roll-down door */
+  /* Garage roll-down */
   #garageDoor{position:fixed;left:0;right:0;top:0;height:0;overflow:hidden;z-index:70;pointer-events:none}
-  #garageDoor .door{height:420px;background:
+  #garageDoor .door{height:430px;background:
       linear-gradient(180deg, rgba(255,255,255,.08), rgba(255,255,255,.03)),
       repeating-linear-gradient(180deg, rgba(156,255,224,.08), rgba(156,255,224,.08) 6px, rgba(255,255,255,0.02) 6px, rgba(255,255,255,0.02) 14px);
     border-bottom:1px solid var(--stroke); box-shadow:0 10px 40px rgba(0,0,0,.45), inset 0 -8px 24px rgba(156,255,224,.12);
     display:flex;flex-direction:column;align-items:center;justify-content:flex-start;gap:12px;padding:14px 10px; position:relative}
-  #garageDoor.open{height:420px;pointer-events:auto;transition:height .9s cubic-bezier(.2,.9,.2,1)}
+  #garageDoor.open{height:430px;pointer-events:auto;transition:height .9s cubic-bezier(.2,.9,.2,1)}
   #garageDoor.close{height:0;transition:height .8s cubic-bezier(.2,.9,.2,1)}
   .gTitle{font-weight:900;letter-spacing:.16em;color:var(--mintL);margin-top:4px}
   .gClose{position:absolute;right:10px;top:10px;border:1px solid var(--stroke);background:rgba(255,255,255,.04);color:var(--text);border-radius:999px;padding:.35rem .6rem;cursor:pointer}
-
   .gRow{display:flex;gap:12px;max-width:980px;width:calc(100% - 20px);justify-content:center;flex-wrap:wrap;margin-top:6px}
-  .card{flex:1 1 280px;max-width:320px;background:rgba(255,255,255,.05);border:1px solid var(--stroke);border-radius:14px;padding:12px 12px 14px;
-    box-shadow:0 0 26px rgba(156,255,224,.18)}
+  .card{flex:1 1 280px;max-width:320px;background:rgba(255,255,255,.05);border:1px solid var(--stroke);border-radius:14px;padding:12px 12px 14px;box-shadow:0 0 26px rgba(156,255,224,.18)}
   .tag{display:inline-block;border:1px solid var(--mint);color:var(--mintL);padding:.25rem .5rem;border-radius:999px;font-size:11px;margin-bottom:8px}
   .price{margin-top:8px;opacity:.9}
   .card .btn-row{justify-content:flex-start}
@@ -105,62 +101,60 @@
   .panel{max-width:560px;margin:20px;background:rgba(255,255,255,.06);border:1px solid var(--stroke);
     border-radius:16px;padding:1.1rem 1.3rem;text-align:center;box-shadow:0 0 32px rgba(156,255,224,.28)}
 
-  /* Boot titles */
-  #bootTitles{position:fixed;inset:64px 0 0 0;display:grid;place-items:center;pointer-events:none;z-index:50}
-  .bt{font-weight:900;letter-spacing:.22em;color:var(--mintL);font-size:clamp(22px,6vw,64px);opacity:0;transform:translateY(8px);transition:all .5s ease}
-  .bt.show{opacity:1;transform:translateY(0)}
-
-  /* Full-screen boot veil */
-  #bootVeil{position:fixed;inset:0;background:#03100c;z-index:90;display:flex;align-items:center;justify-content:center;flex-direction:column}
-  #bootWheel{display:flex;gap:.5rem;align-items:center;border:1px solid var(--stroke);background:rgba(255,255,255,.04);padding:.6rem .9rem;border-radius:999px}
-  #bootWheel .mini-spin{border-color:rgba(156,255,224,.35);border-top-color:var(--mintL)}
+  /* Boot Chamber (pre-landing, ~2.5s) */
+  #bootChamber{position:fixed;inset:0;background:#030e0b;z-index:100;display:flex;align-items:center;justify-content:center;flex-direction:column}
+  #bootSpinner{display:flex;gap:.5rem;align-items:center;border:1px solid var(--stroke);background:rgba(255,255,255,.05);padding:.6rem .9rem;border-radius:999px;box-shadow:0 0 18px rgba(156,255,224,.25)}
+  #bootLog{margin-top:14px;width:min(92vw,820px);height:120px;border:1px solid var(--stroke);border-radius:10px;background:rgba(0,0,0,.35);
+    padding:8px 10px;font-family:ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;color:#a8ffea;overflow:hidden;box-shadow:0 0 22px rgba(156,255,224,.18)}
+  .logline{opacity:.1;transform:translateY(4px);transition:opacity .35s ease, transform .35s ease;font-size:12px;line-height:1.45}
+  .logline.show{opacity:1;transform:translateY(0)}
+  #bootDedication{position:absolute;bottom:12%;left:0;right:0;text-align:center;font-size:14px;color:rgba(156,255,224,.75);letter-spacing:.12em;opacity:0;transition:opacity 1.2s ease;font-weight:500}
+  .bloom{animation:bloom 900ms ease forwards}
+  @keyframes bloom{0%{filter:brightness(.8) blur(1px)}40%{filter:brightness(1.4) blur(2px)}100%{filter:brightness(1) blur(0)}}
 </style>
 </head>
 <body>
   <div class="topbar"><div class="brand"><span class="hero">HEROHUD</span></div></div>
-
-  <!-- Cinematic boot -->
-  <div id="bootVeil">
-    <div id="bootWheel"><div class="mini-spin"></div><span>Waking up…</span></div>
+  <div class="topright">
+    <button class="iconbtn" id="btnFullscreen" title="Fullscreen">⛶</button>
+    <button class="iconbtn" id="btnGarage" title="Garage">🧰</button>
   </div>
-  <div id="bootTitles">
-    <div class="bt" id="bt1">UPLOAD</div>
-    <div class="bt" id="bt2">ANALYZE</div>
-    <div class="bt" id="bt3">SEND</div>
+
+  <!-- Boot Chamber -->
+  <div id="bootChamber">
+    <div id="bootSpinner"><div class="mini-spin"></div><span>Waking up…</span></div>
+    <div id="bootLog"></div>
+    <div id="bootDedication">Dedicated to Addison — the spark behind every brave start.</div>
   </div>
 
   <!-- Garage roll-down -->
   <div id="garageDoor" class="close">
     <div class="door">
       <button class="gClose" id="garageCloseBtn">Close</button>
-      <div class="gTitle">GARAGE • Cardinal-Garage_Mnd.inc</div>
+      <div class="gTitle">GARAGE • Cardinal-Garage_MND.inc</div>
       <div style="opacity:.85;font-size:12px;margin-top:-4px">Founders • Sales University • Upgrades • Control Center</div>
 
       <div class="gRow">
         <div class="card">
           <span class="tag">🟢 Access+</span>
-          <div>Unlimited uploads & analyses — your field freedom pass.</div>
-          <div class="price">$29 / month</div>
-          <div class="btn-row">
-            <button class="btn" id="btnAccessMonthly">Activate</button>
-          </div>
+          <div>Unlimited analyzing — scan as much as you want.</div>
+          <div class="price">$25 / month</div>
+          <div class="btn-row"><button class="btn" id="btnAccessMonthly">Activate</button></div>
         </div>
 
         <div class="card">
           <span class="tag">⚡ Pro Sales Insight</span>
-          <div>Client-ready reports that close deals.</div>
+          <div>Client-ready report with sales insight.</div>
           <div class="price">
             <label><input type="radio" name="proMode" value="single" checked> $39 / report</label><br/>
             <label><input type="radio" name="proMode" value="unlimited"> $89 / month</label>
           </div>
-          <div class="btn-row">
-            <button class="btn" id="btnProActivate">Activate</button>
-          </div>
+          <div class="btn-row"><button class="btn" id="btnProActivate">Activate</button></div>
         </div>
 
         <div class="card">
           <span class="tag">🎓 Sales University</span>
-          <div>One-week sprint built from elite sales systems.</div>
+          <div>One-week sprint from elite systems — Junior track included (Addie).</div>
           <div class="price">$99 / week</div>
           <div class="btn-row">
             <button class="btn" id="btnSalesU">Enter</button>
@@ -170,25 +164,14 @@
 
         <div class="card">
           <span class="tag">🧠 Hero Complete</span>
-          <div>Full ecosystem: Access+, Pro, SalesU, Founders’ Control.</div>
+          <div>All systems: Access+, Pro, SalesU, Founders’ tools.</div>
           <div class="price">$129 / month</div>
-          <div class="btn-row">
-            <button class="btn" id="btnHeroComplete">Activate</button>
-          </div>
-        </div>
-
-        <div class="card">
-          <span class="tag">🪙 Founder Lifetime</span>
-          <div>Permanent license + branding + advanced metrics.</div>
-          <div class="price">$799 one-time</div>
-          <div class="btn-row">
-            <button class="btn" id="btnFounderLifetime">Activate</button>
-          </div>
+          <div class="btn-row"><button class="btn" id="btnHeroComplete">Activate</button></div>
         </div>
 
         <div class="card">
           <span class="tag">📊 Founder’s Control Center</span>
-          <div>Pitch, org, stack, live metrics, projections — in one PDF.</div>
+          <div>Pitch, org, stack, projections — one PDF.</div>
           <div class="btn-row">
             <button class="btn" id="btnFounderDeck">Generate Deck (PDF)</button>
             <button class="btn" id="btnDownloadLogs">Download Logs</button>
@@ -211,16 +194,14 @@
       <div id="preview">
         <img id="previewImg" alt="preview" />
         <div id="edgeGlow"></div>
-        <div class="wheel" id="wheel" style="display:none;">
-          <div class="mini-spin"></div><span id="wheelText">Analyzing…</span>
-        </div>
+        <div class="wheel" id="wheel" style="display:none;"><div class="mini-spin"></div><span id="wheelText">Analyzing…</span></div>
         <div id="dashHint" style="position:absolute;inset:0;opacity:.0;pointer-events:none;"></div>
       </div>
 
-      <!-- Tips only (no chat boxes) -->
+      <!-- Tips (only) -->
       <div id="tips"></div>
 
-      <!-- Labels for modules (visual hint only) -->
+      <!-- Labels for modules -->
       <div class="hud" id="hudTabs">
         <div class="tab">Insights</div>
         <div class="tab">Field Guides</div>
@@ -234,8 +215,7 @@
     </div>
   </div>
 
-  <div class="garage-trigger" id="garageTrigger">🧰 Garage</div>
-  <div class="footer">Powered by Cardinal-Garage_Mnd.inc • Precision Meets Grit</div>
+  <div class="footer">Powered by Cardinal-Garage_MND.inc</div>
 
   <!-- Generic paywall overlay -->
   <div class="overlay" id="paywall">
@@ -263,37 +243,42 @@
      ELEMENTS
   ==========================*/
   const el = {
-    file: q('#file'),
-    btnUpload: q('#btnUpload'),
-    btnCamera: q('#btnCamera'),
-    btnAnalyze: q('#btnAnalyze'),
-    btnExport: q('#btnExport'),
-    preview: q('#preview'),
-    previewImg: q('#previewImg'),
-    edgeGlow: q('#edgeGlow'),
-    wheel: q('#wheel'),
-    wheelText: q('#wheelText'),
-    dashHint: q('#dashHint'),
-    tips: q('#tips'),
-    hudTabs: q('#hudTabs'),
-    garageTrigger: q('#garageTrigger'),
-    garageDoor: q('#garageDoor'),
-    garageCloseBtn: q('#garageCloseBtn'),
-    paywall: q('#paywall'),
-    paywallTitle: q('#paywallTitle'),
-    paywallMsg: q('#paywallMsg'),
-    btnProOnce: q('#btnProOnce'),
-    btnProMonthly: q('#btnProMonthly'),
-    btnPaywallClose: q('#btnPaywallClose'),
-    btnAccessMonthly: q('#btnAccessMonthly'),
-    btnProActivate: q('#btnProActivate'),
-    btnSalesU: q('#btnSalesU'),
-    btnSalesUDemo: q('#btnSalesUDemo'),
-    btnHeroComplete: q('#btnHeroComplete'),
-    btnFounderLifetime: q('#btnFounderLifetime'),
-    btnFounderDeck: q('#btnFounderDeck'),
-    btnDownloadLogs: q('#btnDownloadLogs'),
-    boot: { veil:q('#bootVeil'), t1:q('#bt1'), t2:q('#bt2'), t3:q('#bt3') }
+    file: qs('#file'),
+    btnUpload: qs('#btnUpload'),
+    btnCamera: qs('#btnCamera'),
+    btnAnalyze: qs('#btnAnalyze'),
+    btnExport: qs('#btnExport'),
+    preview: qs('#preview'),
+    previewImg: qs('#previewImg'),
+    edgeGlow: qs('#edgeGlow'),
+    wheel: qs('#wheel'),
+    wheelText: qs('#wheelText'),
+    dashHint: qs('#dashHint'),
+    tips: qs('#tips'),
+    hudTabs: qs('#hudTabs'),
+    btnGarage: qs('#btnGarage'),
+    garageDoor: qs('#garageDoor'),
+    garageCloseBtn: qs('#garageCloseBtn'),
+    paywall: qs('#paywall'),
+    paywallTitle: qs('#paywallTitle'),
+    paywallMsg: qs('#paywallMsg'),
+    btnProOnce: qs('#btnProOnce'),
+    btnProMonthly: qs('#btnProMonthly'),
+    btnPaywallClose: qs('#btnPaywallClose'),
+    btnAccessMonthly: qs('#btnAccessMonthly'),
+    btnProActivate: qs('#btnProActivate'),
+    btnSalesU: qs('#btnSalesU'),
+    btnSalesUDemo: qs('#btnSalesUDemo'),
+    btnHeroComplete: qs('#btnHeroComplete'),
+    btnFounderDeck: qs('#btnFounderDeck'),
+    btnDownloadLogs: qs('#btnDownloadLogs'),
+    btnFullscreen: qs('#btnFullscreen'),
+    boot: {
+      chamber: qs('#bootChamber'),
+      spinner: qs('#bootSpinner'),
+      log: qs('#bootLog'),
+      dedication: qs('#bootDedication')
+    }
   };
 
   /* =========================
@@ -303,109 +288,98 @@
     proUnlocked: localStorage.getItem('herohud_pro_unlocked')==='1',
     accessUnlocked: localStorage.getItem('herohud_access_unlocked')==='1',
     salesUDemo: localStorage.getItem('herohud_salesu_demo')==='1',
-    uploadsToday: getUploadsToday(),
     lastSummary: "",
     logs: loadLogs(), // { entries: [], startedAt }
-    demoUsed: localStorage.getItem('herohud_demo_analysis_used')==='1',
-    analyzing: false,
-    isBooted: false,
+    demoCycleDone: localStorage.getItem('herohud_demo_cycle_done')==='1', // first full run completed
+    speaking: false,
     proMode: 'single' // 'single' | 'unlimited'
   };
 
   /* =========================
      UTIL
   ==========================*/
-  function q(s){return document.querySelector(s)}
+  function qs(s){return document.querySelector(s)}
   function nowKey(){ const d=new Date(); return d.getFullYear()+'-'+(d.getMonth()+1)+'-'+d.getDate() }
-  function getUploadsToday(){
-    const key = localStorage.getItem('herohud_uploads_key');
-    const count = Number(localStorage.getItem('herohud_uploads_count')||0);
-    const today = nowKey();
-    return key===today?count:0;
-  }
-  function bumpUploads(){
-    const today = nowKey();
-    localStorage.setItem('herohud_uploads_key', today);
-    const n = STATE.uploadsToday+1;
-    localStorage.setItem('herohud_uploads_count', String(n));
-    STATE.uploadsToday = n;
-  }
-  function escapeHTML(s){return s.replace(/[&<>"']/g,m=>({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]))}
-  function logEvent(kind, payload){
-    STATE.logs.entries.push({ t:Date.now(), kind, payload });
-    localStorage.setItem('herohud_logs', JSON.stringify(STATE.logs));
-  }
-  function loadLogs(){
-    const raw = localStorage.getItem('herohud_logs');
-    return raw ? JSON.parse(raw) : { startedAt: Date.now(), entries: [] };
-  }
-  function downloadText(filename, text){
-    const blob=new Blob([text],{type:"text/plain"});
-    const a=document.createElement("a"); a.href=URL.createObjectURL(blob); a.download=filename; a.click();
-  }
+  function logEvent(kind, payload){ STATE.logs.entries.push({ t:Date.now(), kind, payload }); localStorage.setItem('herohud_logs', JSON.stringify(STATE.logs)); }
+  function loadLogs(){ const raw = localStorage.getItem('herohud_logs'); return raw ? JSON.parse(raw) : { startedAt: Date.now(), entries: [] }; }
+  function downloadText(filename, text){ const blob=new Blob([text],{type:"text/plain"}); const a=document.createElement("a"); a.href=URL.createObjectURL(blob); a.download=filename; a.click(); }
+  function wait(ms){ return new Promise(r=>setTimeout(r,ms)) }
+  function ensureTips(){ if(!el.tips){ const d=document.createElement('div'); d.id='tips'; document.body.appendChild(d); el.tips=d; } }
 
   /* =========================
-     SPEECH QUEUE (no overlap)
+     FULLSCREEN
   ==========================*/
-  let speakQueue = [];
-  let isSpeaking = false;
+  el.btnFullscreen?.addEventListener('click', () => {
+    if (!document.fullscreenElement) document.documentElement.requestFullscreen().catch(()=>{});
+    else document.exitFullscreen().catch(()=>{});
+  });
 
-  function speak(line, priority=2){
-    // priority: 1=critical (interrupt), 2=operational (queue), 3=ambient (skip if busy)
-    if(priority===1){
-      window.speechSynthesis.cancel();
-      isSpeaking = false;
-      speakQueue = []; // clear queue
-    }
-    if(priority===3 && (isSpeaking || speakQueue.length)) return; // skip ambient if busy
-
-    speakQueue.push({ line, priority });
+  /* =========================
+     SPEECH (Jared + Addie, natural)
+  ==========================*/
+  let speakQueue = []; let isSpeaking = false;
+  function pickVoice(gender="male"){
+    const voices = speechSynthesis.getVoices();
+    const male = /(Daniel|Alex|Matthew|Aaron|Google US English|Male)/i;
+    const female = /(Samantha|Zira|Amelia|Google US English Female|Female)/i;
+    const pref = gender === "female" ? female : male;
+    return voices.find(v => pref.test(v.name)) || voices.find(v => v.default) || voices[0];
+  }
+  function speak(line, { gender="male", priority=2 } = {}){
+    if(priority===1){ speechSynthesis.cancel(); isSpeaking=false; speakQueue=[]; }
+    speakQueue.push({ line, gender });
     processSpeakQueue();
   }
-
   function processSpeakQueue(){
     if(isSpeaking || speakQueue.length===0) return;
-    const next = speakQueue.shift();
-    if(!next) return;
+    const next = speakQueue.shift(); if(!next) return;
     isSpeaking = true;
-
-    const utter = new SpeechSynthesisUtterance(next.line);
-    utter.rate = 1.0; utter.pitch = 1.02; // calm confident
-    const voices = speechSynthesis.getVoices();
-    const pick = voices.find(v => /Microsoft|Google|Alex|Daniel|Samantha|Male/i.test(v.name)) || voices.find(v => v.default) || voices[0];
-    if(pick) utter.voice = pick;
-
-    utter.onend = () => {
-      isSpeaking = false;
-      processSpeakQueue();
-    };
-    utter.onerror = () => {
-      isSpeaking = false;
-      processSpeakQueue();
-    };
-
-    window.speechSynthesis.speak(utter);
-    logEvent('voice', { text: next.line });
+    const u = new SpeechSynthesisUtterance(next.line);
+    u.voice = pickVoice(next.gender);
+    u.rate  = next.gender === "female" ? 1.0 : 0.93;
+    u.pitch = next.gender === "female" ? 1.18 : 1.02;
+    u.volume= 1.0;
+    u.onend = u.onerror = ()=>{ isSpeaking=false; processSpeakQueue(); };
+    speechSynthesis.speak(u);
+    logEvent('voice', { text: next.line, gender: next.gender });
   }
 
   /* =========================
-     TIPS
+     BOOT CHAMBER (~2.5s total)
   ==========================*/
-  function showTip(text,right=false){
-    const t = document.createElement('div');
-    t.className = 'tip'+(right?' right':'' );
-    t.textContent = text;
-    el.tips.appendChild(t);
-    requestAnimationFrame(()=>t.classList.add('show'));
-    setTimeout(()=>{ t.classList.remove('show'); setTimeout(()=>t.remove(),380); }, 4200);
-  }
+  const BOOT_LINES = [
+    "> Jared systems cold.",
+    "> Checking API endpoints…",
+    "> Backend live.",
+    "> Please allow Jared to wake up."
+  ];
+  async function boot(){
+    // Seed voices (Chrome quirk)
+    speechSynthesis.getVoices();
 
-  function showAnalysisTips(summary){
-    const bits=(summary||"Consider mulch depth; define bed edge; check irrigation coverage.")
-      .replace(/\s+/g,' ').trim().split(/[.;]/).map(s=>s.trim()).filter(Boolean).slice(0,3);
-    let delay=240;
-    bits.forEach((b,i)=>{ setTimeout(()=>showTip("💡 "+b, i%2===1), delay); delay+=1400; });
-    setTimeout(()=>showTip("🧾 Pro Sales Insight available — tap Pro Export.", true), delay+260);
+    // Log lines fast to fit ~2.5s
+    let t = 150;
+    BOOT_LINES.forEach((line,i)=>{
+      setTimeout(()=>{
+        const d = document.createElement('div');
+        d.className='logline'; d.textContent = line;
+        el.boot.log.appendChild(d);
+        requestAnimationFrame(()=>d.classList.add('show'));
+      }, t);
+      t += 450;
+    });
+
+    // Dedication fade at ~1.1s
+    setTimeout(()=>{ el.boot.dedication.style.opacity = 1; }, 1100);
+
+    // Jared enters at ~2.0s
+    setTimeout(()=>{
+      speak("System awake. Let's get to work.", { gender: "male", priority: 1 });
+      el.boot.chamber.classList.add('bloom');
+    }, 2000);
+
+    // Exit boot at ~2.5s
+    setTimeout(()=>{ el.boot.chamber.style.display='none'; }, 2500);
   }
 
   /* =========================
@@ -413,7 +387,7 @@
   ==========================*/
   function openGarage(){
     el.garageDoor.classList.remove('close'); el.garageDoor.classList.add('open');
-    speak("Garage opened. Upgrades, training, and your founder controls are available here.", 2);
+    speak("Garage opened. Upgrades, training, and founder tools are available here.", {gender:"male"});
   }
   function closeGarage(){
     el.garageDoor.classList.remove('open'); el.garageDoor.classList.add('close');
@@ -430,81 +404,22 @@
   function closePaywall(){ el.paywall.style.display='none' }
 
   /* =========================
-     BOOT SEQUENCE (Cinematic + Mentor)
-  ==========================*/
-  async function boot(){
-    // Lock controls
-    disableMainControls(true);
-
-    // Voice sequence (no text boxes, only audio)
-    speak("Initializing HeroHUD systems.", 1);
-    await wait(1300);
-    speak("Good morning, Operator — I’m awake and online.", 2);
-    await wait(1500);
-    speak("Field modules standing by.", 2);
-    await wait(700);
-    speak("I’m Jared — your AI field strategist and personal sales coach.", 2);
-    await wait(1500);
-    speak("Here’s how we’ll work together.", 2);
-    await wait(700);
-    // Sync HUD titles
-    setTimeout(()=>el.boot.t1.classList.add('show'), 50);
-    speak("Step one — upload a photo from the field.", 2);
-    await wait(850);
-    setTimeout(()=>el.boot.t2.classList.add('show'), 150);
-    speak("Step two — I’ll analyze it, identify opportunities, and guide your next move.", 2);
-    await wait(950);
-    setTimeout(()=>el.boot.t3.classList.add('show'), 150);
-    speak("Step three — export your professional report — or upgrade for deeper sales insight.", 2);
-    await wait(1400);
-    speak("Whether you’re closing clients, building your business, or learning the ropes — I’m here to help you sell smarter and faster.", 2);
-    await wait(1200);
-    speak("HeroHUD is online. Let’s get to work.", 2);
-
-    // Reveal UI
-    setTimeout(()=>{ el.boot.t1.style.display='none'; el.boot.t2.style.display='none'; el.boot.t3.style.display='none'; }, 900);
-    setTimeout(()=>{ el.boot.veil.style.display='none'; }, 1000);
-    disableMainControls(false);
-    STATE.isBooted = true;
-  }
-
-  function disableMainControls(disabled){
-    [el.btnUpload, el.btnCamera, el.btnAnalyze, el.btnExport, el.garageTrigger].forEach(b=>{
-      if(!b) return;
-      b.disabled = !!disabled;
-      b.classList.toggle('locked', !!disabled);
-    });
-  }
-
-  /* =========================
-     UPLOAD GATE (2/day unless Access+)
-  ==========================*/
-  function canUpload(){
-    if(STATE.accessUnlocked) return true;
-    // allow +1 extra if SalesU demo granted and demo not used
-    const room = STATE.uploadsToday < 2 || (!STATE.demoUsed && STATE.salesUDemo && STATE.uploadsToday < 3);
-    return room;
-  }
-  function enforceUploadGate(){
-    if(canUpload()) return true;
-    speak("Daily access limit reached. Access Plus unlocks unlimited uploads and analyses.", 2);
-    openPaywall("Access Limit Reached","Unlock Access+ for unlimited uploads and analyses.");
-    return false;
-  }
-
-  /* =========================
      CAMERA
   ==========================*/
   let camStream=null,camVideo=null,captureBtn=null;
   async function openCamera(){
-    if(!enforceUploadGate()) return;
+    if(STATE.demoCycleDone && !STATE.accessUnlocked){
+      speak("You've used your free run. Access Plus unlocks unlimited analyzing.", {gender:"male"});
+      openPaywall("Access+ Required","Unlimited analyzing for $25/month.");
+      return;
+    }
     try{
       const stream=await navigator.mediaDevices.getUserMedia({video:true});
       camStream=stream;
       camVideo=document.createElement("video");
       camVideo.playsInline=true; camVideo.muted=true; camVideo.srcObject=stream; await camVideo.play();
       el.preview.style.display='block'; previewReplaceWithNode(camVideo); ensureCaptureBtn();
-      speak("Camera online. Capture when ready.", 3);
+      speak("Camera online. Capture when ready.", {gender:"male"});
     }catch(e){ showTip("Camera access denied.",true); }
   }
   function ensureCaptureBtn(){
@@ -524,7 +439,7 @@
       const url=URL.createObjectURL(blob); previewReplaceWithImage(url);
       el.preview.style.display='block'; el.dashHint.style.opacity=.25;
       el.file._capturedBlob = blob;
-      bumpUploads(); showTip("Captured — tap Analyze.", true);
+      showTip("Captured — tap Analyze.", true);
       logEvent('camera_capture', { size: blob.size });
     };
   }
@@ -543,25 +458,50 @@
   }
 
   /* =========================
+     TIPS
+  ==========================*/
+  function showTip(text,right=false){
+    ensureTips();
+    const t = document.createElement('div');
+    t.className = 'tip'+(right?' right':'' );
+    t.textContent = text;
+    el.tips.appendChild(t);
+    requestAnimationFrame(()=>t.classList.add('show'));
+    setTimeout(()=>{ t.classList.remove('show'); setTimeout(()=>t.remove(),380); }, 4200);
+  }
+  function showAnalysisTips(summary){
+    const bits=(summary||"Consider mulch depth; define bed edge; check irrigation coverage.")
+      .replace(/\s+/g,' ').trim().split(/[.;]/).map(s=>s.trim()).filter(Boolean).slice(0,3);
+    let delay=240;
+    bits.forEach((b,i)=>{ setTimeout(()=>showTip("💡 "+b, i%2===1), delay); delay+=1400; });
+    setTimeout(()=>showTip("🧾 Pro Sales Insight available — tap Pro Export.", true), delay+260);
+  }
+
+  /* =========================
      ANALYZE
   ==========================*/
-  el.btnAnalyze.onclick = async ()=>{
+  el.btnAnalyze.addEventListener('click', async ()=>{
     if(!el.preview.style.display || el.preview.style.display==='none'){
       showTip("Upload or capture a photo first.", true); return;
     }
+    // After first full cycle, require Access+ for analyzing
+    if(STATE.demoCycleDone && !STATE.accessUnlocked){
+      speak("You've used your free analysis. Unlock Access Plus for unlimited analyzing.", {gender:"male"});
+      openPaywall("Access+ Required","Unlimited analyzing for $25/month.");
+      return;
+    }
+
     const blob = el.file._capturedBlob;
     const fileEl = el.file.files && el.file.files[0];
     if(!blob && !fileEl){ showTip("No image found.", true); return; }
 
-    STATE.analyzing = true;
     el.preview.classList.add('glow-on');
     el.wheel.style.display='flex'; el.wheelText.textContent = "Analyzing…";
-
     const formData=new FormData();
     if(blob) formData.append("file",blob,"capture.jpg"); else formData.append("file",fileEl);
 
     try{
-      speak("Analyzing image.", 2);
+      speak("Analyzing image.", {gender:"male"});
       logEvent('analyze_start', {});
       const resp = await fetch(`${API}/analyze-image`, { method:"POST", body:formData });
       const data = await resp.json();
@@ -569,54 +509,50 @@
       STATE.lastSummary = summary;
       logEvent('analyze_result', { summary });
 
-      // Speak the summary and show tips (no chat boxes)
-      speak(summary, 2);
+      // Speak summary and show tips
+      speak(summary, {gender:"male"});
       showAnalysisTips(summary);
 
       el.hudTabs.style.display='flex';
       el.btnExport.classList.remove('hidden');
       el.dashHint.style.opacity=.6;
 
-      // First full demo flag (FREE)
-      if(!STATE.demoUsed){
-        localStorage.setItem('herohud_demo_analysis_used','1');
-        STATE.demoUsed = true;
+      // Mark demo cycle complete after first analysis succeeds
+      if(!STATE.demoCycleDone){
+        localStorage.setItem('herohud_demo_cycle_done','1');
+        STATE.demoCycleDone = true;
+        showTip("Demo complete — export is unlocked for this run.", true);
       }
     }catch(e){
       showTip("❌ Analysis failed.", true);
       logEvent('analyze_error', { msg: String(e) });
-      speak("Analysis failed. Please try again.", 2);
+      speak("Analysis failed. Please try again.", {gender:"male"});
     } finally {
       el.wheel.style.display='none';
       el.preview.classList.remove('glow-on');
-      STATE.analyzing = false;
     }
-  };
+  });
 
   /* =========================
-     EXPORT (PRO PAYWALL)
+     EXPORT (Pro paywall only after first run)
   ==========================*/
-  el.btnExport.onclick = ()=>{
+  el.btnExport.addEventListener('click', ()=>{
     if(!STATE.proUnlocked){
-      speak("Pro Sales Insight required to export a client-ready report.", 2);
+      speak("Pro Sales Insight required to export a client-ready report.", {gender:"male"});
       openPaywall("Pro Sales Insight Required","Choose single $39/report or $89/month unlimited.");
       return;
     }
     triggerExport();
-  };
+  });
 
   async function triggerExport(){
     try{
       logEvent('export_start', {});
-      speak("Generating your professional report.", 2);
-      // Compile silent log + lastSummary
+      speak("Generating your professional report.", {gender:"male"});
       const tipsTxt=[...document.querySelectorAll('.tip')].map(e=>e.textContent.trim()).join("\n");
-      const payload = {
-        summary: STATE.lastSummary || "",
-        tips: tipsTxt || "",
-        logs: STATE.logs
-      };
+      const payload = { summary: STATE.lastSummary || "", tips: tipsTxt || "", logs: STATE.logs };
       const resp = await fetch(`${API}/export`, { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(payload) });
+
       if(resp.ok && resp.headers.get('content-type')?.includes('application/pdf')){
         const blob = await resp.blob();
         const a=document.createElement("a"); a.href=URL.createObjectURL(blob); a.download="herohud_pro_report.pdf"; a.click();
@@ -625,140 +561,101 @@
         downloadText("herohud_pro_report.txt", fallback);
       }
       logEvent('export_done', {});
-      speak("Report ready.", 2);
+      speak("Report ready.", {gender:"male"});
     }catch(e){
       logEvent('export_error', { msg:String(e) });
       showTip("Export failed. Try again.", true);
-      speak("Export failed. Please try again.", 2);
+      speak("Export failed. Please try again.", {gender:"male"});
     }
   }
 
   /* =========================
-     FILE UPLOAD
+     FILE UPLOAD + CAMERA WIRE
   ==========================*/
-  el.btnUpload.onclick = ()=> { if(!enforceUploadGate()) return; el.file.click(); };
-  el.file.onchange=()=>{
+  el.btnUpload.addEventListener('click', ()=> {
+    // First cycle always free. Afterwards, uploads are allowed, but analyze is gated (as designed).
+    el.file.click();
+  });
+  el.file.addEventListener('change', ()=>{
     const f=el.file.files[0]; if(!f) return;
     const url=URL.createObjectURL(f);
     previewReplaceWithImage(url);
     el.preview.style.display='block';
     el.dashHint.style.opacity=.25;
-    bumpUploads();
     showTip("Photo loaded — tap Analyze.", true);
     logEvent('upload', { name:f.name, size:f.size });
-  };
-
-  /* =========================
-     CAMERA WIRE
-  ==========================*/
-  el.btnCamera.onclick = openCamera;
+  });
+  el.btnCamera.addEventListener('click', openCamera);
 
   /* =========================
      GARAGE WIRE
   ==========================*/
-  el.garageTrigger.onclick = openGarage;
-  el.garageCloseBtn.onclick = closeGarage;
+  el.btnGarage.addEventListener('click', openGarage);
+  el.garageCloseBtn.addEventListener('click', closeGarage);
 
   // Access+
-  el.btnAccessMonthly.onclick = ()=>{
+  el.btnAccessMonthly?.addEventListener('click', ()=>{
     localStorage.setItem('herohud_access_unlocked','1');
     STATE.accessUnlocked = true;
-    speak("Access Plus confirmed. Unlimited uploads and analyses are live.", 2);
-  };
+    speak("Access Plus confirmed. Unlimited analyzing is live.", {gender:"male"});
+  });
 
-  // Pro Sales Insight activation
-  el.btnProActivate.onclick = ()=>{
+  // Pro Sales Insight
+  el.btnProActivate?.addEventListener('click', ()=>{
     const choice = document.querySelector('input[name="proMode"]:checked')?.value || 'single';
     STATE.proMode = choice;
     localStorage.setItem('herohud_pro_unlocked','1');
     STATE.proUnlocked = true;
-    if(choice==='single'){
-      speak("Single report mode selected. Pro Sales Insight ready at thirty-nine dollars per export.", 2);
-    } else {
-      speak("Unlimited Pro Sales Insight activated at eighty-nine dollars per month.", 2);
-    }
-  };
+    speak(choice==='single'
+      ? "Single report mode selected. Pro Sales Insight ready at thirty-nine dollars per export."
+      : "Unlimited Pro Sales Insight activated at eighty-nine dollars per month."
+    , {gender:"male"});
+  });
 
-  // Sales U
-  el.btnSalesU.onclick = ()=>{
-    speak("Sales University engaged. You’re entering a one-week sprint built from elite systems. I’ll guide you through each stage.", 2);
-  };
-  el.btnSalesUDemo.onclick = ()=>{
+  // Sales U (Addie)
+  el.btnSalesU?.addEventListener('click', ()=>{
+    speak("Welcome to Sales University. I’m Addie — your guide for the week. Let’s build your wins, one client at a time.", {gender:"female"});
+  });
+  el.btnSalesUDemo?.addEventListener('click', ()=>{
     localStorage.setItem('herohud_salesu_demo','1');
     STATE.salesUDemo = true;
-    speak("One additional analysis demo has been granted via Sales University. Use it to practice a real job.", 2);
-  };
+    speak("One additional analysis demo has been granted. Use it to practice a real job.", {gender:"female"});
+  });
 
   // Hero Complete
-  el.btnHeroComplete.onclick = ()=>{
+  el.btnHeroComplete?.addEventListener('click', ()=>{
     localStorage.setItem('herohud_access_unlocked','1');
     localStorage.setItem('herohud_pro_unlocked','1');
     STATE.accessUnlocked = true; STATE.proUnlocked = true;
-    speak("Hero Complete activated. All systems at full capacity — welcome to command mode.", 2);
-  };
+    speak("Hero Complete activated. All systems at full capacity — welcome to command mode.", {gender:"male"});
+  });
 
-  // Founder lifetime
-  el.btnFounderLifetime.onclick = ()=>{
-    speak("Founder mode queued. We’ll finalize your permanent build and branding shortly.", 2);
-  };
-
-  // Founder Deck
-  el.btnFounderDeck.onclick = async ()=>{
+  // Founder Deck + Logs
+  el.btnFounderDeck?.addEventListener('click', async ()=>{
     try{
       const resp = await fetch(`${API}/founder-report`, { method: 'POST' });
       if(!resp.ok) throw new Error('Founder report failed');
       const blob = await resp.blob();
-      const a=document.createElement("a");
-      a.href=URL.createObjectURL(blob);
-      a.download = "HeroHUD_FoundersDeck.pdf";
-      a.click();
-      speak("Founder’s Deck generated.", 2);
+      const a=document.createElement("a"); a.href=URL.createObjectURL(blob); a.download = "HeroHUD_FoundersDeck.pdf"; a.click();
+      speak("Founder’s Deck generated.", {gender:"male"});
     }catch(e){
       showTip("Founder’s Deck generation failed.", true);
-      speak("Founder’s Deck generation failed. Please try again.", 2);
+      speak("Founder’s Deck generation failed. Please try again.", {gender:"male"});
     }
-  };
-
-  // Logs download
-  el.btnDownloadLogs.onclick = ()=>{
+  });
+  el.btnDownloadLogs?.addEventListener('click', ()=>{
     const text = JSON.stringify(STATE.logs, null, 2);
     downloadText("herohud_logs.txt", text);
-    speak("Log archive downloaded.", 2);
-  };
-
-  /* =========================
-     PAYWALL BUTTONS
-  ==========================*/
-  el.btnPaywallClose.onclick = closePaywall;
-  el.btnProOnce.onclick = ()=>{
-    localStorage.setItem('herohud_pro_unlocked','1');
-    STATE.proUnlocked = true;
-    STATE.proMode = 'single';
-    speak("Single report mode confirmed for Pro Sales Insight.", 2);
-    closePaywall();
-    triggerExport();
-  };
-  el.btnProMonthly.onclick = ()=>{
-    localStorage.setItem('herohud_pro_unlocked','1');
-    localStorage.setItem('herohud_access_unlocked','1'); // nice perk if desired
-    STATE.proUnlocked = true; STATE.accessUnlocked = true; STATE.proMode = 'unlimited';
-    speak("Unlimited Pro Sales Insight and Access Plus are now active.", 2);
-    closePaywall();
-  };
+    speak("Log archive downloaded.", {gender:"male"});
+  });
 
   /* =========================
      INIT
   ==========================*/
-  window.addEventListener('load', () => {
-    // Preload voices (some browsers require this)
-    window.speechSynthesis.getVoices();
-    boot();
+  window.addEventListener('load', async () => {
+    // Kick off Boot Chamber (2.5s cinematic)
+    await boot();
   });
-
-  /* =========================
-     SMALL HELPERS
-  ==========================*/
-  function wait(ms){ return new Promise(r=>setTimeout(r,ms)) }
 
 })();
 </script>
