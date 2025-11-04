@@ -6,13 +6,11 @@
 <title>Hero Pro • JARED HUD</title>
 <meta name="theme-color" content="#0b1b16" />
 <style>
-  html,body{
-    margin:0;height:100%;overflow:hidden;background:#0b1b16;
-    font-family:system-ui,sans-serif;color:#E9FFF6;
-    user-select:none;-webkit-user-select:none;-webkit-tap-highlight-color:transparent;
-    touch-action:none;
+  html,body {
+    margin:0; height:100%; background:#0b1b16; overflow:hidden;
+    touch-action:none; -webkit-user-select:none; user-select:none;
+    -webkit-tap-highlight-color:transparent;
   }
-  canvas{position:absolute;top:0;left:0;width:100%;height:100%;}
 </style>
 </head>
 <body>
@@ -20,227 +18,335 @@
 
 <script>
 (() => {
-// ===== API base =====
-const API=(location.hostname.includes("localhost")||location.hostname.includes("127.0.0.1"))
-?"http://localhost:3001":"https://jared-hero2-backend.onrender.com";
+  // ===== API base =====
+  const API = (location.hostname.includes("localhost")||location.hostname.includes("127.0.0.1"))
+    ? "http://localhost:3001"
+    : "https://jared-hero2-backend.onrender.com";
 
-// ===== Brand =====
-const BRAND={
-  bgTop:"#0b1b16",bgBot:"#06110d",
-  mintL:"#7FFFD4",mintB:"#34D1A0",text:"#E9FFF6",textDim:"rgba(233,255,246,.85)",
-  auraS:"rgba(119,255,206,.15)",auraM:"rgba(119,255,206,.35)",auraH:"rgba(119,255,206,.6)"
-};
-
-// ===== Canvas =====
-const cvs=document.getElementById("hud"),ctx=cvs.getContext("2d",{alpha:false});
-let DPR=window.devicePixelRatio||1;
-const S={w:0,h:0,t:0};
-function resize(){
-  DPR=Math.min(3,Math.max(1,devicePixelRatio||1));
-  S.w=innerWidth;S.h=innerHeight;
-  cvs.width=S.w*DPR;cvs.height=S.h*DPR;
-  ctx.setTransform(DPR,0,0,DPR,0,0);
-}
-addEventListener("resize",resize);resize();
-
-// ===== State =====
-let rec=null,canListen=true,micPrimed=false,talkState="idle";
-let lastFile=null,photo={img:null,w:0,h:0,x:0,y:0,show:false,glow:0};
-let greeted=false,firstAnalysisDone=false;
-const bubbles=[],tips=[],savedInsights=[];
-
-// ===== Icons =====
-const ICONS=[
-  {id:"upload",label:"Upload",icon:"⬆️"},
-  {id:"camera",label:"Camera",icon:"📷"},
-  {id:"analyze",label:"Estimate",icon:"🧮"},
-  {id:"talk",label:"Talk to JARED",icon:"🎤"},
-  {id:"export",label:"Export Estimate",icon:"📤"},
-  {id:"school",label:"Sales U",icon:"🎓"},
-  {id:"full",label:"Fullscreen",icon:"⛶"},
-];
-function layout(){ICONS.forEach((it,i)=>{it.x=(S.w/(ICONS.length+1))*(i+1);it.y=S.h-90;it.r=42;});}
-layout();
-
-// ===== Background =====
-function drawBackground(t){
-  const g=ctx.createLinearGradient(0,0,0,S.h);
-  g.addColorStop(0,BRAND.bgTop);g.addColorStop(1,BRAND.bgBot);
-  ctx.fillStyle=g;ctx.fillRect(0,0,S.w,S.h);
-  const glow=ctx.createRadialGradient(S.w/2,S.h*0.85,0,S.w/2,S.h*0.85,S.h*0.6);
-  glow.addColorStop(0,BRAND.auraM);glow.addColorStop(1,"transparent");
-  ctx.fillStyle=glow;ctx.fillRect(0,0,S.w,S.h);
-  // Hero Pro logo
-  ctx.font="900 26px system-ui";ctx.textAlign="center";ctx.fillStyle=BRAND.mintL;
-  ctx.fillText("HERO",S.w/2,48);
-  ctx.font="500 26px system-ui";ctx.fillStyle=BRAND.textDim;ctx.fillText("PRO",S.w/2+58,48);
-}
-
-// ===== Photo + Tips =====
-function drawPhoto(){
-  if(!photo.show||!photo.img)return;
-  const maxW=S.w*0.9,maxH=S.h*0.45;
-  let w=photo.w,h=photo.h;const sc=Math.min(maxW/w,maxH/h);
-  w*=sc;h*=sc;photo.x=(S.w-w)/2;photo.y=S.h*0.12;
-  ctx.save();ctx.globalAlpha=photo.glow;
-  ctx.drawImage(photo.img,photo.x,photo.y,w,h);
-  ctx.restore();
-}
-function spawnTip(msg){
-  if(tips.length>=3)tips.shift();
-  tips.push({msg,x:photo.x+Math.random()*photo.w,y:photo.y+Math.random()*photo.h,start:performance.now(),life:3000});
-}
-function drawTips(){
-  const now=performance.now();
-  for(const tip of tips){
-    const a=1-(now-tip.start)/tip.life;if(a<=0)continue;
-    ctx.save();ctx.globalAlpha=a*.8;ctx.fillStyle="rgba(119,255,206,.25)";
-    ctx.beginPath();ctx.arc(tip.x,tip.y-(1-a)*30,24,0,Math.PI*2);ctx.fill();
-    ctx.fillStyle=BRAND.text;ctx.font="600 12px system-ui";ctx.textAlign="center";
-    ctx.fillText(tip.msg,tip.x,tip.y-(1-a)*30+4);ctx.restore();
-  }
-}
-
-// ===== File + Camera =====
-const fileInput=document.createElement("input");
-fileInput.type="file";fileInput.accept="image/*";fileInput.style.display="none";
-document.body.appendChild(fileInput);
-fileInput.onchange=()=>loadPhoto(fileInput.files[0]);
-function chooseFile(){fileInput.click();}
-async function takePhoto(){
-  try{
-    const stream=await navigator.mediaDevices.getUserMedia({video:true});
-    const video=document.createElement("video");video.srcObject=stream;await video.play();
-    const canvas=document.createElement("canvas");canvas.width=video.videoWidth;canvas.height=video.videoHeight;
-    const cctx=canvas.getContext("2d");cctx.drawImage(video,0,0);
-    stream.getTracks().forEach(t=>t.stop());
-    canvas.toBlob(b=>loadPhoto(new File([b],"photo.jpg",{type:"image/jpeg"})));
-  }catch(e){toast("Camera denied");}
-}
-function loadPhoto(f){
-  if(!f)return;
-  if(photo.url)URL.revokeObjectURL(photo.url);
-  photo.url=URL.createObjectURL(f);lastFile=f;
-  photo.img=new Image();
-  photo.img.onload=()=>{photo.w=photo.img.width;photo.h=photo.img.height;photo.show=true;photo.glow=.8;toast("✅ Photo loaded");};
-  photo.img.src=photo.url;
-}
-
-// ===== Voice + Greeting =====
-function initRecognition(){
-  if(!("webkitSpeechRecognition"in window))return null;
-  const r=new webkitSpeechRecognition();
-  r.lang="en-US";r.interimResults=false;r.continuous=false;
-  r.onstart=()=>talkState="listening";
-  r.onend=()=>{if(talkState==="listening")talkState="thinking";canListen=true;};
-  r.onresult=async e=>{
-    const text=e.results[0][0].transcript;
-    try{
-      const resp=await fetch(`${API}/inference`,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({text})});
-      const data=await resp.json();const content=data.content||"No response";
-      toast(content);await speak(content);
-    }catch{toast("JARED offline");}
-    talkState="idle";
+  // ===== Brand =====
+  const BRAND = {
+    bgTop:'#0b1b16', bgBot:'#07100d',
+    mintL:'#77FFCE', mintB:'#34D1A0', text:'#E9FFF6', textDim:'rgba(233,255,246,.85)',
+    auraS:'rgba(119,255,206,.15)', auraM:'rgba(119,255,206,.35)', auraH:'rgba(119,255,206,.55)'
   };
-  return r;
-}
-rec=initRecognition();
-function startListening(){if(!rec||!canListen)return;canListen=false;rec.start();}
-function stopListening(){if(rec)rec.stop();}
-function primeMic(){if(micPrimed||!rec)return;try{rec.start();rec.abort();micPrimed=true;}catch{}}
-addEventListener("touchstart",primeMic,{once:true});
-addEventListener("click",primeMic,{once:true});
-async function greet(){
-  if(localStorage.getItem("heroGreeted")==="true")return;
-  localStorage.setItem("heroGreeted","true");
-  await new Promise(r=>setTimeout(r,700));
-  await speak("Hola hola — yo yo yo, Jared here. Welcome to Hero Pro — your sandbox to estimate and sell like a pro. Tap Upload to start.");
-}
-window.addEventListener("load",greet,{once:true});
 
-// ===== Speak + Toast =====
-let speechAudio=null;
-async function speak(text){
-  if(!text)return;
-  try{
-    if(speechAudio){speechAudio.pause();speechAudio=null;}
-    const r=await fetch(`${API}/speak`,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({text})});
-    const b=await r.blob();const u=URL.createObjectURL(b);
-    speechAudio=new Audio(u);await speechAudio.play();
-  }catch{}
-}
-function toast(msg,ms=1600){bubbles.push({msg,t:performance.now(),ms});}
-function drawToasts(){
-  const now=performance.now();
-  for(const b of bubbles){
-    const age=now-b.t;if(age>b.ms)continue;
-    const a=age<200?age/200:age>b.ms-250?(b.ms-age)/250:1;
-    ctx.save();ctx.globalAlpha=a*.9;
-    ctx.fillStyle="rgba(10,26,20,.9)";ctx.strokeStyle=BRAND.auraM;ctx.lineWidth=2;
-    ctx.beginPath();ctx.roundRect?.(S.w/2-200,S.h-70,400,40,10);
-    ctx.fill();ctx.stroke();
-    ctx.fillStyle=BRAND.text;ctx.font="600 14px system-ui";ctx.textAlign="center";ctx.textBaseline="middle";
-    ctx.fillText(b.msg,S.w/2,S.h-50);ctx.restore();
+  // ===== Icons =====
+  const defs = [
+    { id:'upload',  label:'Upload', desc:'Choose a yard photo.', icon:'⬆️' },
+    { id:'camera',  label:'Camera', desc:'Take a live photo.', icon:'📷' },
+    { id:'analyze', label:'Estimate', desc:'Run pricing & AI tips.', icon:'🧮' },
+    { id:'talk',    label:'Talk to JARED', desc:'Tap to speak, tap again to stop.', icon:'🎤' },
+    { id:'export',  label:'Export Estimate', desc:'Save notes & pro insights.', icon:'📤' },
+    { id:'school',  label:'Sales University', desc:'Playbooks & closers.', icon:'🎓' },
+    { id:'full',    label:'Fullscreen', desc:'Toggle full HUD.', icon:'⛶' },
+  ];
+  const ICONS = [];
+
+  // ===== Canvas Setup =====
+  const cvs = document.getElementById('hud');
+  const ctx = cvs.getContext('2d', { alpha:false });
+  let DPR = Math.max(1, Math.min(3, devicePixelRatio||1));
+  const S = { w:0,h:0,t:0, tx:0,ty:0 };
+
+  function layoutIcons() {
+    ICONS.length = 0;
+    const sodH = Math.max(120, Math.min(220, S.h * 0.22));
+    const baseY = S.h - sodH + 8;
+    const pad = 50;
+    const gap = (S.w - pad * 2) / (defs.length - 1);
+    defs.forEach((d, i) => {
+      ICONS.push({ ...d, x: pad + i * gap, y: S.h + 120, targetY: baseY - 80, r: 46, hover:false });
+    });
   }
-  for(let i=bubbles.length-1;i>=0;i--)if(performance.now()-bubbles[i].t>bubbles[i].ms)bubbles.splice(i,1);
-}
 
-// ===== Analyze + Paywall =====
-async function analyze(){
-  if(!lastFile){toast("Upload first");return;}
-  if(firstAnalysisDone){showPaywall();return;}
-  toast("Analyzing...");
-  try{
-    const fd=new FormData();fd.append("file",lastFile);
-    const resp=await fetch(`${API}/analyze-image`,{method:"POST",body:fd});
-    const data=await resp.json();
-    toast("✅ Estimate Ready");
-    spawnTip("Check slope");
-    setTimeout(()=>spawnTip("Add edging"),800);
-    setTimeout(()=>spawnTip("Upsell mulch"),1600);
-    await speak(data.summary);
-    firstAnalysisDone=true;
-  }catch{toast("❌ Analysis failed");}
-}
-function showPaywall(){
-  const o=document.createElement("div");
-  Object.assign(o.style,{position:"fixed",top:0,left:0,width:"100%",height:"100%",background:"rgba(0,0,0,.85)",color:"#7FFFD4",display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",zIndex:9999});
-  o.innerHTML=`<h1 style="font-weight:700;">Join Beta Access</h1>
-  <p style="max-width:300px;text-align:center;">You've hit your free analysis limit.<br>Join to unlock unlimited pro insights and dashboard.</p>
-  <button style="margin-top:20px;padding:10px 20px;border:none;background:#34D1A0;color:#0b1b16;font-weight:600;border-radius:8px;">Join Now</button>`;
-  o.querySelector("button").onclick=()=>o.remove();
-  document.body.appendChild(o);
-}
+  function resize(){
+    DPR = Math.max(1, Math.min(3, devicePixelRatio||1));
+    S.w = innerWidth; S.h = innerHeight;
+    cvs.width = Math.floor(S.w*DPR);
+    cvs.height = Math.floor(S.h*DPR);
+    cvs.style.width = S.w+'px';
+    cvs.style.height = S.h+'px';
+    ctx.setTransform(DPR,0,0,DPR,0,0);
+    layoutIcons();
+  }
+  addEventListener('resize', resize, {passive:true});
+  resize();
 
-// ===== Icon Drawing =====
-function halo(r,c,b){ctx.save();ctx.shadowColor=c;ctx.shadowBlur=b;ctx.beginPath();ctx.arc(0,0,r,0,Math.PI*2);ctx.stroke();ctx.restore();}
-function drawIcon(it){
-  const {x,y,r}=it;ctx.save();ctx.translate(x,y);
-  if(it.id==="talk"){
-    if(talkState==="listening")halo(r+20,BRAND.auraH,25);
-    else halo(r+12,BRAND.auraS,15);
-  }else halo(r+10,BRAND.auraS,12);
-  const g=ctx.createRadialGradient(0,-r*.5,r*.2,0,0,r*1.2);
-  g.addColorStop(0,"#10281f");g.addColorStop(1,"#0a1a14");
-  ctx.fillStyle=g;ctx.beginPath();ctx.arc(0,0,r,0,Math.PI*2);ctx.fill();
-  ctx.strokeStyle=BRAND.mintB;ctx.lineWidth=3;ctx.stroke();
-  ctx.fillStyle=BRAND.text;ctx.font=Math.floor(r*.9)+"px serif";ctx.textAlign="center";ctx.textBaseline="middle";ctx.fillText(it.icon,0,2);
-  ctx.font="600 12px system-ui";ctx.fillStyle=BRAND.textDim;ctx.fillText(it.label,0,r+18);
-  ctx.restore();
-}
+  // ====== State ======
+  const bubbles = [];
+  const tips = [];
+  const savedInsights = [];
+  let talkState = 'idle', greeted=false, firstPreviewDone=false;
+  let rec=null, canListen=true, speechAudio=null, micPrimed=false;
+  let lastFile=null;
+  const photo={img:null,url:null,w:0,h:0,x:0,y:0,show:false,glow:0.4};
 
-// ===== Interaction =====
-let pressed=null;
-function hit(x,y){for(const it of ICONS){const dx=x-it.x,dy=y-it.y;if(dx*dx+dy*dy<(it.r+10)**2)return it;}return null;}
-cvs.addEventListener("pointerdown",e=>{const it=hit(e.clientX,e.clientY);if(!it)return;pressed=it.id;if(it.id==="upload")chooseFile();if(it.id==="camera")takePhoto();if(it.id==="talk")startListening();});
-addEventListener("pointerup",()=>{if(!pressed)return;if(pressed==="talk")stopListening();if(pressed==="analyze")analyze();if(pressed==="full")toggleFull();pressed=null;});
-function toggleFull(){if(!document.fullscreenElement)cvs.requestFullscreen();else document.exitFullscreen();}
+  // ===== File + Camera =====
+  const fileInput = document.createElement("input");
+  fileInput.type="file"; fileInput.accept="image/*"; fileInput.style.display="none";
+  document.body.appendChild(fileInput);
+  function chooseFile(){ fileInput.value=""; fileInput.click(); }
+  fileInput.onchange=()=>{ loadPhoto(fileInput.files[0]); };
 
-// ===== Main Loop =====
-function loop(t){
-  S.t=t;drawBackground(t);drawPhoto();drawTips();ICONS.forEach(drawIcon);drawToasts();requestAnimationFrame(loop);
-}
-requestAnimationFrame(loop);
+  async function takePhoto() {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ video:true });
+      const video = document.createElement('video');
+      video.srcObject = stream;
+      await video.play();
+      const canvas = document.createElement('canvas');
+      canvas.width = video.videoWidth; canvas.height = video.videoHeight;
+      const cctx = canvas.getContext('2d');
+      cctx.drawImage(video,0,0);
+      stream.getTracks().forEach(t=>t.stop());
+      canvas.toBlob(blob => loadPhoto(new File([blob],'photo.jpg',{type:'image/jpeg'})));
+    } catch(e){ toast('Camera access denied.'); }
+  }
+
+  function loadPhoto(f){
+    if (!f) return;
+    lastFile=f;
+    if (photo.url) URL.revokeObjectURL(photo.url);
+    photo.url=URL.createObjectURL(f);
+    photo.img=new Image();
+    photo.img.onload=()=>{
+      photo.w=photo.img.width; photo.h=photo.img.height;
+      photo.show=true; photo.glow=0.8;
+      toast("✅ Photo loaded. Tap Estimate.");
+      if (!firstPreviewDone) firstPreviewDone=true;
+    };
+    photo.img.src=photo.url;
+  }
+
+  // ===== Drawing Helpers =====
+  function roundRect(g,x,y,w,h,r){ const rr=Math.min(r,w/2,h/2); g.beginPath(); g.moveTo(x+rr,y); g.arcTo(x+w,y,x+w,y+h,rr); g.arcTo(x+w,y+h,x,y+h,rr); g.arcTo(x,y+h,x,y,rr); g.arcTo(x,y,x+w,y,rr); g.closePath(); }
+  function halo(r,color,blur){ ctx.save(); ctx.shadowColor=color; ctx.shadowBlur=blur; ctx.beginPath(); ctx.arc(0,0,r,0,Math.PI*2); ctx.strokeStyle='transparent'; ctx.stroke(); ctx.restore(); }
+
+  // ===== Background =====
+  function drawBackground(t){
+    const g=ctx.createLinearGradient(0,0,0,S.h);
+    g.addColorStop(0,BRAND.bgTop);
+    g.addColorStop(1,BRAND.bgBot);
+    ctx.fillStyle=g; ctx.fillRect(0,0,S.w,S.h);
+    const rg=ctx.createRadialGradient(S.w/2,S.h*0.85,0,S.w/2,S.h*0.85,Math.max(S.w,S.h)*0.55);
+    rg.addColorStop(0,BRAND.auraM); rg.addColorStop(1,'transparent');
+    ctx.fillStyle=rg; ctx.fillRect(0,0,S.w,S.h);
+  }
+
+  // ===== Photo Display =====
+  function drawPhoto(){
+    if (!photo.show||!photo.img) return;
+    const maxW=S.w*0.9, maxH=S.h*0.45;
+    let w=photo.w,h=photo.h; const scale=Math.min(maxW/w,maxH/h);
+    w*=scale; h*=scale;
+    photo.x=(S.w-w)/2; photo.y=S.h*0.12;
+    ctx.save(); ctx.globalAlpha=photo.glow;
+    ctx.drawImage(photo.img,photo.x,photo.y,w,h);
+    ctx.restore();
+  }
+
+  // ===== Floating Tips =====
+  function spawnTip(msg){
+    if(tips.length>=3) tips.shift();
+    const x=photo.x+Math.random()*photo.w;
+    const y=photo.y+Math.random()*photo.h;
+    tips.push({msg,x,y,start:performance.now(),life:3000});
+  }
+  function drawTips(){
+    const now=performance.now();
+    tips.forEach(tip=>{
+      const a=1-(now-tip.start)/tip.life;
+      if(a<=0) return;
+      ctx.save();
+      ctx.globalAlpha=a*0.8;
+      ctx.fillStyle='rgba(119,255,206,0.25)';
+      ctx.beginPath(); ctx.arc(tip.x, tip.y-(1-a)*40, 24, 0, Math.PI*2); ctx.fill();
+      ctx.fillStyle=BRAND.text; ctx.font='600 12px system-ui'; ctx.textAlign='center';
+      ctx.fillText(tip.msg, tip.x, tip.y-(1-a)*40+4);
+      ctx.restore();
+    });
+  }
+
+  // ===== AI Analyze =====
+  async function analyze(){
+    if(!lastFile){ toast("Upload first."); return; }
+    const formData=new FormData(); formData.append("file",lastFile);
+    toast("Analyzing...");
+    try{
+      const resp=await fetch(`${API}/analyze-image`,{method:"POST",body:formData});
+      const data=await resp.json();
+      toast(data.summary||"No summary.");
+      spawnTip("Upsell mulch color");
+      setTimeout(()=>spawnTip("Check slope depth"),800);
+      setTimeout(()=>spawnTip("Add edging estimate"),1600);
+      await speak(data.summary);
+      savedInsights.push(`PHOTO:\n${data.summary}\n`);
+    }catch(e){ toast("❌ Analysis failed."); }
+  }
+
+  function exportInsights(){
+    if(!savedInsights.length){ toast("No insights."); return; }
+    const blob=new Blob([savedInsights.join("\n\n")],{type:"text/plain"});
+    const a=document.createElement("a");
+    a.href=URL.createObjectURL(blob); a.download="jared_estimates.txt"; a.click();
+    toast("Insights exported!");
+  }
+  function openSchool(){ window.open("https://cardland51-bot.github.io/sales-university/","_blank"); }
+  function toggleFull(){ if(!document.fullscreenElement)cvs.requestFullscreen(); else document.exitFullscreen(); }
+
+  // ===== Voice & Greeting =====
+  function initRecognition(){
+    if(!('webkitSpeechRecognition' in window)) return null;
+    const r=new webkitSpeechRecognition();
+    r.lang='en-US'; r.interimResults=false; r.continuous=false;
+    r.onstart=()=>{talkState='listening';};
+    r.onend=()=>{ if(talkState==='listening') talkState='thinking'; canListen=true; };
+    r.onresult=async(e)=>{
+      const text=e.results[0][0].transcript;
+      try{
+        const resp=await fetch(`${API}/inference`,{
+          method:'POST', headers:{'Content-Type':'application/json'},
+          body:JSON.stringify({ text })
+        });
+        const data=await resp.json(); const content=data.content||'No response';
+        savedInsights.push(`[${new Date().toLocaleString()}]\nVOICE: "${text}"\n${content}\n`);
+        toast(content); await speak(content);
+      }catch(err){ toast('JARED unavailable.'); }
+      talkState='idle';
+    };
+    return r;
+  }
+  rec=initRecognition();
+
+  function primeMic(){ if(micPrimed||!rec)return; try{rec.start();rec.abort();micPrimed=true;}catch(e){} }
+  addEventListener('touchstart',()=>primeMic(),{once:true,passive:true});
+  addEventListener('click',()=>primeMic(),{once:true,passive:true});
+
+  async function greet(){
+    if(localStorage.getItem("jaredGreeted")==="true") return;
+    localStorage.setItem("jaredGreeted","true");
+    await new Promise(r=>setTimeout(r,700));
+    await speak("Hola hola — yo yo yo, Jared here. I'm still in beta, so be patient, my friend. Click Upload Photo to start, then hit Estimate to see what I can do. This is your Hero Pro sandbox — where you learn to price, build, and sell like a beast.");
+  }
+  window.addEventListener('load',greet,{once:true});
+
+  function startListening(){ if(!rec||!canListen)return; canListen=false; rec.start(); }
+  function stopListening(){ if(rec) rec.stop(); }
+
+  async function speak(text){
+    if(!text)return;
+    try{
+      if(speechAudio){ speechAudio.pause(); speechAudio=null; }
+      const r=await fetch(`${API}/speak`,{
+        method:'POST',headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({ text })
+      });
+      if(!r.ok) throw new Error('TTS failed');
+      const b=await r.blob(); const u=URL.createObjectURL(b);
+      speechAudio=new Audio(u); await speechAudio.play();
+    }catch(e){ console.log('TTS error:',e); }
+  }
+
+  // ===== Toast =====
+  function toast(msg,ms=1600){ bubbles.push({msg,t:performance.now(),ms}); }
+  function drawToasts(){
+    const now=performance.now();
+    bubbles.forEach((b,i)=>{
+      const age=now-b.t;if(age>b.ms)return;
+      const a=age<200?age/200:age>b.ms-250?(b.ms-age)/250:1;
+      const w=Math.min(460,S.w*0.9),h=46,x=(S.w-w)/2,y=S.h-90-i*56;
+      ctx.save(); ctx.globalAlpha=a*.95;
+      ctx.fillStyle='rgba(10,26,20,.92)'; ctx.strokeStyle=BRAND.auraM; ctx.lineWidth=2;
+      roundRect(ctx,x,y,w,h,12); ctx.fill(); ctx.stroke();
+      ctx.fillStyle=BRAND.text; ctx.font='600 14px system-ui'; ctx.textAlign='center';
+      ctx.textBaseline='middle'; ctx.fillText(b.msg,x+w/2,y+h/2+1);
+      ctx.restore();
+    });
+    for(let i=bubbles.length-1;i>=0;i--) if(performance.now()-bubbles[i].t>bubbles[i].ms)bubbles.splice(i,1);
+  }
+
+  // ===== Icons =====
+  function drawIcon(it,t){
+    it.y+=(it.targetY-it.y)*0.12;
+    const x=it.x,y=it.y,r=it.r;
+    ctx.save(); ctx.translate(x,y);
+    if(it.id==='talk'){
+      if(talkState==='listening') halo(r+18,BRAND.auraH,24);
+      else if(talkState==='thinking') halo(r+10,BRAND.auraM,18);
+      else halo(r+12,BRAND.auraS,14);
+    } else halo(r+12,it.hover?BRAND.auraM:BRAND.auraS,14);
+    const grd=ctx.createRadialGradient(-r*.5,-r*.6,r*.2,0,0,r*1.2);
+    grd.addColorStop(0,'#10281f'); grd.addColorStop(1,'#0a1a14');
+    ctx.fillStyle=grd; roundRect(ctx,-r,-r,r*2,r*2,r*.42); ctx.fill();
+    ctx.strokeStyle=it.hover?BRAND.mintL:BRAND.mintB;
+    ctx.lineWidth=3; ctx.beginPath(); ctx.arc(0,0,r-3,0,Math.PI*2); ctx.stroke();
+    ctx.font=Math.floor(r*.9)+'px serif'; ctx.textAlign='center'; ctx.textBaseline='middle';
+    ctx.fillText(it.icon,0,2);
+    ctx.font='600 13px system-ui'; ctx.fillStyle=BRAND.textDim;
+    ctx.fillText(it.label,0,r+18);
+    ctx.restore();
+  }
+
+  // ===== Sod =====
+  function drawSod(t){
+    const sodTop=S.h - Math.max(120, Math.min(220,S.h*0.22));
+    const grd=ctx.createLinearGradient(0,sodTop,0,S.h);
+    grd.addColorStop(0,'#0e241c'); grd.addColorStop(1,'#08130f');
+    ctx.fillStyle=grd; ctx.fillRect(0,sodTop,S.w,S.h-sodTop);
+    const blades=Math.floor(S.w/9);
+    for(let i=0;i<blades;i++){
+      const x=(i/(blades-1))*S.w;
+      const h=22+Math.sin((i*0.6)+t*0.002)*6;
+      const sway=Math.sin(t*0.003+i)*2+S.tx*1.2;
+      ctx.strokeStyle=i%7===0?BRAND.mintL:BRAND.mintB;
+      ctx.lineWidth=2; ctx.beginPath();
+      ctx.moveTo(x,sodTop+2);
+      ctx.quadraticCurveTo(x+sway,sodTop-h*0.6,x+sway*0.8,sodTop-h);
+      ctx.stroke();
+    }
+  }
+
+  // ===== Input =====
+  let pressedIcon=null;
+  function dist2(x1,y1,x2,y2){const dx=x2-x1,dy=y2-y1;return dx*dx+dy*dy;}
+  function pickIcon(x,y){ let best=null,bestD=Infinity;
+    for(const it of ICONS){ const R=it.r+20; const d2=dist2(x,y,it.x,it.y);
+      if(d2<R*R&&d2<bestD){best=it.id;bestD=d2;} it.hover=(best===it.id);
+    } return best; }
+  function handlePress(x,y){ const id=pickIcon(x,y); if(!id)return; pressedIcon=id;
+    if(id==='upload') chooseFile();
+    if(id==='camera') takePhoto();
+    if(id==='talk') startListening();
+  }
+  function handleRelease(){ if(!pressedIcon)return;
+    const id=pressedIcon; pressedIcon=null;
+    if(id==='talk') stopListening();
+    if(id==='analyze') analyze();
+    if(id==='export') exportInsights();
+    if(id==='school') openSchool();
+    if(id==='full') toggleFull();
+  }
+  function getXY(e){ const r=cvs.getBoundingClientRect();
+    if(e.touches&&e.touches[0])return{x:e.touches[0].clientX-r.left,y:e.touches[0].clientY-r.top};
+    return{x:e.clientX-r.left,y:e.clientY-r.top}; }
+  cvs.addEventListener('pointerdown',e=>{const p=getXY(e);handlePress(p.x,p.y);e.preventDefault();});
+  addEventListener('pointerup',e=>{handleRelease();e.preventDefault();});
+  cvs.addEventListener('touchstart',e=>{const p=getXY(e);handlePress(p.x,p.y);e.preventDefault();});
+  addEventListener('touchend',e=>{handleRelease();e.preventDefault();});
+
+  // ===== Main Loop =====
+  function tick(t){
+    S.t=t;
+    drawBackground(t);
+    drawPhoto();
+    drawTips();
+    drawSod(t);
+    ICONS.forEach(it=>drawIcon(it,t));
+    drawToasts();
+    requestAnimationFrame(tick);
+  }
+  requestAnimationFrame(tick);
+
 })();
 </script>
 </body>
