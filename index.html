@@ -1,9 +1,9 @@
-<!DOCTY<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,maximum-scale=1,user-scalable=no" />
-<title>HERO PRO • JARED • Upload → Estimate → Send</title>
+<title>HeroHUD • Upload → Analyze → Send</title>
 <meta name="theme-color" content="#0b1b16" />
 <style>
   :root{
@@ -14,10 +14,7 @@
   }
   html,body{margin:0;height:100%;background:linear-gradient(180deg,var(--bg-top),var(--bg-bot));color:var(--text);font-family:ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial}
   *{box-sizing:border-box}
-
-  body::before, body::after{
-    content:""; position:fixed; inset:0; pointer-events:none;
-  }
+  body::before, body::after{content:""; position:fixed; inset:0; pointer-events:none}
   body::before{
     background:
       radial-gradient(130% 90% at 50% 6%, rgba(156,255,224,.10), transparent 45%),
@@ -28,39 +25,32 @@
     background:
       linear-gradient( to right, transparent 0%, rgba(156,255,224,.05) 30%, transparent 60%),
       linear-gradient( to left, transparent 0%, rgba(47,176,233,.05) 30%, transparent 60%);
-    mix-blend-mode:screen;
-    animation:film2 18s linear infinite;
+    mix-blend-mode:screen; animation:film2 18s linear infinite;
   }
   @keyframes film1{to{transform:translateY(-2%)}}
   @keyframes film2{to{transform:translateX(-2%)}}
 
-  .topleft,.topright{position:fixed;top:12px;z-index:20}
-  .topleft{left:12px}
-  .topright{right:12px;display:flex;gap:8px}
-  .pill{border:1px solid var(--stroke);background:rgba(255,255,255,.05);color:var(--mintL);
-        padding:.5rem .75rem;border-radius:999px;backdrop-filter:blur(6px);cursor:pointer;
-        display:flex;align-items:center;gap:.5rem;font-size:12px;box-shadow:0 0 12px rgba(156,255,224,.18)}
-  .iconbtn{width:42px;height:42px;border-radius:50%;border:1px solid var(--stroke);
-           background:rgba(255,255,255,.05);display:grid;place-items:center;cursor:pointer;
-           box-shadow:0 0 12px rgba(156,255,224,.14)}
+  /* Top branding */
+  .topbar{position:fixed;inset:0 0 auto 0;height:64px;display:grid;place-items:center;z-index:10}
+  .brand{font-weight:900;letter-spacing:.08em}
+  .brand .hero{color:var(--mintL)} .brand .pro{opacity:.9;margin-left:.2ch}
 
-  .topbar{position:fixed;inset:0 0 auto 0;height:64px;display:grid;place-items:center;pointer-events:none}
-  .brand{pointer-events:auto;font-weight:900;letter-spacing:.08em}
-  .brand .hero{font-weight:900;color:var(--mintL)}
-  .brand .pro{font-weight:500;color:var(--text);opacity:.9;margin-left:.2ch}
-
-  .stage{position:fixed;inset:64px 0 148px 0;display:grid;place-items:center;padding:18px}
+  /* Stage */
+  .stage{position:fixed;inset:64px 0 160px 0;display:grid;place-items:center;padding:18px}
   .stack{display:flex;flex-direction:column;align-items:center;text-align:center;gap:12px;max-width:960px;width:100%}
 
+  /* Buttons */
   .btn{appearance:none;border:1px solid var(--mint);background:var(--glass);color:var(--mintL);
     padding:.85rem 1.4rem;border-radius:999px;letter-spacing:.08em;text-transform:uppercase;
-    font-weight:700;backdrop-filter:blur(6px);cursor:pointer;transition:box-shadow .2s,transform .1s;
-    box-shadow:0 0 16px rgba(156,255,224,.14);font-size:13px;position:relative;overflow:hidden}
+    font-weight:700;backdrop-filter:blur(6px);cursor:pointer;transition:box-shadow .2s,transform .1s,opacity .2s;
+    box-shadow:0 0 16px rgba(156,255,224,.14);font-size:13px;position:relative;overflow:hidden;user-select:none}
   .btn:hover{box-shadow:0 0 26px rgba(156,255,224,.45),0 0 24px rgba(47,176,233,.25)}
   .btn:active{transform:translateY(1px)}
   .btn.hidden{display:none}
+  .btn.locked{opacity:.55;cursor:not-allowed}
   .btn-row{display:flex;gap:10px;flex-wrap:wrap;justify-content:center}
 
+  /* Preview */
   #preview{display:none;position:relative;width:min(94vw,960px);aspect-ratio:16/10;border-radius:16px;overflow:hidden;border:1px solid var(--stroke);box-shadow:0 0 24px rgba(156,255,224,.14)}
   #preview img,#preview video{width:100%;height:100%;object-fit:cover}
   #edgeGlow{position:absolute;inset:0;border-radius:16px;pointer-events:none;opacity:0;
@@ -71,169 +61,500 @@
   .mini-spin{width:14px;height:14px;border-radius:50%;border:2px solid rgba(156,255,224,.35);border-top-color:var(--mintL);animation:spin 1s linear infinite}
   @keyframes spin{to{transform:rotate(360deg)}}
 
-  .tips{position:fixed;top:14%;left:0;right:0;pointer-events:none}
-  .tip{position:absolute;max-width:340px;background:rgba(255,255,255,.06);border:1px solid var(--stroke);
-    backdrop-filter:blur(8px);color:var(--text);padding:.7rem .9rem;border-radius:12px;
-    box-shadow:0 0 18px rgba(156,255,224,.25);opacity:0;transform:translateX(-40px);
-    transition:transform .6s cubic-bezier(.2,.9,.2,1),opacity .6s}
-  .tip.right{right:16px;left:auto;transform:translateX(40px)}
-  .tip.show{opacity:1;transform:translateX(0)}
+  /* Rolling HUD text under photo */
+  #hudStream{position:relative;width:min(94vw,960px);min-height:36px}
+  .line{opacity:0;transform:translateY(-6px);transition:all .35s ease;background:rgba(255,255,255,.04);
+    border:1px solid var(--stroke);border-radius:10px;padding:.5rem .75rem;margin:.35rem auto;max-width:92%;text-align:left}
+  .line.show{opacity:1;transform:translateY(0)}
+  .line small{opacity:.8}
 
-  .hud{display:none;gap:8px;margin-top:10px;flex-wrap:wrap;justify-content:center}
+  /* Tip bubbles (float, auto-hide) */
+  #tips{position:relative;width:min(94vw,960px);min-height:14px}
+  .tip{opacity:0;transform:translateY(8px);transition:all .4s ease;background:rgba(255,255,255,.06);
+    border:1px solid var(--stroke);backdrop-filter:blur(8px);color:var(--text);padding:.55rem .75rem;border-radius:10px;
+    box-shadow:0 0 18px rgba(156,255,224,.25);margin:.35rem auto;max-width:92%}
+  .tip.show{opacity:1;transform:translateY(0)}
+  .tip.right{text-align:right}
+
+  /* Tabs */
+  .hud{display:none;gap:8px;margin-top:8px;flex-wrap:wrap;justify-content:center}
   .tab{padding:.45rem .8rem;border:1px solid var(--stroke);border-radius:999px;background:rgba(255,255,255,.04);color:var(--textDim);font-size:12px}
 
-  .mic-dock{position:fixed;left:50%;bottom:88px;transform:translateX(-50%);z-index:25}
-  .mic{width:68px;height:68px;border-radius:50%;border:1px solid var(--mint);
-    background:linear-gradient(180deg,rgba(156,255,224,.07),rgba(47,176,233,.06));
-    display:grid;place-items:center;cursor:grab;box-shadow:0 0 16px rgba(156,255,224,.2)}
-  .mic:active{cursor:grabbing}
-  .mic .ring{width:42px;height:42px;border:3px solid var(--mint);border-radius:50%}
-  .mic.idle .ring{box-shadow:0 0 10px rgba(156,255,224,.25)}
-  .mic.listening .ring{animation:breathe 1.2s ease-in-out infinite;box-shadow:0 0 14px rgba(156,255,224,.45)}
-  .mic.processing .ring{animation:slowpulse 1.6s ease-in-out infinite;border-color:var(--aqua)}
-  .mic.speaking .ring{box-shadow:0 0 18px rgba(47,176,233,.55),0 0 28px rgba(156,255,224,.35)}
-  @keyframes breathe{0%,100%{transform:scale(1)}50%{transform:scale(1.08)}}
-  @keyframes slowpulse{0%,100%{transform:scale(1)}50%{transform:scale(1.04)}}
-  .mic-note{margin-top:6px;text-align:center;font-size:12px;color:var(--textDim);user-select:none}
-
+  /* Footer + Shop trigger */
   .footer{position:fixed;left:50%;transform:translateX(-50%);bottom:18px;font-size:12px;color:rgba(233,255,246,.6);letter-spacing:.12em;text-transform:uppercase}
-  .garage{position:fixed;right:14px;bottom:46px;background:rgba(255,255,255,.05);border:1px solid var(--stroke);
+  .shop-trigger{position:fixed;right:14px;bottom:48px;background:rgba(255,255,255,.05);border:1px solid var(--stroke);
     border-radius:12px;padding:.45rem .65rem;display:flex;align-items:center;gap:.45rem;cursor:pointer;
     box-shadow:0 0 12px rgba(156,255,224,.18);font-size:12px;z-index:15}
-  .garage.locked{opacity:.65}
+  .shop-trigger.pulse{animation:pulse 1.6s ease-in-out 3}
+  @keyframes pulse{0%,100%{box-shadow:0 0 10px rgba(156,255,224,.2)}50%{box-shadow:0 0 22px rgba(156,255,224,.55)}}
 
+  /* Overlays */
   .overlay{display:none;position:fixed;inset:0;background:rgba(3,8,6,.82);backdrop-filter:blur(6px);align-items:center;justify-content:center;z-index:60}
-  .panel{max-width:540px;margin:20px;background:rgba(255,255,255,.06);border:1px solid var(--stroke);
+
+  /* SHOP: roll-down door */
+  #shopDoor{position:fixed;left:0;right:0;top:0;height:0;overflow:hidden;z-index:70;pointer-events:none}
+  #shopDoor .door{height:380px;background:
+      linear-gradient(180deg, rgba(255,255,255,.08), rgba(255,255,255,.03)),
+      repeating-linear-gradient(180deg, rgba(156,255,224,.08), rgba(156,255,224,.08) 6px, rgba(255,255,255,0.02) 6px, rgba(255,255,255,0.02) 14px);
+    border-bottom:1px solid var(--stroke); box-shadow:0 10px 40px rgba(0,0,0,.45), inset 0 -8px 24px rgba(156,255,224,.12);
+    display:flex;flex-direction:column;align-items:center;justify-content:flex-start;gap:12px;padding:14px 10px}
+  #shopDoor.open{height:380px;pointer-events:auto;transition:height .9s cubic-bezier(.2,.9,.2,1)}
+  #shopDoor.close{height:0;transition:height .8s cubic-bezier(.2,.9,.2,1)}
+
+  .shopTitle{font-weight:900;letter-spacing:.16em;color:var(--mintL);margin-top:4px}
+  .shopRow{display:flex;gap:12px;max-width:980px;width:calc(100% - 20px);justify-content:center;flex-wrap:wrap;margin-top:6px}
+  .card{flex:1 1 280px;max-width:320px;background:rgba(255,255,255,.05);border:1px solid var(--stroke);border-radius:14px;padding:12px 12px 14px;
+    box-shadow:0 0 26px rgba(156,255,224,.18)}
+  .tag{display:inline-block;border:1px solid var(--mint);color:var(--mintL);padding:.25rem .5rem;border-radius:999px;font-size:11px;margin-bottom:8px}
+  .price{margin-top:8px;opacity:.9}
+  .shopBtns{display:flex;gap:8px;margin-top:10px;flex-wrap:wrap}
+  .shopClose{position:absolute;right:10px;top:10px;border:1px solid var(--stroke);background:rgba(255,255,255,.04);color:var(--text);border-radius:999px;padding:.35rem .6rem;cursor:pointer}
+
+  /* Paywall overlay (export / upload gate) */
+  #paywall{display:none}
+  #paywall .panel{max-width:560px;margin:20px;background:rgba(255,255,255,.06);border:1px solid var(--stroke);
     border-radius:16px;padding:1.1rem 1.3rem;text-align:center;box-shadow:0 0 32px rgba(156,255,224,.28)}
+
+  /* Boot titles */
+  #bootTitles{position:fixed;inset:64px 0 0 0;display:grid;place-items:center;pointer-events:none;z-index:50}
+  .bt{font-weight:900;letter-spacing:.22em;color:var(--mintL);font-size:clamp(22px,6vw,64px);opacity:0;transform:translateY(8px);transition:all .5s ease}
+  .bt.show{opacity:1;transform:translateY(0)}
 </style>
 </head>
 <body>
+  <div class="topbar"><div class="brand"><span class="hero">HEROHUD</span><span class="pro"></span></div></div>
 
-<div class="topbar">
-  <div class="brand"><span class="hero">HERO</span><span class="pro">PRO</span></div>
-</div>
-
-<div class="stage">
-  <div class="stack">
-    <div class="module primary-row">
-      <button class="btn" id="btnUpload">⬆ Upload Photo</button>
-      <button class="btn" id="btnCamera">📷 Camera</button>
-      <button class="btn" id="btnEstimate">🔍 Estimate</button>
-      <button class="btn hidden" id="btnExport">📤 Export Estimate & Sales Insight</button>
-    </div>
-    <div id="preview">
-      <img id="previewImg" alt="preview" />
-      <div id="edgeGlow"></div>
-      <div class="wheel" id="wheel" style="display:none;"><div class="mini-spin"></div><span id="wheelText">Analyzing…</span></div>
-      <div class="dash-hint" id="dashHint" style="position:absolute;inset:0;opacity:.0;pointer-events:none;"></div>
-    </div>
-    <div class="mic-dock" id="micDock"><div class="mic idle" id="mic"><div class="ring"></div></div><div class="mic-note" id="micLabel">Tap to Talk — Tap again to Send</div></div>
-    <div class="hud" id="hudTabs"><div class="tab">Workflow</div><div class="tab">Insights</div><div class="tab">Join Our Journey</div><div class="tab">Sales University</div></div>
-    <input type="file" id="file" accept="image/*" hidden />
+  <div id="bootTitles">
+    <div class="bt" id="bt1">UPLOAD</div>
+    <div class="bt" id="bt2">ANALYZE</div>
+    <div class="bt" id="bt3">SEND</div>
   </div>
-</div>
 
-<div class="garage locked" id="garage">🔧 Garage • Field Manual</div>
-<div class="footer">Powered by Cardinal Garage _MND</div>
-
-<div class="overlay" id="paywallPro">
-  <div class="panel">
-    <h3>Pro Estimate with Sales Insight</h3>
-    <p class="sub">Unlock detailed dashboard, downloadable & shareable exports.</p>
-    <div class="btn-row"><button class="btn" id="btnBetaPro">⚡ Join Pro Beta</button><button class="btn" id="btnClosePro">Close</button></div>
+  <div id="shopDoor" class="close">
+    <div class="door">
+      <button class="shopClose" id="shopCloseBtn">Close</button>
+      <div class="shopTitle">SHOP</div>
+      <div style="opacity:.8;font-size:12px;margin-top:-4px">Upgrades for access, exports, and AI tools</div>
+      <div class="shopRow">
+        <div class="card">
+          <span class="tag">🧠 Access+</span>
+          <div>Unlimited uploads & daily analyses</div>
+          <div class="price">Demo Active ✓</div>
+          <div class="shopBtns">
+            <button class="btn locked" disabled>Unlock (demo)</button>
+          </div>
+        </div>
+        <div class="card">
+          <span class="tag">⚡ Pro Export</span>
+          <div>Full report & sales insights</div>
+          <div class="price">Demo Active ✓</div>
+          <div class="shopBtns">
+            <button class="btn locked" disabled>Unlock (demo)</button>
+          </div>
+        </div>
+        <div class="card">
+          <span class="tag">🧰 Hero Complete</span>
+          <div>Everything • Voice • Field Guides</div>
+          <div class="price">Demo Active ✓</div>
+          <div class="shopBtns">
+            <button class="btn locked" disabled>Unlock (demo)</button>
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
-</div>
+
+  <div class="stage">
+    <div class="stack">
+      <div class="btn-row">
+        <button class="btn" id="btnUpload">⬆ Upload Photo</button>
+        <button class="btn" id="btnCamera">📷 Camera</button>
+        <button class="btn" id="btnAnalyze">🔍 Analyze</button>
+        <button class="btn hidden" id="btnExport">📤 Pro Estimate</button>
+      </div>
+
+      <div id="preview">
+        <img id="previewImg" alt="preview" />
+        <div id="edgeGlow"></div>
+        <div class="wheel" id="wheel" style="display:none;">
+          <div class="mini-spin"></div><span id="wheelText">Analyzing…</span>
+        </div>
+        <div id="dashHint" style="position:absolute;inset:0;opacity:.0;pointer-events:none;"></div>
+      </div>
+
+      <!-- Rolling HUD text + Tips container -->
+      <div id="hudStream"></div>
+      <div id="tips"></div>
+
+      <div class="hud" id="hudTabs">
+        <div class="tab">Workflow</div><div class="tab">Insights</div><div class="tab">Join Our Journey</div><div class="tab">Sales University</div>
+      </div>
+
+      <input type="file" id="file" accept="image/*" hidden />
+    </div>
+  </div>
+
+  <div class="shop-trigger" id="shopTrigger">🛒 Shop</div>
+  <div class="footer">Powered by Cardinal Systems • HeroHUD</div>
+
+  <!-- Generic paywall overlay (export or upload gate) -->
+  <div class="overlay" id="paywall">
+    <div class="panel">
+      <h3 id="paywallTitle">Pro Required</h3>
+      <p id="paywallMsg" class="sub">Unlock to continue.</p>
+      <div class="btn-row">
+        <button class="btn" id="btnProOnce">$1 / report</button>
+        <button class="btn" id="btnProMonthly">$75 / month</button>
+        <button class="btn" id="btnPaywallClose">Close</button>
+      </div>
+    </div>
+  </div>
 
 <script>
 (() => {
+  // ===== API base =====
   const API = (location.hostname.includes("localhost")||location.hostname.includes("127.0.0.1"))
     ? "http://localhost:3001"
     : "https://jared-hero2-backend.onrender.com";
 
-  const file=document.getElementById('file'),btnUpload=document.getElementById('btnUpload'),btnCamera=document.getElementById('btnCamera'),
-        btnEstimate=document.getElementById('btnEstimate'),btnExport=document.getElementById('btnExport'),
-        preview=document.getElementById('preview'),previewImg=document.getElementById('previewImg'),
-        wheel=document.getElementById('wheel'),wheelText=document.getElementById('wheelText'),
-        paywallPro=document.getElementById('paywallPro'),btnBetaPro=document.getElementById('btnBetaPro'),
-        btnClosePro=document.getElementById('btnClosePro'),dashHint=document.getElementById('dashHint'),
-        tips=document.getElementById('tips'),hudTabs=document.getElementById('hudTabs');
-
-  let uploadCount=Number(localStorage.getItem("jared_uploads")||0),lastSummary="";
-
-  // ===== Upload (2nd triggers paywall)
-  btnUpload.onclick=()=>file.click();
-  file.onchange=()=>{
-    const f=file.files[0]; if(!f) return;
-    uploadCount++; localStorage.setItem("jared_uploads",uploadCount);
-    if(uploadCount>1&&!localStorage.getItem("jared_pro_unlocked")){paywallPro.style.display='flex';dashHint.style.opacity=.6;return;}
-    const url=URL.createObjectURL(f);
-    previewReplaceWithImage(url);preview.style.display='block';dashHint.style.opacity=.25;
+  // ===== Elements
+  const el = {
+    file: q('#file'),
+    btnUpload: q('#btnUpload'),
+    btnCamera: q('#btnCamera'),
+    btnAnalyze: q('#btnAnalyze'),
+    btnExport: q('#btnExport'),
+    preview: q('#preview'),
+    previewImg: q('#previewImg'),
+    wheel: q('#wheel'),
+    wheelText: q('#wheelText'),
+    dashHint: q('#dashHint'),
+    hudTabs: q('#hudTabs'),
+    hudStream: q('#hudStream'),
+    tips: q('#tips'),
+    shopTrigger: q('#shopTrigger'),
+    shopDoor: q('#shopDoor'),
+    shopCloseBtn: q('#shopCloseBtn'),
+    paywall: q('#paywall'),
+    paywallTitle: q('#paywallTitle'),
+    paywallMsg: q('#paywallMsg'),
+    btnProOnce: q('#btnProOnce'),
+    btnProMonthly: q('#btnProMonthly'),
+    btnPaywallClose: q('#btnPaywallClose'),
+    boot: { t1:q('#bt1'), t2:q('#bt2'), t3:q('#bt3') }
   };
 
-  // ===== Camera Capture (same gating)
+  // ===== State
+  const STATE = {
+    demoDone: localStorage.getItem('herohud_demo_done')==='1',
+    proUnlocked: localStorage.getItem('herohud_pro_unlocked')==='1',
+    accessUnlocked: localStorage.getItem('herohud_access_unlocked')==='1',
+    uploadsToday: getUploadsToday(),
+    lastSummary: "",
+    firstRun: !localStorage.getItem('herohud_first_run'),
+    freeDemoAnalysisUsed: localStorage.getItem('herohud_demo_analysis_used')==='1',
+    analyzing: false
+  };
+
+  // ===== Helpers
+  function q(s){return document.querySelector(s)}
+  function nowKey(){ const d=new Date(); return d.getFullYear()+'-'+(d.getMonth()+1)+'-'+d.getDate() }
+  function getUploadsToday(){
+    const key = localStorage.getItem('herohud_uploads_key');
+    const count = Number(localStorage.getItem('herohud_uploads_count')||0);
+    const today = nowKey();
+    return key===today?count:0;
+  }
+  function bumpUploads(){
+    const today = nowKey();
+    localStorage.setItem('herohud_uploads_key', today);
+    const n = STATE.uploadsToday+1;
+    localStorage.setItem('herohud_uploads_count', String(n));
+    STATE.uploadsToday = n;
+  }
+
+  // ===== Voice (optional: graceful no-op if /speak not present)
+  async function speak(text){
+    try{
+      await fetch(`${API}/speak`, {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({text})});
+    }catch(e){ /* ignore for demo */ }
+  }
+
+  // ===== Rolling HUD text + Tips
+  function pushLine(text, meta="Jared"){
+    const div = document.createElement('div');
+    div.className='line';
+    div.innerHTML = `<small>${meta}</small><br>${escapeHTML(text)}`;
+    el.hudStream.appendChild(div);
+    requestAnimationFrame(()=>div.classList.add('show'));
+  }
+  function showTip(text,right=false){
+    const t = document.createElement('div');
+    t.className = 'tip'+(right?' right':'');
+    t.textContent = text;
+    el.tips.appendChild(t);
+    requestAnimationFrame(()=>t.classList.add('show'));
+    setTimeout(()=>{ t.classList.remove('show'); setTimeout(()=>t.remove(),380); }, 4200);
+  }
+  function escapeHTML(s){return s.replace(/[&<>"']/g,m=>({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]))}
+
+  // ===== Preview helpers
+  function previewReplaceWithImage(url){
+    const img=document.createElement("img");
+    img.id="previewImg"; img.alt="preview"; img.src=url;
+    previewReplaceWithNode(img);
+  }
+  function previewReplaceWithNode(node){
+    const old=el.preview.querySelector("img,video");
+    if(old) old.replaceWith(node); else el.preview.prepend(node);
+  }
+
+  // ===== Shop (roll-down door)
+  function openShop(){
+    el.shopDoor.classList.remove('close');
+    el.shopDoor.classList.add('open');
+  }
+  function closeShop(){
+    el.shopDoor.classList.remove('open');
+    el.shopDoor.classList.add('close');
+  }
+
+  // ===== Paywall generic
+  function openPaywall(title,msg){
+    el.paywallTitle.textContent = title;
+    el.paywallMsg.textContent = msg;
+    el.paywall.style.display='flex';
+  }
+  function closePaywall(){ el.paywall.style.display='none' }
+
+  // ===== Upload gating (2/day unless access unlocked)
+  function canUpload(){
+    if(STATE.accessUnlocked) return true;
+    return STATE.uploadsToday < 2;
+  }
+  function enforceUploadGate(){
+    if(canUpload()) return true;
+    // Upload gate paywall (different message than export)
+    speak("You've reached today's free upload limit. Visit the Shop to unlock unlimited access.");
+    openPaywall("Daily Access Limit Reached","You’ve used your 2 free uploads today. Unlock Access+ for unlimited uploads.");
+    return false;
+  }
+
+  // ===== Boot sequence + first-run Shop demo
+  async function boot(){
+    // Jared wake-up feel
+    await speak("Give me just a second to wake up.");
+    setTimeout(()=>el.boot.t1.classList.add('show'), 500);
+    await wait(1100);
+    await speak("Alright, I’m online. Let’s get started.");
+    setTimeout(()=>el.boot.t2.classList.add('show'), 1200);
+    setTimeout(()=>el.boot.t3.classList.add('show'), 1900);
+
+    // Show Shop demo once on first run
+    if(STATE.firstRun){
+      await wait(2300);
+      el.shopTrigger.classList.add('pulse');
+      await speak("Shop systems online. Opening the storefront so I can show you around.");
+      openShop();
+      await wait(2000);
+      await speak("Here’s where you’ll unlock unlimited uploads, Pro reports, and advanced tools. This is a demo preview.");
+      await wait(2000);
+      closeShop();
+      el.shopTrigger.classList.remove('pulse');
+      localStorage.setItem('herohud_first_run','1');
+    }
+
+    // Hide boot titles
+    await wait(800);
+    el.boot.t1.style.display='none'; el.boot.t2.style.display='none'; el.boot.t3.style.display='none';
+    await speak("Ready when you are. Upload a photo to begin.");
+  }
+
+  // ===== Wiring
+  el.shopTrigger.onclick = () => openShop();
+  el.shopCloseBtn.onclick = () => closeShop();
+
+  el.btnPaywallClose.onclick = () => closePaywall();
+  el.btnProOnce.onclick = () => { // simulate one-time unlock (export)
+    localStorage.setItem('herohud_pro_unlocked','1');
+    STATE.proUnlocked = true;
+    speak("Pro access confirmed. Generating your full estimate now.");
+    closePaywall();
+    triggerExport();
+  };
+  el.btnProMonthly.onclick = () => {
+    localStorage.setItem('herohud_pro_unlocked','1');
+    localStorage.setItem('herohud_access_unlocked','1');
+    STATE.proUnlocked = true; STATE.accessUnlocked = true;
+    speak("Subscription active. Unlimited exports and uploads are now enabled.");
+    closePaywall();
+  };
+
+  // Upload
+  el.btnUpload.onclick = ()=> {
+    if(!enforceUploadGate()) return;
+    el.file.click();
+  };
+
+  el.file.onchange=()=>{
+    const f=el.file.files[0]; if(!f) return;
+    const url=URL.createObjectURL(f);
+    previewReplaceWithImage(url);
+    el.preview.style.display='block';
+    el.dashHint.style.opacity=.25;
+    bumpUploads();
+    showTip(STATE.uploadsToday<=2 ? "Photo loaded — tap Analyze." : "Photo loaded.", true);
+  };
+
+  // Camera
   let camStream=null,camVideo=null,captureBtn=null;
-  btnCamera.onclick=openCamera;
+  el.btnCamera.onclick = openCamera;
   async function openCamera(){
+    if(!enforceUploadGate()) return;
     try{
       const stream=await navigator.mediaDevices.getUserMedia({video:true});
       camStream=stream;
-      camVideo=document.createElement("video");camVideo.playsInline=true;camVideo.muted=true;camVideo.srcObject=stream;await camVideo.play();
-      preview.style.display='block';previewReplaceWithNode(camVideo);ensureCaptureBtn();
-    }catch(e){showTip("Camera access denied.",true);}
+      camVideo=document.createElement("video");
+      camVideo.playsInline=true; camVideo.muted=true; camVideo.srcObject=stream; await camVideo.play();
+      el.preview.style.display='block'; previewReplaceWithNode(camVideo); ensureCaptureBtn();
+    }catch(e){ showTip("Camera access denied.",true); }
   }
   function ensureCaptureBtn(){
-    if(captureBtn)captureBtn.remove();
-    captureBtn=document.createElement("button");captureBtn.textContent="📸 Capture";captureBtn.className="btn";
-    captureBtn.style.position="absolute";captureBtn.style.right="10px";captureBtn.style.bottom="10px";preview.appendChild(captureBtn);
+    if(captureBtn) captureBtn.remove();
+    captureBtn=document.createElement("button");
+    captureBtn.textContent="📸 Capture"; captureBtn.className="btn";
+    captureBtn.style.position="absolute"; captureBtn.style.right="10px"; captureBtn.style.bottom="10px";
+    el.preview.appendChild(captureBtn);
     captureBtn.onclick=async()=>{
-      if(!camVideo)return;
-      const canvas=document.createElement("canvas");canvas.width=camVideo.videoWidth||1280;canvas.height=camVideo.videoHeight||720;
-      const g=canvas.getContext("2d");g.drawImage(camVideo,0,0,canvas.width,canvas.height);
+      if(!camVideo) return;
+      const canvas=document.createElement("canvas");
+      canvas.width=camVideo.videoWidth||1280; canvas.height=camVideo.videoHeight||720;
+      const g=canvas.getContext("2d"); g.drawImage(camVideo,0,0,canvas.width,canvas.height);
       const blob=await new Promise(res=>canvas.toBlob(res,'image/jpeg',0.92));
-      if(camStream){camStream.getTracks().forEach(t=>t.stop());camStream=null;}
+      if(camStream){camStream.getTracks().forEach(t=>t.stop()); camStream=null;}
       camVideo=null;
-      uploadCount++;localStorage.setItem("jared_uploads",uploadCount);
-      if(uploadCount>1&&!localStorage.getItem("jared_pro_unlocked")){paywallPro.style.display='flex';return;}
-      const url=URL.createObjectURL(blob);previewReplaceWithImage(url);file._capturedBlob=blob;showTip("Captured — tap Estimate.",true);
+      const url=URL.createObjectURL(blob); previewReplaceWithImage(url);
+      el.preview.style.display='block'; el.dashHint.style.opacity=.25;
+      el.file._capturedBlob = blob;
+      bumpUploads();
+      showTip("Captured — tap Analyze.", true);
     };
   }
 
-  function previewReplaceWithImage(url){const img=document.createElement("img");img.id="previewImg";img.alt="preview";img.src=url;previewReplaceWithNode(img);}
-  function previewReplaceWithNode(node){const old=preview.querySelector("img,video");if(old)old.replaceWith(node);else preview.prepend(node);}
+  // Analyze
+  el.btnAnalyze.onclick = async ()=>{
+    if(!el.preview.style.display || el.preview.style.display==='none'){
+      showTip("Upload or capture a photo first.", true); return;
+    }
+    // One full demo analysis: only the first time ever
+    const isDemoAnalysis = !STATE.freeDemoAnalysisUsed;
 
-  // ===== Estimate
-  btnEstimate.onclick=async()=>{
-    if(!preview.style.display||preview.style.display==='none'){showTip("Upload or capture a photo first.",true);return;}
-    const blob=file._capturedBlob;const fileEl=file.files&&file.files[0];
-    if(!blob&&!fileEl){showTip("No image found.",true);return;}
-    preview.classList.add('glow-on');wheel.style.display='flex';wheelText.textContent="Analyzing…";
-    const formData=new FormData();if(blob)formData.append("file",blob,"capture.jpg");else formData.append("file",fileEl);
+    const blob = el.file._capturedBlob;
+    const fileEl = el.file.files && el.file.files[0];
+    if(!blob && !fileEl){ showTip("No image found.", true); return; }
+
+    STATE.analyzing = true;
+    el.preview.classList.add('glow-on');
+    el.wheel.style.display='flex'; el.wheelText.textContent = "Analyzing…";
+
+    const formData=new FormData();
+    if(blob) formData.append("file",blob,"capture.jpg"); else formData.append("file",fileEl);
+
     try{
-      showTip("Analyzing image…",false);
-      const resp=await fetch(`${API}/analyze-image`,{method:"POST",body:formData});
-      const data=await resp.json();lastSummary=data.summary||"No summary.";
-      showAnalysisTips(lastSummary);hudTabs.style.display='flex';btnExport.classList.remove('hidden');dashHint.style.opacity=.6;
-    }catch{showTip("❌ Analysis failed.",true);}
-    finally{wheel.style.display='none';preview.classList.remove('glow-on');}
+      if(isDemoAnalysis){
+        speak("Analyzing image now. I’ll walk you through the results.");
+      } else {
+        speak("Analyzing image.");
+      }
+      pushLine("Analyzing image…");
+      const resp = await fetch(`${API}/analyze-image`, { method:"POST", body:formData });
+      const data = await resp.json();
+      STATE.lastSummary = data.summary || "No summary.";
+
+      // Rolling readout lines
+      pushLine(STATE.lastSummary);
+      // Sample Field Guides (demo show)
+      if(isDemoAnalysis){
+        pushLine("Tools: Steel edging blade; string trimmer.", "Field Guide");
+        pushLine("Materials: Brown mulch ~12 cu ft; landscape fabric.", "Field Guide");
+        pushLine("Technique: Adjust shrub spacing; define bed edge.", "Field Guide");
+      }
+
+      // Tips (3)
+      showAnalysisTips(STATE.lastSummary);
+
+      el.hudTabs.style.display='flex';
+      el.btnExport.classList.remove('hidden');
+      el.dashHint.style.opacity=.6;
+
+      if(isDemoAnalysis){
+        localStorage.setItem('herohud_demo_analysis_used','1');
+        STATE.freeDemoAnalysisUsed = true;
+        speak("Analysis complete. This was your full demo run. You can keep analyzing, and export anytime from the Pro button.");
+      } else {
+        speak("Analysis complete.");
+      }
+    }catch(e){
+      showTip("❌ Analysis failed.", true);
+      pushLine("Analysis failed. Please try again.");
+    } finally {
+      el.wheel.style.display='none';
+      el.preview.classList.remove('glow-on');
+      STATE.analyzing = false;
+    }
   };
 
-  // ===== Export
-  btnExport.onclick=()=>{
-    if(!localStorage.getItem("jared_pro_unlocked")){paywallPro.style.display='flex';return;}
-    const tipsTxt=[...document.querySelectorAll('.tip')].map(e=>e.textContent.trim()).join("\n");
-    const blob=new Blob([`Estimate:\n${lastSummary}\n\nTips:\n${tipsTxt}`],{type:"text/plain"});
-    const a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download="jared_estimate.txt";a.click();
+  function showAnalysisTips(summary){
+    const bits=(summary.replace(/\s+/g,' ').trim()||"Looks good. Consider fresh mulch; adjust shrub spacing; check edging.")
+      .split(/[.;]/).map(s=>s.trim()).filter(Boolean).slice(0,3);
+    let delay=240;
+    bits.forEach((b,i)=>{ setTimeout(()=>showTip("💡 "+b, i%2===1), delay); delay+=1400; });
+    setTimeout(()=>showTip("🧾 Pro Estimate available — tap Export when ready.", true), delay+260);
+  }
+
+  // Export (Pro paywall only here)
+  el.btnExport.onclick = ()=>{
+    if(!STATE.proUnlocked){
+      speak("You’ll need Pro access to export the full report.");
+      openPaywall("Pro Estimate Required","Export the full analysis report with sales insights.");
+      return;
+    }
+    triggerExport();
   };
 
-  // ===== Paywall
-  btnBetaPro.onclick=()=>{localStorage.setItem("jared_pro_unlocked","1");paywallPro.style.display='none';showTip("✅ Pro unlocked — full access granted.",true);};
-  btnClosePro.onclick=()=>paywallPro.style.display='none';
+  async function triggerExport(){
+    try{
+      const tipsTxt=[...document.querySelectorAll('.tip')].map(e=>e.textContent.trim()).join("\n");
+      const logTxt=[...document.querySelectorAll('.line')].map(e=>e.innerText.trim()).join("\n");
+      const payload = { summary: STATE.lastSummary, tips: tipsTxt, log: logTxt };
+      pushLine("Generating Pro Estimate…", "System");
+      const resp = await fetch(`${API}/export`, { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(payload) });
+      // Expecting blob or url; fall back to txt if not implemented
+      if(resp.ok && resp.headers.get('content-type')?.includes('application/pdf')){
+        const blob = await resp.blob();
+        const a=document.createElement("a"); a.href=URL.createObjectURL(blob); a.download="herohud_pro_estimate.pdf"; a.click();
+      }else{
+        // fallback simple txt
+        const text = `HeroHUD Pro Estimate\n\nSummary:\n${STATE.lastSummary}\n\nTips:\n${tipsTxt}\n\nConversation Log:\n${logTxt}`;
+        const blob=new Blob([text],{type:"text/plain"});
+        const a=document.createElement("a"); a.href=URL.createObjectURL(blob); a.download="herohud_pro_estimate.txt"; a.click();
+      }
+      speak("Export complete.");
+    }catch(e){
+      showTip("Export failed. Try again.", true);
+      pushLine("Export failed.", "System");
+    }
+  }
 
-  // ===== Tips
-  function showTip(text,right=false){const el=document.createElement('div');el.className='tip'+(right?' right':'');el.textContent=text;tips.appendChild(el);requestAnimationFrame(()=>el.classList.add('show'));setTimeout(()=>{el.classList.remove('show');setTimeout(()=>el.remove(),420);},4200);}
-  function showAnalysisTips(summary){const bits=(summary.replace(/\s+/g,' ').trim()||"Looks good. Consider fresh mulch; adjust shrub spacing; check edging.").split(/[.;]/).map(s=>s.trim()).filter(Boolean).slice(0,3);let delay=240;bits.forEach((b,i)=>{setTimeout(()=>showTip("💡 "+b,i%2===1),delay);delay+=1500;});setTimeout(()=>showTip("🧾 Estimate ready — Export or upgrade to Pro.",true),delay+300);}
+  // ===== Init
+  boot();
+
+  // ===== Utility
+  function wait(ms){ return new Promise(r=>setTimeout(r,ms)) }
+
 })();
 </script>
 </body>
 </html>
+
 
