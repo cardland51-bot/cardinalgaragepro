@@ -2,136 +2,479 @@
 <html lang="en">
 <head>
 <meta charset="utf-8" />
-<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
-<title>Cardinal Garage Pro • HeroHUD</title>
-
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,maximum-scale=1,user-scalable=no" />
+<title>HeroHUD • Upload → Analyze → Send</title>
+<meta name="theme-color" content="#0b1b16" />
 <style>
   :root{
-    --mint:#9CFFE0;
-    --bg:#0b1b16;
+    --bg-top:#0b1b16; --bg-bot:#071219;
+    --mintL:#c7ffe9; --mint:#34D1A0; --aqua:#2FB0E9; --teal:#0E8B67;
+    --text:#E9FFF6; --textDim:rgba(233,255,246,.86);
+    --glass:rgba(255,255,255,0.06); --stroke:rgba(156,255,224,0.24);
+    --ink:#0e1815; --ink2:#0b1411; --warn:#f6bf3a; --ok:#7ef0b2; --bad:#ff7e7e;
+    --gold:#f6bf3a;
   }
-  html,body{
-    margin:0;padding:0;
-    background:var(--bg);
-    color:var(--mint);
-    font-family:system-ui,Arial,sans-serif;
-    height:100%;
-    overflow:hidden;
-  }
+  html,body{margin:0;height:100%;background:linear-gradient(180deg,var(--bg-top),var(--bg-bot));color:var(--text);font-family:ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial}
+  *{box-sizing:border-box}
 
-  /* ===== Voice orb + indicator ===== */
-  #voiceOrb{
-    position:fixed;
-    left:18px;
-    bottom:80px;
-    width:54px;
-    height:54px;
-    border-radius:999px;
-    border:1px solid var(--mint);
-    background:radial-gradient(circle at 60% 40%,rgba(156,255,224,.25),rgba(47,176,233,.12));
-    box-shadow:0 0 16px rgba(156,255,224,.25);
-    z-index:60;
-    display:grid;
-    place-items:center;
-    cursor:pointer;
+  /* Ambient film */
+  body::before, body::after{content:""; position:fixed; inset:0; pointer-events:none}
+  body::before{
+    background:
+      radial-gradient(120% 90% at 50% 4%, rgba(156,255,224,.10), transparent 46%),
+      radial-gradient(110% 80% at 50% 97%, rgba(47,176,233,.10), transparent 60%);
+    animation:film1 16s ease-in-out infinite alternate; opacity:.9;
   }
-  #voiceOrb.idle{box-shadow:0 0 10px rgba(156,255,224,.2);}
-  #voiceOrb.listening{animation:pulse 1.4s ease-in-out infinite;}
-  #voiceOrb.speaking{
-    box-shadow:0 0 20px rgba(156,255,224,.45),
-               0 0 28px rgba(47,176,233,.35);
+  body::after{
+    background:
+      linear-gradient( to right, transparent 0%, rgba(156,255,224,.05) 28%, transparent 62%),
+      linear-gradient( to left,  transparent 0%, rgba(47,176,233,.05) 32%, transparent 66%);
+    mix-blend-mode:screen; animation:film2 22s linear infinite; opacity:.55;
   }
+  @keyframes film1{to{transform:translateY(-1.2%)}}
+  @keyframes film2{to{transform:translateX(-2%)}}
+
+  /* Topbar */
+  .topbar{position:fixed;inset:0 0 auto 0;height:56px;display:flex;align-items:center;justify-content:space-between;padding:0 12px;z-index:50;background:linear-gradient(180deg, rgba(0,0,0,.45), rgba(0,0,0,.08));border-bottom:1px solid var(--stroke);backdrop-filter:blur(6px)}
+  .brand{font-weight:900;letter-spacing:.08em;color:var(--mintL)}
+  .menu{display:flex;gap:8px;align-items:center}
+  .pill{border:1px solid var(--stroke);background:var(--glass);color:var(--text);cursor:pointer;border-radius:999px;padding:.45rem .85rem;font-size:12px;box-shadow:0 0 10px rgba(156,255,224,.18)}
+  .pill:hover{box-shadow:0 0 22px rgba(156,255,224,.35)}
+  .pill.gold { border-color: var(--gold); color: var(--gold); box-shadow:0 0 16px rgba(246,191,58,.22) }
+  .pill.gold:hover { box-shadow:0 0 26px rgba(246,191,58,.45) }
+  .icon { width:14px; height:14px; display:inline-block; vertical-align:-2px; margin-right:6px }
+
+  /* Stage */
+  .wrap{position:fixed;inset:56px 0 72px 0;display:grid;place-items:start center;padding:12px;overflow:auto}
+  .stack{display:flex;flex-direction:column;align-items:center;text-align:center;gap:12px;max-width:1100px;width:100%}
+  h1{margin:6px 0 2px;letter-spacing:.12em;font-weight:900}
+  .sub{margin:0 0 10px;color:var(--textDim);font-size:13px}
+
+  /* Controls */
+  .btn{appearance:none;border:1px solid var(--mint);background:var(--glass);color:var(--mintL);
+    padding:.75rem 1.15rem;border-radius:999px;letter-spacing:.08em;text-transform:uppercase;font-weight:800;
+    backdrop-filter:blur(6px);cursor:pointer;transition:box-shadow .2s,transform .1s;
+    box-shadow:0 0 16px rgba(156,255,224,.14);font-size:12px}
+  .btn:hover{box-shadow:0 0 26px rgba(156,255,224,.42),0 0 24px rgba(47,176,233,.24)}
+  .btn.gray{border-color:var(--stroke);color:var(--text)}
+  .btn.warn{border-color:var(--warn);color:var(--warn)}
+  .row{display:flex;gap:8px;flex-wrap:wrap;justify-content:center}
+
+  /* Preview */
+  #preview{display:none;position:relative;width:min(96vw,1100px);aspect-ratio:16/10;border-radius:16px;overflow:hidden;border:1px solid var(--stroke);box-shadow:0 0 24px rgba(156,255,224,.14)}
+  #preview img,#preview video{width:100%;height:100%;object-fit:cover}
+  #edgeGlow{position:absolute;inset:0;border-radius:16px;pointer-events:none;opacity:0;
+    box-shadow:0 0 28px rgba(156,255,224,.6),inset 0 0 18px rgba(14,139,103,.55);transition:opacity .25s}
+  .wheel{position:absolute;inset:auto auto 10px 10px;background:rgba(0,0,0,.45);border:1px solid var(--stroke);
+    border-radius:999px;padding:.35rem .6rem;font-size:12px;display:flex;gap:.5rem;align-items:center}
+  .mini-spin{width:14px;height:14px;border-radius:50%;border:2px solid rgba(156,255,224,.35);border-top-color:var(--mintL);animation:spin 1s linear infinite}
+  @keyframes spin{to{transform:rotate(360deg)}}
+
+  /* Modules under photo */
+  .modules{display:grid;gap:10px;margin-top:10px;width:min(96vw,1100px)}
+  @media (min-width: 820px){
+    .modules{grid-template-columns:1fr 1fr}
+  }
+  .card{background:rgba(255,255,255,.06);border:1px solid var(--stroke);backdrop-filter:blur(8px);border-radius:12px;padding:10px;text-align:left;box-shadow:0 0 18px rgba(156,255,224,.18)}
+  .card h3{margin:.2rem 0 .4rem;font-size:14px;letter-spacing:.08em}
+  .hint{font-size:12px;color:var(--textDim)}
+  .locked{opacity:.65}
+  .kpi{display:flex;gap:12px;align-items:center;flex-wrap:wrap;margin-top:6px}
+  .tag{display:inline-block;border:1px solid var(--mint);color:var(--mintL);padding:.15rem .45rem;border-radius:999px;font-size:11px}
+  .price{font-weight:900;font-size:18px}
+  .risk-low{color:var(--ok)} .risk-med{color:var(--warn)} .risk-high{color:var(--bad)}
+
+  /* Voice orb */
+  #voiceOrb{position:fixed;left:18px;bottom:88px;width:54px;height:54px;border-radius:999px;border:1px solid var(--mint);
+    background:radial-gradient(circle at 60% 40%, rgba(156,255,224,.25), rgba(47,176,233,.12));box-shadow:0 0 16px rgba(156,255,224,.25);z-index:60;display:grid;place-items:center;cursor:pointer}
+  #voiceOrb.idle{box-shadow:0 0 10px rgba(156,255,224,.2)}
+  #voiceOrb.listening{animation:pulse 1.4s ease-in-out infinite}
+  #voiceOrb.speaking{box-shadow:0 0 20px rgba(156,255,224,.45), 0 0 28px rgba(47,176,233,.35)}
   @keyframes pulse{0%,100%{transform:scale(1)}50%{transform:scale(1.08)}}
+  #listenText{position:fixed;bottom:150px;left:50%;transform:translateX(-50%) translateY(10px);font-size:13px;color:var(--mint);opacity:0;transition:opacity .3s, transform .3s;z-index:61}
+  #listenText.show{opacity:1;transform:translateX(-50%) translateY(0)}
 
-  #listeningIndicator{
-    position:fixed;
-    bottom:150px;
-    left:50%;
-    transform:translateX(-50%) translateY(10px);
-    font-size:14px;
-    color:var(--mint);
-    text-shadow:0 0 8px rgba(156,255,224,.4);
-    opacity:0;
-    transition:opacity .3s ease,transform .3s ease;
-    z-index:99;
-  }
-  #listeningIndicator.visible{
-    opacity:1;
-    transform:translateX(-50%) translateY(0);
-    animation:textPulse 1.6s ease-in-out infinite;
-  }
-  @keyframes textPulse{0%,100%{opacity:.7;}50%{opacity:1;}}
+  /* Footer pills */
+  .footer{position:fixed;left:50%;transform:translateX(-50%);bottom:10px;display:flex;gap:8px;flex-wrap:wrap;justify-content:center}
+  .hidden{display:none}
 </style>
 </head>
-
 <body>
-  <!-- whatever main content you want goes here -->
-  <div id="voiceOrb" class="idle" title="Tap to talk / Tap to stop"></div>
-  <div id="listeningIndicator" class="hidden">🎧 Listening…</div>
+  <div class="topbar">
+    <div class="brand">HeroHUD</div>
+    <div class="menu">
+      <button class="pill" id="btnFull">Full Screen</button>
+      <button class="pill" id="btnGarage">Garage</button>
+    </div>
+  </div>
+
+  <div class="wrap">
+    <div class="stack">
+      <h1>Upload → Analyze → Send</h1>
+      <p class="sub">Brief readout. Smart modules. Premium gates are hint-only.</p>
+
+      <div class="row">
+        <button class="btn" id="btnUpload">⬆ Upload</button>
+        <button class="btn" id="btnCamera">📷 Camera</button>
+        <button class="btn" id="btnAnalyze">🔍 Analyze</button>
+        <button class="btn gray" id="btnSpeak">🔈 Read</button>
+      </div>
+
+      <!-- Preview -->
+      <div id="preview">
+        <img id="previewImg" alt="preview"/>
+        <div id="edgeGlow"></div>
+        <div class="wheel" id="wheel" style="display:none;"><div class="mini-spin"></div><span id="wheelText">Analyzing…</span></div>
+      </div>
+
+      <!-- Modules -->
+      <section class="modules" id="modules" style="display:none">
+        <!-- Base Estimate -->
+        <div class="card" id="modBase">
+          <h3>💰 Estimated Cost</h3>
+          <div class="kpi">
+            <div><span class="hint">Base</span><div class="price" id="basePrice">—</div></div>
+            <div><span class="hint">Time</span><div id="baseTime">—</div></div>
+          </div>
+          <div class="hint" id="baseNote"></div>
+        </div>
+
+        <!-- Risk -->
+        <div class="card" id="modRisk">
+          <h3>⚠️ Risk Factor</h3>
+          <div class="kpi">
+            <div id="riskLabel" class="tag">—</div>
+            <div class="hint" id="riskNotes">—</div>
+          </div>
+        </div>
+
+        <!-- Upsell (locked hint) -->
+        <div class="card locked" id="modUpsell">
+          <h3>🚀 Upsell Potential <span class="tag">Pro 🔒</span></h3>
+          <div class="kpi">
+            <div><span class="hint">Possible</span><div class="price" id="upsellPrice">—</div></div>
+          </div>
+          <div class="hint">Unlock Pro for bundling paths, scripts & packaging.</div>
+          <div style="margin-top:8px"><a class="pill" href="https://www.paypal.com/ncp/payment/7N7JBS2V2B25Q" target="_blank" rel="noopener">Unlock Pro Exports</a></div>
+        </div>
+
+        <!-- Field Advantage (locked) -->
+        <div class="card locked" id="modField">
+          <h3>📈 Field Advantage <span class="tag">Platinum 🔒</span></h3>
+          <div class="hint">Save time / raise margin with technique & materials picks.</div>
+          <div style="margin-top:8px"><a class="pill" href="https://www.paypal.com/ncp/payment/AKUYMX3FCMUN4" target="_blank" rel="noopener">Unlock Field Guides</a></div>
+        </div>
+      </section>
+
+      <input type="file" id="file" accept="image/*" hidden />
+    </div>
+  </div>
+
+  <!-- Voice orb -->
+  <div id="voiceOrb" class="idle" title="Tap to talk / Tap to stop">🎙️</div>
+  <div id="listenText">Listening…</div>
+
+  <!-- Footer golden pills -->
+  <div class="footer">
+    <button class="pill gold" id="pillExport">
+      <span class="icon" aria-hidden="true">
+        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 3a1 1 0 0 1 1 1v7h3l-4 4-4-4h3V4a1 1 0 0 1 1-1zM5 20a2 2 0 0 1-2-2v-3a1 1 0 1 1 2 0v3h14v-3a1 1 0 1 1 2 0v3a2 2 0 0 1-2 2H5z"/></svg>
+      </span>
+      Export (.txt)
+    </button>
+    <button class="pill gold" id="pillBP">
+      <span class="icon" aria-hidden="true">
+        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M5 4h14a1 1 0 0 1 1 1v12.5l-3.5-2.1a2 2 0 0 0-2.1 0L12 17.5l-2.4-1.6a2 2 0 0 0-2.1 0L4 17.5V5a1 1 0 0 1 1-1z"/></svg>
+      </span>
+      Best Practices
+    </button>
+    <button class="pill gold" id="pillFG">
+      <span class="icon" aria-hidden="true">
+        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M4 5a2 2 0 0 1 2-2h8l6 6v10a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V5zm11 0v4h4"/></svg>
+      </span>
+      Field Guides
+    </button>
+  </div>
 
 <script>
-const orb=document.getElementById("voiceOrb");
-const indicator=document.getElementById("listeningIndicator");
+(() => {
+  /* ===== CONFIG ===== */
+  const CONFIG = {
+    API_BASE: "https://cardinalgaragepro.com",
+    VOICES: { proMale: "alloy", female: "luna" },
+    PAYPAL: {
+      pro: "https://www.paypal.com/ncp/payment/7N7JBS2V2B25Q",
+      fg:  "https://www.paypal.com/ncp/payment/AKUYMX3FCMUN4",
+      bp:  "https://www.paypal.com/ncp/payment/BHQ9A57DLN24S"
+    }
+  };
 
-let recording=false,mediaRecorder,audioChunks=[];
+  /* ===== ELEMENTS ===== */
+  const el = {
+    btnUpload: q('#btnUpload'),
+    btnCamera: q('#btnCamera'),
+    btnAnalyze: q('#btnAnalyze'),
+    btnSpeak: q('#btnSpeak'),
+    file: q('#file'),
+    preview: q('#preview'),
+    previewImg: q('#previewImg'),
+    edgeGlow: q('#edgeGlow'),
+    wheel: q('#wheel'),
+    wheelText: q('#wheelText'),
+    modules: q('#modules'),
+    basePrice: q('#basePrice'),
+    baseTime: q('#baseTime'),
+    baseNote: q('#baseNote'),
+    riskLabel: q('#riskLabel'),
+    riskNotes: q('#riskNotes'),
+    upsellPrice: q('#upsellPrice'),
+    pillExport: q('#pillExport'),
+    pillBP: q('#pillBP'),
+    pillFG: q('#pillFG'),
+    voiceOrb: q('#voiceOrb'),
+    listenText: q('#listenText'),
+    btnFull: q('#btnFull'),
+    btnGarage: q('#btnGarage'),
+  };
 
-orb.onclick=async()=>{
-  if(!recording){
-    recording=true;
-    orb.classList.remove("idle","speaking");
-    orb.classList.add("listening");
-    indicator.classList.add("visible");
+  /* ===== STATE ===== */
+  const STATE = {
+    last: {
+      basePrice: null,
+      baseTime: null,
+      risk: null,
+      riskNotes: null,
+      upsell: null,
+      summary: ""
+    },
+    listening: false,
+    recognition: null
+  };
 
-    const stream=await navigator.mediaDevices.getUserMedia({audio:true});
-    mediaRecorder=new MediaRecorder(stream);
-    audioChunks=[];
-    mediaRecorder.ondataavailable=e=>audioChunks.push(e.data);
-    mediaRecorder.onstop=async()=>{
-      orb.classList.remove("listening");
-      indicator.classList.remove("visible");
-      orb.classList.add("speaking");
-
-      const audioBlob=new Blob(audioChunks,{type:"audio/webm"});
-      const formData=new FormData();
-      formData.append("audio",audioBlob,"speech.webm");
-
-      try{
-        const trans=await fetch("https://cardinalgaragepro.com/transcribe",{method:"POST",body:formData});
-        const result=await trans.json();
-        if(result.text){
-          const infer=await fetch("https://cardinalgaragepro.com/inference",{
-            method:"POST",
-            headers:{"Content-Type":"application/json"},
-            body:JSON.stringify({text:result.text,mode:"pro"})
-          });
-          const ai=await infer.json();
-          const speak=await fetch("https://cardinalgaragepro.com/speak",{
-            method:"POST",
-            headers:{"Content-Type":"application/json"},
-            body:JSON.stringify({text:ai.content})
-          });
-          const buffer=await speak.arrayBuffer();
-          const blob=new Blob([buffer],{type:"audio/mpeg"});
-          const url=URL.createObjectURL(blob);
-          const audio=new Audio(url);
-          audio.onended=()=>{
-            orb.classList.remove("speaking");
-            orb.classList.add("idle");
-          };
-          audio.play();
-        }
-      }catch(err){
-        console.error("Error:",err);
-        orb.classList.remove("speaking","listening");
-        orb.classList.add("idle");
-      }
-    };
-    mediaRecorder.start();
-  }else{
-    recording=false;
-    mediaRecorder.stop();
+  /* ===== HELPERS ===== */
+  function q(s){ return document.querySelector(s); }
+  function show(node, on=true){ node.style.display = on ? '' : 'none'; }
+  function glowEdge(){ el.edgeGlow.style.opacity=1; setTimeout(()=>el.edgeGlow.style.opacity=0, 750); }
+  function downloadTxt(filename, text){
+    const blob=new Blob([text],{type:"text/plain"});
+    const a=document.createElement("a"); a.href=URL.createObjectURL(blob); a.download=filename; a.click();
   }
-};
+  function dateStamp(){ const d=new Date(); const z=n=>String(n).padStart(2,'0'); return `${d.getFullYear()}${z(d.getMonth()+1)}${z(d.getDate())}_${z(d.getHours())}${z(d.getMinutes())}${z(d.getSeconds())}`; }
+
+  /* ===== UPLOAD / CAMERA ===== */
+  el.btnUpload.onclick = ()=> el.file.click();
+  el.file.onchange = ()=>{
+    const f = el.file.files[0]; if(!f) return;
+    const url = URL.createObjectURL(f);
+    el.previewImg.src = url;
+    show(el.preview, true);
+    glowEdge();
+  };
+
+  el.btnCamera.onclick = openCamera;
+  let camStream=null, camVideo=null, captureBtn=null;
+  async function openCamera(){
+    try{
+      const stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:{exact:"user"}}}).catch(()=>navigator.mediaDevices.getUserMedia({video:true}));
+      camStream=stream;
+      camVideo=document.createElement("video");
+      camVideo.playsInline=true; camVideo.muted=true; camVideo.srcObject=stream; await camVideo.play();
+      // swap into preview
+      const node = el.preview.querySelector("img,video");
+      if(node){ node.replaceWith(camVideo); } else { el.preview.prepend(camVideo); }
+      show(el.preview, true);
+      ensureCaptureBtn();
+      glowEdge();
+    }catch(e){ alert("Camera access denied."); }
+  }
+  function ensureCaptureBtn(){
+    if(captureBtn) captureBtn.remove();
+    captureBtn=document.createElement("button");
+    captureBtn.textContent="Capture";
+    captureBtn.className="btn";
+    captureBtn.style.position="absolute"; captureBtn.style.right="10px"; captureBtn.style.bottom="10px";
+    el.preview.appendChild(captureBtn);
+    captureBtn.onclick=async()=>{
+      if(!camVideo) return;
+      const canvas=document.createElement("canvas");
+      canvas.width=camVideo.videoWidth||1280; canvas.height=camVideo.videoHeight||720;
+      canvas.getContext("2d").drawImage(camVideo,0,0,canvas.width,canvas.height);
+      const blob=await new Promise(res=>canvas.toBlob(res,'image/jpeg',0.92));
+      if(camStream){ camStream.getTracks().forEach(t=>t.stop()); camStream=null; }
+      camVideo=null;
+      const url=URL.createObjectURL(blob);
+      // replace with img
+      const img=document.createElement("img"); img.src=url; img.id="previewImg"; img.alt="preview";
+      const node=el.preview.querySelector("img,video"); if(node) node.replaceWith(img); else el.preview.prepend(img);
+      glowEdge();
+    };
+  }
+
+  /* ===== ANALYZE ===== */
+  el.btnAnalyze.onclick = analyze;
+  async function analyze(){
+    const node = el.preview.querySelector("img,video");
+    if(!node){ alert("Upload or capture a photo first."); return; }
+    el.wheel.style.display='flex';
+    try{
+      let blob;
+      if(node.tagName==='VIDEO'){
+        const canvas=document.createElement("canvas");
+        canvas.width=node.videoWidth||1280; canvas.height=node.videoHeight||720;
+        canvas.getContext("2d").drawImage(node,0,0,canvas.width,canvas.height);
+        blob=await new Promise(res=>canvas.toBlob(res,'image/jpeg',0.92));
+      }else{
+        const r=await fetch(node.src); blob=await r.blob();
+      }
+      const fd=new FormData(); fd.append("file", blob, "capture.jpg");
+      const r = await fetch(`${CONFIG.API_BASE}/analyze-image`, { method:"POST", body:fd });
+      const j = await r.json();
+
+      // Expected flexible contract (either structured or summary text)
+      // Try structured:
+      let base = j.base_estimate || null;
+      let time = j.job_time || null;
+      let risk = (j.risk || "").toLowerCase();
+      let riskNotes = j.risk_notes || j.riskReasons || j.factors || "";
+      let upsell = j.upsell || j.upsell_potential || null;
+      let summary = j.summary || "";
+
+      // Fallbacks if only summary string provided
+      if(!base && typeof j === 'object' && j.summary){
+        // naive pulls (keeps it robust even if backend returns only text)
+        const m1 = j.summary.match(/\$([0-9]{2,5})/); if(m1) base = Number(m1[1]);
+        const m2 = j.summary.match(/(\d+(?:\.\d+)?)\s*(?:hr|hour)/i); if(m2) time = `${m2[1]} hours`;
+        summary = j.summary;
+      }
+      if(!risk){ risk = "medium"; }
+      if(!time){ time = "3.0 hours"; }
+      if(!base){ base = 450; }
+      if(!upsell){ upsell = Math.round(base * 1.45); }
+      if(!riskNotes){ riskNotes = "Edge definition, cleanup, material variance."; }
+
+      // Paint UI
+      el.basePrice.textContent = `$${Number(base).toFixed(0)}`;
+      el.baseTime.textContent = time;
+      el.baseNote.textContent = summary ? clip(summary, 140) : "Standard scope based on visible conditions.";
+
+      const riskClass = risk.startsWith('h') ? 'risk-high' : risk.startsWith('l') ? 'risk-low' : 'risk-med';
+      el.riskLabel.textContent = risk.toUpperCase();
+      el.riskLabel.classList.remove('risk-high','risk-med','risk-low');
+      el.riskLabel.classList.add(riskClass);
+      el.riskNotes.textContent = riskNotes;
+
+      el.upsellPrice.textContent = `$${Number(upsell).toFixed(0)}`;
+
+      show(el.modules, true);
+      speakShort(`Base around ${Number(base).toFixed(0)} dollars, about ${time.replace('hours','hours')}. Some upsell potential detected.`);
+
+      // Save for export
+      STATE.last = {
+        basePrice: `$${Number(base).toFixed(0)}`,
+        baseTime: time,
+        risk: risk.toUpperCase(),
+        riskNotes,
+        upsell: `$${Number(upsell).toFixed(0)}`,
+        summary: summary || ""
+      };
+    }catch(e){
+      console.error(e);
+      alert("Analyze failed. Try again.");
+    }finally{
+      el.wheel.style.display='none';
+    }
+  }
+
+  function clip(s, n){ s=(s||"").trim(); return s.length>n ? s.slice(0,n-1)+"…" : s; }
+
+  /* ===== SPEAK (backend TTS) ===== */
+  el.btnSpeak.onclick = ()=> {
+    const text = STATE.last.summary
+      ? `Summary. ${STATE.last.summary}`
+      : `Estimate ready. Base ${STATE.last.basePrice||''}, time ${STATE.last.baseTime||''}.`;
+    speakShort(text);
+  };
+
+  async function speakShort(text, voice=CONFIG.VOICES.proMale){
+    try{
+      el.voiceOrb.classList.remove('idle','listening'); el.voiceOrb.classList.add('speaking');
+      const r = await fetch(`${CONFIG.API_BASE}/speak`, {
+        method:"POST",
+        headers:{ "Content-Type":"application/json" },
+        body: JSON.stringify({ text, voice })
+      });
+      const buf = await r.arrayBuffer();
+      const blob = new Blob([buf], { type:"audio/mpeg" });
+      const url = URL.createObjectURL(blob);
+      const a = new Audio(url);
+      a.onended = ()=> el.voiceOrb.className='idle';
+      a.play();
+    }catch(_){
+      el.voiceOrb.className='idle';
+    }
+  }
+
+  /* ===== TAP-TO-TALK (browser SR, quick commands) ===== */
+  const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+  if(SR){
+    STATE.recognition = new SR();
+    STATE.recognition.continuous=false; STATE.recognition.interimResults=false; STATE.recognition.lang='en-US';
+    STATE.recognition.onresult = (e)=>{
+      const t=(e.results[0]&&e.results[0][0]&&e.results[0][0].transcript||"").toLowerCase();
+      if(/analy[sz]e|run|go/.test(t)) return el.btnAnalyze.click();
+      if(/read|speak|talk/.test(t)) return el.btnSpeak.click();
+      if(/upload/.test(t)) return el.btnUpload.click();
+    };
+    STATE.recognition.onend = ()=>{ STATE.listening=false; el.voiceOrb.className='idle'; el.listenText.classList.remove('show'); };
+    STATE.recognition.onerror = ()=>{ STATE.listening=false; el.voiceOrb.className='idle'; el.listenText.classList.remove('show'); };
+  } else {
+    el.voiceOrb.title = "Voice commands not supported in this browser.";
+  }
+
+  el.voiceOrb.addEventListener('click', ()=>{
+    if(!SR || !STATE.recognition){ return; }
+    if(STATE.listening){ STATE.recognition.stop(); return; }
+    try{
+      STATE.listening=true;
+      el.voiceOrb.classList.remove('idle','speaking'); el.voiceOrb.classList.add('listening');
+      el.listenText.classList.add('show');
+      STATE.recognition.start();
+    }catch(_){}
+  });
+
+  /* ===== EXPORT ===== */
+  el.pillExport.onclick = ()=>{
+    const text = [
+      "HeroHUD Analysis",
+      "================",
+      "",
+      `Base Price: ${STATE.last.basePrice||"-"}`,
+      `Time: ${STATE.last.baseTime||"-"}`,
+      `Risk: ${STATE.last.risk||"-"}`,
+      `Risk Notes: ${STATE.last.riskNotes||"-"}`,
+      `Upsell Potential: ${STATE.last.upsell||"-"}`,
+      "",
+      "Summary:",
+      STATE.last.summary||"-",
+      ""
+    ].join("\n");
+    downloadTxt(`herohud_${dateStamp()}.txt`, text);
+  };
+
+  el.pillBP.onclick = ()=> window.open(CONFIG.PAYPAL.bp, "_blank", "noopener");
+  el.pillFG.onclick = ()=> window.open(CONFIG.PAYPAL.fg, "_blank", "noopener");
+
+  /* ===== FULLSCREEN / GARAGE placeholder ===== */
+  el.btnFull.onclick = () => {
+    if(!document.fullscreenElement) document.documentElement.requestFullscreen().catch(()=>{});
+    else document.exitFullscreen().catch(()=>{});
+  };
+  el.btnGarage.onclick = ()=> alert("Garage opens from your main deck. (Hook later.)");
+
+  /* ===== INIT ===== */
+  // nothing auto-starts
+
+})();
 </script>
 </body>
 </html>
