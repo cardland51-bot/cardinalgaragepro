@@ -5,6 +5,10 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,maximum-scale=1,user-scalable=no" />
 <title>HeroHUD • Upload → Analyze → Send</title>
 <meta name="theme-color" content="#0b1b16" />
+
+<!-- PayPal SDK (Hosted Buttons enabled) -->
+<script src="https://www.paypal.com/sdk/js?client-id=BAAgXonbH0yUmJj_xSSeLh_w8p-DJ9TonsElCjBeVs8qg5g-Mr_jJ34rNAHR879Z39mEgd9RjyojPdWaF0&components=hosted-buttons&enable-funding=venmo&currency=USD"></script>
+
 <style>
   :root{
     --bg-top:#0b1b16; --bg-bot:#06121a;
@@ -12,30 +16,41 @@
     --text:#E9FFF6; --textDim:rgba(233,255,246,.85);
     --glass:rgba(255,255,255,0.06); --stroke:rgba(156,255,224,0.28);
     --warn:#f6bf3a; --ink:#0e1815;
+    --gold:#f6bf3a; --amber:#ffcf66; --purple:#a87aff;
   }
-  html,body{margin:0;height:100%;background:linear-gradient(180deg,var(--bg-top),var(--bg-bot));color:var(--text);font-family:ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial}
-  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
-  button{user-select:none;-webkit-user-select:none;touch-action:manipulation}
+  html,body{margin:0;height:100%;background:linear-gradient(180deg,var(--bg-top),var(--bg-bot));color:var(--text);
+    font-family:ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial}
+  *{box-sizing:border-box}
   .hidden{display:none!important}
+  .noselect{user-select:none;-webkit-user-select:none}
 
   /* Topbar */
-  .topbar{position:fixed;inset:0 0 auto 0;height:56px;display:flex;align-items:center;justify-content:space-between;padding:0 12px;background:linear-gradient(180deg, rgba(0,0,0,.45), rgba(0,0,0,.1));border-bottom:1px solid var(--stroke);z-index:50;backdrop-filter:blur(6px)}
+  .topbar{position:fixed;inset:0 0 auto 0;height:56px;display:flex;align-items:center;justify-content:space-between;padding:0 12px;
+    background:linear-gradient(180deg, rgba(0,0,0,.45), rgba(0,0,0,.1));border-bottom:1px solid var(--stroke);z-index:50;backdrop-filter:blur(6px)}
   .brand{font-weight:900;letter-spacing:.08em;color:var(--mintL)}
   .menu{display:flex;gap:8px;align-items:center}
   .pill{border:1px solid var(--stroke);background:var(--glass);color:var(--text);cursor:pointer;border-radius:999px;padding:.45rem .85rem;font-size:12px}
-
   .lang{display:flex;gap:6px}
   .lang button{border:1px solid var(--stroke);background:rgba(255,255,255,.05);color:var(--text);border-radius:999px;padding:.25rem .55rem;font-size:11px;cursor:pointer}
   .lang .on{border-color:var(--mint);color:var(--mintL)}
 
   /* Cinematic boot */
-  #boot{position:fixed;inset:0;background:radial-gradient(120% 80% at 50% 20%, rgba(156,255,224,.12), transparent 60%), #03100c;z-index:99;display:grid;place-items:center}
-  .bootbox{border:1px solid var(--stroke);background:rgba(15,25,22,.78);backdrop-filter:blur(10px);border-radius:18px;padding:22px 22px;max-width:680px;width:min(92vw,680px);text-align:center;box-shadow:0 0 40px rgba(0,0,0,.6)}
-  .bootline{opacity:0;transform:translateY(8px);transition:all .55s ease}
+  #boot{position:fixed;inset:0;background:
+      radial-gradient(120% 80% at 50% 20%, rgba(156,255,224,.12), transparent 60%),
+      #03100c;z-index:99;display:grid;place-items:center}
+  .bootbox{border:1px solid var(--stroke);background:rgba(15,25,22,.78);backdrop-filter:blur(8px);border-radius:16px;padding:18px 20px;
+    max-width:680px;width:min(92vw,680px);text-align:center;box-shadow:0 0 40px rgba(0,0,0,.6)}
+  .bootline{opacity:0;transform:translateY(6px);transition:all .5s}
   .bootline.show{opacity:1;transform:none}
   .bootstep{font-family:ui-monospace,Menlo,Consolas,monospace;color:var(--textDim);margin:6px 0}
   .big{font-weight:800;letter-spacing:.12em;color:var(--mintL);margin:6px 0 2px}
   #wake{margin-top:12px}
+  /* Dedication overlay */
+  #dedOverlay{position:fixed;inset:0;background:rgba(0,0,0,.66);display:none;place-items:center;z-index:100}
+  .dedCard{border:1px solid var(--stroke);background:rgba(15,25,22,.9);backdrop-filter:blur(8px);border-radius:16px;padding:18px 22px;
+    max-width:620px;width:min(92vw,620px);text-align:center;box-shadow:0 0 40px rgba(0,0,0,.6)}
+  .dedTitle{font-weight:900;letter-spacing:.12em;color:var(--mintL);margin-bottom:6px}
+  .dedText{color:var(--textDim)}
 
   /* Stage */
   main{padding-top:70px;text-align:center}
@@ -46,20 +61,24 @@
   .btn:hover{box-shadow:0 0 26px rgba(156,255,224,.45)}
   .btn-row{display:flex;gap:10px;flex-wrap:wrap;justify-content:center;margin:8px 0}
 
-  /* Watermark headline (fades when preview shows) */
-  #watermark{
-    position:relative;margin:40px auto 0; width:min(94vw,980px); height:120px; display:grid; place-items:center;
-    color:rgba(233,255,246,.6); letter-spacing:.18em; text-transform:uppercase; font-weight:900;
-    border:1px dashed rgba(156,255,224,.18); border-radius:14px; background:rgba(255,255,255,.02)
-  }
-  #watermark.hide{opacity:0; transition:opacity .35s ease}
+  /* Mid hero hint */
+  #midHint{margin:10px auto 0; font-weight:800; letter-spacing:.1em; opacity:.92; color:var(--mintL)}
+  #midHint.fade{animation:fadeOut 400ms ease forwards}
+  @keyframes fadeOut{to{opacity:0; transform:translateY(-6px)}}
 
   /* Camera & Upload preview */
-  #preview{display:none;position:relative;width:min(94vw,980px);aspect-ratio:16/10;border-radius:16px;overflow:hidden;border:1px solid var(--stroke);margin:12px auto;box-shadow:0 0 24px rgba(156,255,224,.14)}
+  #preview{display:none;position:relative;width:min(94vw,980px);aspect-ratio:16/10;border-radius:16px;overflow:hidden;border:1px solid var(--stroke);
+    margin:12px auto;box-shadow:0 0 24px rgba(156,255,224,.14)}
   #preview img,#preview video{width:100%;height:100%;object-fit:cover}
-  #edgeGlow{position:absolute;inset:0;border-radius:16px;pointer-events:none;opacity:0;box-shadow:0 0 28px rgba(156,255,224,.6),inset 0 0 18px rgba(14,139,103,.55);transition:opacity .25s}
-  .glow-on #edgeGlow{opacity:1; animation:pulse 1.1s ease-in-out infinite}
-  @keyframes pulse{0%{box-shadow:0 0 18px rgba(156,255,224,.35),inset 0 0 10px rgba(14,139,103,.35)}50%{box-shadow:0 0 36px rgba(156,255,224,.65),inset 0 0 22px rgba(14,139,103,.65)}100%{box-shadow:0 0 18px rgba(156,255,224,.35),inset 0 0 10px rgba(14,139,103,.35)}}
+  #edgeGlow{position:absolute;inset:0;border-radius:16px;pointer-events:none;opacity:0;box-shadow:
+      0 0 28px rgba(156,255,224,.6),inset 0 0 18px rgba(14,139,103,.55);
+    transition:opacity .25s}
+  .glow-on #edgeGlow{opacity:1}
+  .pulse{animation:pulseEdge 1.4s ease-in-out infinite}
+  @keyframes pulseEdge{
+    0%,100%{box-shadow:0 0 16px rgba(156,255,224,.25), inset 0 0 10px rgba(14,139,103,.35)}
+    50%{box-shadow:0 0 32px rgba(156,255,224,.55), inset 0 0 20px rgba(14,139,103,.55)}
+  }
   .capBtn{position:absolute;right:10px;bottom:10px}
 
   /* Tips & results */
@@ -68,27 +87,23 @@
     background:rgba(255,255,255,.06);border:1px solid var(--stroke);backdrop-filter:blur(8px);
     color:var(--text);padding:.6rem .75rem;border-radius:10px;margin:.4rem auto;max-width:92%}
   .tip.show{opacity:1;transform:translateY(0)}
-  .chips{display:flex;gap:6px;flex-wrap:wrap;margin-top:6px}
-  .chip{border:1px solid var(--stroke);background:rgba(255,255,255,.06);border-radius:999px;padding:.2rem .5rem;font-size:11px}
   .ok{border-color:#3ddc97}
   .risk{border-color:#f6bf3a}
   .up{border-color:#2FB0E9}
 
-  /* Voice orb (Stop) */
+  /* Voice controls (Addie speak / mic) */
+  #controlsBar{position:fixed;left:50%;transform:translateX(-50%);bottom:86px;width:min(94vw,980px);display:flex;gap:10px;justify-content:center;z-index:60;flex-wrap:wrap}
+  .ghost{border:1px dashed var(--stroke);background:rgba(255,255,255,.02);color:var(--textDim)}
+  #btnTalk{touch-action:manipulation}
+  #btnSend{touch-action:manipulation}
+  #hintTalk{font-size:11px;opacity:.85;color:var(--textDim);margin-top:-2px}
+
+  /* Stop orb (speech cancel) */
   #orb{position:fixed;left:18px;bottom:86px;width:56px;height:56px;border-radius:999px;border:1px solid var(--mint);
     background:radial-gradient(circle at 60% 40%, rgba(156,255,224,.25), rgba(47,176,233,.12));box-shadow:0 0 16px rgba(156,255,224,.25);display:grid;place-items:center;z-index:60}
   #orb.idle{box-shadow:0 0 10px rgba(156,255,224,.2)}
   #orb.speaking{box-shadow:0 0 20px rgba(156,255,224,.45),0 0 28px rgba(47,176,233,.35)}
   .orbStop{position:absolute;inset:auto auto -28px 50%;transform:translateX(-50%);font-size:11px;opacity:.85}
-
-  /* Talk / Send dock (opposite side of Stop orb) */
-  #talkDock{position:fixed;right:18px;bottom:70px;display:flex;gap:8px;z-index:60;align-items:flex-end}
-  #btnTalkAddie, #btnSendTranscript{
-    border:1px solid var(--mint); background:var(--glass); color:var(--mintL); border-radius:999px;
-    padding:.85rem 1.1rem; letter-spacing:.06em; font-weight:800; text-transform:uppercase; cursor:pointer; box-shadow:0 0 16px rgba(156,255,224,.14)
-  }
-  #hint{font-size:11px;opacity:.75;text-align:right;margin-right:4px;max-width:160px}
-  #btnSendTranscript{display:none}
 
   /* Toast */
   #toast{position:fixed;left:50%;transform:translateX(-50%) translateY(120%);bottom:16px;width:min(92vw,540px);
@@ -100,20 +115,26 @@
   .t-actions{display:flex;gap:8px;margin-top:10px;flex-wrap:wrap}
   .t-actions .btn{padding:.55rem .9rem;text-transform:none;font-weight:700}
 
-  /* Garage */
+  /* Garage (tiers + portals) */
   #garage{position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:80;display:none}
   .garageWrap{position:absolute;inset:5% 4%;background:var(--ink);border:1px solid var(--stroke);border-radius:16px;box-shadow:0 0 40px rgba(0,0,0,.6);display:flex;flex-direction:column}
   .gHead{display:flex;justify-content:space-between;align-items:center;padding:12px 14px;border-bottom:1px solid var(--stroke)}
   .gTitle{font-weight:800;letter-spacing:.12em;color:var(--mintL)}
   .gBody{flex:1;overflow:auto;padding:16px}
   .gGrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:12px}
-  .card{background:#0f1916;border:1px solid var(--stroke);border-radius:14px;padding:12px 12px 14px}
+  .card{background:#0f1916;border:1px solid var(--stroke);border-radius:14px;padding:12px 12px 14px;position:relative;overflow:hidden}
   .tag{display:inline-block;border:1px solid var(--mint);color:var(--mintL);padding:.25rem .5rem;border-radius:999px;font-size:11px;margin-bottom:6px}
-  .price{margin-top:8px;opacity:.9}
+  .price{margin-top:8px;opacity:.95;font-weight:800}
   .card .btn-row{justify-content:flex-start}
+  .glowMint{box-shadow:0 0 20px rgba(52,209,160,.35) inset}
+  .glowAqua{box-shadow:0 0 20px rgba(47,176,233,.35) inset}
+  .glowTeal{box-shadow:0 0 20px rgba(14,139,103,.35) inset}
+  .glowGold{box-shadow:0 0 20px rgba(246,191,58,.35) inset}
+  .glowRoyal{box-shadow:0 0 22px rgba(52,209,160,.25),0 0 24px rgba(47,176,233,.25) inset}
+  .glowFounder{box-shadow:0 0 24px rgba(255,207,102,.35),0 0 26px rgba(168,122,255,.35) inset}
   .link{color:var(--mintL);text-decoration:underline;cursor:pointer}
 
-  .footer{position:fixed;left:50%;transform:translateX(-50%);bottom:14px;font-size:12px;color:rgba(233,255,246,.7);letter-spacing:.12em;text-transform:uppercase}
+  .footer{position:fixed;left:50%;transform:translateX(-50%);bottom:14px;font-size:12px;color:rgba(233,255,246,.72);letter-spacing:.12em;text-transform:uppercase}
 </style>
 </head>
 <body>
@@ -140,8 +161,14 @@
       <div class="bootline big" id="b4">Activating your sales coach</div>
       <div class="bootline bootstep" id="b5">Loading Addie + Jared</div>
       <button class="pill bootline" id="wake">Tap to Wake</button>
-      <!-- Dedication should appear AFTER Wake tap but BEFORE complete boot hides -->
-      <div class="bootline bootstep" id="ded" style="display:none">Precision meets grit. Heart meets hustle. — Dedicated to Addison</div>
+    </div>
+  </div>
+
+  <!-- Dedication overlay (appears AFTER Wake, for ~3.2s) -->
+  <div id="dedOverlay" class="noselect" aria-hidden="true">
+    <div class="dedCard">
+      <div class="dedTitle">DEDICATION</div>
+      <div class="dedText">Precision meets grit. Heart meets hustle. — Dedicated to Addison</div>
     </div>
   </div>
 
@@ -153,30 +180,32 @@
       <button class="btn" id="btnAnalyze">🔍 Analyze</button>
     </div>
 
-    <!-- watermark band that fades once a photo is present -->
-    <div id="watermark">UPLOAD • ESTIMATE • SEND</div>
+    <!-- Mid hero hint that fades once an image is loaded -->
+    <div id="midHint" class="noselect">UPLOAD • ESTIMATE • SEND</div>
 
     <div id="preview">
       <img id="previewImg" alt="preview"/>
       <div id="edgeGlow"></div>
-      <!-- Camera capture lives here when active -->
     </div>
 
     <!-- Result chips (cost / risks / upsell) appear as tips -->
     <div id="tips"></div>
   </main>
 
-  <!-- Voice STOP orb (left) -->
+  <!-- Voice bar (talk → send) -->
+  <div id="controlsBar" class="noselect">
+    <div>
+      <button class="btn ghost" id="btnTalk" aria-label="Tap to talk">🎙️ Tap to Talk</button>
+      <div id="hintTalk">Tap to talk • Tap again to send</div>
+    </div>
+    <button class="pill" id="btnSend" aria-label="Send voice">Send</button>
+    <button class="pill" id="btnClearLog" aria-label="Clear on-screen tips">Clear Tips</button>
+  </div>
+
+  <!-- Voice STOP orb -->
   <div id="orb" class="idle" title="Stop speaking">
     ⏹
     <div class="orbStop">Stop</div>
-  </div>
-
-  <!-- Talk dock (right): tap to talk → tap to send -->
-  <div id="talkDock">
-    <div id="hint">Tap to talk • Tap to send</div>
-    <button class="btn" id="btnTalkAddie" aria-label="Tap to talk to Addie">🎙️ Talk</button>
-    <button class="btn" id="btnSendTranscript" aria-label="Send your voice message">➤ Send</button>
   </div>
 
   <!-- Toast -->
@@ -196,56 +225,86 @@
       <div class="gHead">
         <div class="gTitle">CARDINAL GARAGE • Tiers & Portals</div>
         <div class="btn-row">
-          <!-- Put the PDF in the repo root or adjust this path -->
-          <a class="pill" id="founderBook" href="./GarageMind_Founder_Black_Book.pdf" target="_blank" rel="noopener">Founders Black Book</a>
+          <!-- Founder Black Book (ensure this file exists in the repo root) -->
+          <a class="pill" id="founderBook" href="./GarageMind_Founder_Black_Book.pdf" target="_blank" rel="noopener">Founders Black Book (PDF)</a>
           <button class="pill" id="gClose">Close</button>
         </div>
       </div>
       <div class="gBody">
         <div class="gGrid">
-          <div class="card">
-            <span class="tag">BASIC • Demo</span>
-            <div>One full Analyze run (photo → cost, risks, upsells). Exports included.</div>
-            <div class="price">$0</div>
-            <div class="chips">
-              <span class="chip ok">Photo → Estimate</span>
-              <span class="chip ok">TXT Export</span>
-              <span class="chip">Garage Access (read-only)</span>
-            </div>
-          </div>
 
-          <div class="card">
-            <span class="tag">Access+ Unlimited</span>
-            <div>Unlimited photo analyses. Remove demo cap.</div>
+          <!-- TIER: Access+ (Starter) -->
+          <div class="card glowMint">
+            <span class="tag">Access+ • Starter</span>
+            <div>Unlimited basic photo → estimate analyses. Exports (TXT/JSON) included.</div>
             <div class="price">$25 / month</div>
-            <div id="paypal-hosted-buttons"></div>
-          </div>
-
-          <div class="card">
-            <span class="tag">Pro Estimate</span>
-            <div>Sales logic, premium upsell scripts, and risk banding + client handoff.</div>
-            <div class="price">$129 / report</div>
-            <div class="chips">
-              <span class="chip up">Upsell Playbooks</span>
-              <span class="chip risk">Risk Bands</span>
-              <span class="chip">Client Script</span>
+            <div class="btn-row">
+              <a class="btn" href="https://www.paypal.com/ncp/payment/MVWW6VPEHJKKU" target="_blank" rel="noopener">Activate</a>
             </div>
           </div>
 
-          <div class="card">
-            <span class="tag">Sales Training • Live Roleplay</span>
-            <div>Addie-led interactive drills, tone/objection handling, junior/pro tracks.</div>
-            <div class="price">$129 / week</div>
+          <!-- TIER: Pro Estimate (Per Report) -->
+          <div class="card glowAqua">
+            <span class="tag">Pro Estimate • Per Report</span>
+            <div>Client-ready report with risk bands & upsell recommendations.</div>
+            <div class="price">$25 / report</div>
+            <div class="btn-row">
+              <a class="btn" href="https://www.paypal.com/ncp/payment/MVWW6VPEHJKKU" target="_blank" rel="noopener">Buy One</a>
+            </div>
           </div>
 
+          <!-- TIER: Pro Unlimited -->
+          <div class="card glowTeal">
+            <span class="tag">Pro Unlimited</span>
+            <div>Unlimited Pro reports, premium upsell playbooks, client handoff scripts, risk scoring.</div>
+            <div class="price">$129 / month</div>
+            <div class="btn-row">
+              <a class="btn" href="https://www.paypal.com/ncp/payment/MVWW6VPEHJKKU" target="_blank" rel="noopener">Upgrade</a>
+            </div>
+          </div>
+
+          <!-- TIER: Premium Sales -->
+          <div class="card glowGold">
+            <span class="tag">Premium Sales</span>
+            <div>Everything in Pro Unlimited + Sales University & Jr–Pro training + Docs (Field Guides/Templates).</div>
+            <div class="price">$189 / month</div>
+            <div class="btn-row">
+              <a class="btn" href="https://www.paypal.com/ncp/payment/MVWW6VPEHJKKU" target="_blank" rel="noopener">Enroll</a>
+            </div>
+          </div>
+
+          <!-- TIER: Access All Pro -->
+          <div class="card glowRoyal">
+            <span class="tag">Access All Pro</span>
+            <div>Unlimited everything: Analyses, Pro Reports, Sales Insights, Docs. Priority response + early unlocks.</div>
+            <div class="price">$249 / month</div>
+            <div class="btn-row">
+              <a class="btn" href="https://www.paypal.com/ncp/payment/MVWW6VPEHJKKU" target="_blank" rel="noopener">Go All-In</a>
+            </div>
+          </div>
+
+          <!-- TIER: Founder Pack -->
+          <div class="card glowFounder">
+            <span class="tag">Founder Pack • Lifetime (10 spots)</span>
+            <div>Lifetime access to all tiers + beta privileges + founding member listing.</div>
+            <div class="price">$350 one-time</div>
+            <div class="btn-row">
+              <a class="btn" href="https://www.paypal.com/ncp/payment/MVWW6VPEHJKKU" target="_blank" rel="noopener">Claim a Slot</a>
+            </div>
+          </div>
+
+          <!-- PORTALS -->
           <div class="card">
             <span class="tag">Portals</span>
             <div class="btn-row">
               <button class="btn" id="btnSalesUPortal">Sales University</button>
               <button class="btn" id="btnDocsPortal">Docs Portal</button>
+              <button class="btn" id="btnJrPro">Jr–Pro Training</button>
             </div>
             <div style="margin-top:8px">Best Practices • Field Guides • Templates</div>
+            <div style="margin-top:6px;color:var(--amber)">💡 Early testers unlock Founder perks — limited to 10 lifetime slots.</div>
           </div>
+
         </div>
       </div>
     </div>
@@ -253,22 +312,15 @@
 
   <div class="footer">Powered by Cardinal-Garage_MND Inc.</div>
 
-<!-- PayPal Hosted Buttons (beta lifetime example) -->
-<script src="https://www.paypal.com/sdk/js?client-id=BAAgXonbH0yUmJj_xSSeLh_w8p-DJ9TonsElCjBeVs8qg5g-Mr_jJ34rNAHR879Z39mEgd9RjyojPdWaF0&components=hosted-buttons&enable-funding=venmo&currency=USD"></script>
-
 <script>
 (() => {
   /* ========= CONFIG ========= */
-  // Backend: localhost in dev, Render in prod (don’t point to your GitHub Pages domain for API)
   const API = (location.hostname.includes("localhost")||location.hostname.includes("127.0.0.1"))
     ? "http://localhost:3001"
-    : "https://jared-hero2-backend.onrender.com";
+    : "https://cardinalgaragepro.com";
 
-  // Fix for undefined constant earlier
+  // Single working payment URL (replace later with real per-tier URLs if desired)
   const PAYPAL_URL = "https://www.paypal.com/ncp/payment/MVWW6VPEHJKKU";
-
-  // Optional: set a Hosted Buttons ID if you have one created in your PayPal dashboard
-  const PAYPAL_HOSTED_BUTTON_ID = "K3PD4N7B9Y8ZQ"; // <-- replace with your real hosted button ID when you create it
 
   /* ========= ELEMENTS ========= */
   const el = {
@@ -280,24 +332,22 @@
     founderBook: qs('#founderBook'),
     btnSalesUPortal: qs('#btnSalesUPortal'),
     btnDocsPortal: qs('#btnDocsPortal'),
+    btnJrPro: qs('#btnJrPro'),
     // lang
     langEn: qs('#langEn'), langEs: qs('#langEs'), langPt: qs('#langPt'),
-    // boot
-    boot: qs('#boot'), b1: qs('#b1'), b2: qs('#b2'), b3: qs('#b3'), b4: qs('#b4'), b5: qs('#b5'), wake: qs('#wake'), ded: qs('#ded'),
+    // boot & dedication
+    boot: qs('#boot'), b1: qs('#b1'), b2: qs('#b2'), b3: qs('#b3'), b4: qs('#b4'), b5: qs('#b5'), wake: qs('#wake'),
+    dedOverlay: qs('#dedOverlay'),
     // main
+    midHint: qs('#midHint'),
     btnUpload: qs('#btnUpload'), btnCamera: qs('#btnCamera'), btnAnalyze: qs('#btnAnalyze'),
     preview: qs('#preview'), previewImg: qs('#previewImg'), edgeGlow: qs('#edgeGlow'), tips: qs('#tips'),
-    watermark: qs('#watermark'),
-    // voice
+    // voice / controls
+    btnTalk: qs('#btnTalk'), btnSend: qs('#btnSend'), btnClearLog: qs('#btnClearLog'),
+    hintTalk: qs('#hintTalk'),
     orb: qs('#orb'),
-    btnTalkAddie: qs('#btnTalkAddie'),
-    btnSendTranscript: qs('#btnSendTranscript'),
-    hint: qs('#hint'),
     // toast
-    toast: qs('#toast'), toastBody: qs('#toastBody'),
-    btnExportTxt: qs('#btnExportTxt'), btnExportLogs: qs('#btnExportLogs'), btnOpenGarage: qs('#btnOpenGarage'),
-    // paypal
-    paypalSlot: qs('#paypal-hosted-buttons')
+    toast: qs('#toast'), toastBody: qs('#toastBody'), btnExportTxt: qs('#btnExportTxt'), btnExportLogs: qs('#btnExportLogs'), btnOpenGarage: qs('#btnOpenGarage')
   };
 
   /* ========= STATE ========= */
@@ -306,14 +356,14 @@
     audioEnabled: false,
     uploadsToday: getUploadsToday(),
     accessUnlocked: localStorage.getItem('herohud_access_unlocked')==='1',
-    demoCompleted: localStorage.getItem('herohud_demo_used')==='1',
+    demoUsed: localStorage.getItem('herohud_demo_used')==='1',
     logs: loadLogs(),
     lastSummary: "", lastRecommendation: "", lastCost: "", lastRisks: [], lastUpsells: [],
     analyzing: false,
     camStream: null, camVideo: null, capBtn: null,
     activeUtter: null,
-    // speech
-    recognition: null, isListening:false, transcript:"", nudgeTimer:null
+    // voice in
+    rec: null, listening: false, lastTranscript: "", idleTimer: null
   };
 
   /* ========= UTIL ========= */
@@ -337,6 +387,7 @@
   function loadLogs(){ const raw=localStorage.getItem('herohud_logs'); return raw?JSON.parse(raw):{ startedAt: Date.now(), entries: [] } }
   function dateStamp(){ const d=new Date(); const z=n=>String(n).padStart(2,'0'); return `${d.getFullYear()}${z(d.getMonth()+1)}${z(d.getDate())}_${z(d.getHours())}${z(d.getMinutes())}${z(d.getSeconds())}`; }
   function downloadTxt(filename, text){ const blob=new Blob([text],{type:"text/plain"}); const a=document.createElement("a"); a.href=URL.createObjectURL(blob); a.download=filename; a.click(); }
+  function clearTips(){ el.tips.innerHTML=''; }
 
   /* ========= LANGUAGE ========= */
   function setLang(l){
@@ -358,39 +409,40 @@
     await wait(500); el.wake.classList.add('show');
   })();
 
-  el.wake.onclick=async ()=>{
-    STATE.audioEnabled = true; // allow speech
-    // Dedication now shows AFTER Wake tap
-    el.ded.style.display = 'block';
-    await wait(1200);
-    // Don’t hide boot until after dedication flashes in
+  // After Tap to Wake → show dedication for ~3.2s → then intro → close boot
+  el.wake.onclick = async ()=>{
+    STATE.audioEnabled = true;
+    // Dedication
+    el.dedOverlay.style.display='grid';
+    await wait(3200);
+    el.dedOverlay.style.display='none';
+    // Intro voice
+    speakAddieIntro();
+    // Idle nudge in 10s if no upload yet
+    scheduleIdleNudge();
+    // Close boot
     el.boot.style.display='none';
-    // Greeting (once)
-    speakAddieIntroOnce();
-    // Idle nudge after 10s of inactivity (no preview shown)
-    startIdleNudge();
   };
 
-  function startIdleNudge(){
-    clearTimeout(STATE.nudgeTimer);
-    STATE.nudgeTimer = setTimeout(()=>{
-      if(!el.previewImg.src){ // still nothing uploaded
-        speak(i18n(
-          "C'mon, let’s get to work — upload a photo. Jared is ready to get you selling!",
-          "¡Vamos a trabajar! Sube una foto. ¡Jared está listo para ayudarte a vender!",
-          "Vamos trabalhar! Envie uma foto. O Jared está pronto para te ajudar a vender!"
-        ), {female:true,rate:1.06,pitch:1.12});
+  /* ========= IDLE NUDGE (10s after intro if no photo) ========= */
+  function scheduleIdleNudge(){
+    if(STATE.idleTimer) clearTimeout(STATE.idleTimer);
+    STATE.idleTimer = setTimeout(()=>{
+      if(!el.previewImg.src){ // no image yet
+        speak( i18n("C’mon, let’s get to work—upload a photo. Jared is ready to get you selling!",
+                    "Vamos, manos a la obra: sube una foto. ¡Jared está listo para ayudarte a vender!",
+                    "Bora lá — envie uma foto. O Jared está pronto para te ajudar a vender!"),
+              {female:true,rate:1.04,pitch:1.12});
       }
     }, 10000);
   }
 
-  /* ========= SPEECH (no overlap) ========= */
+  /* ========= SPEECH (speak out) ========= */
   function stopSpeech(){ if(STATE.activeUtter){ window.speechSynthesis.cancel(); STATE.activeUtter=null; el.orb.className='idle'; } }
   el.orb.onclick = stopSpeech;
 
   function pickVoice(preferFemale=true){
-    const voices = window.speechSynthesis.getVoices();
-    if(!voices || !voices.length) return null;
+    const voices = window.speechSynthesis.getVoices() || [];
     const us = voices.filter(v=>/en-us/i.test(v.lang) || /en_/i.test(v.lang));
     const femaleNames = ["Google US English", "Samantha", "Jenny", "Aria", "Amelia", "Sara", "Alloy", "Nova", "Olivia", "Emma"];
     const maleNames   = ["Daniel", "Alex", "Matthew", "Guy", "Christopher"];
@@ -403,7 +455,7 @@
   window.speechSynthesis.onvoiceschanged = ()=>window.speechSynthesis.getVoices();
 
   function speak(text,{female=true,rate=1.02,pitch=1.08,onend}={}){
-    if(!STATE.audioEnabled){ onend && onend(); return; }
+    if(!STATE.audioEnabled){ if(onend) onend(); return; }
     stopSpeech();
     try{
       const u = new SpeechSynthesisUtterance(text);
@@ -419,95 +471,99 @@
     }catch{ onend && onend(); }
   }
 
-  let greetedOnce=false;
-  function speakAddieIntroOnce(){
-    if(greetedOnce) return;
-    greetedOnce=true;
+  function speakAddieIntro(){
     const baseEn = "Welcome to Cardinal’s Garage. I’m Addie — your personal sales coach. This is where a photo becomes a plan. Upload or open the camera, tap Analyze, and Jared will handle tools, timing, risks, and pricing while I guide your sales moves.";
-    const baseEs = "Bienvenidos. Hola — soy Addie, tu coach de ventas. Aquí una foto se convierte en un plan. Sube una imagen o abre la cámara, pulsa Analizar, y Jared cubrirá herramientas, tiempos, riesgos y precios mientras yo guío tus jugadas de venta.";
-    const basePt = "Olá — eu sou a Addie, sua coach de vendas. Aqui uma foto vira um plano. Envie uma imagem ou abra a câmera, toque Analisar, e o Jared cuida de ferramentas, prazos, riscos e preços enquanto eu apoio suas vendas.";
+    const baseEs = " Bienvenidos. Hola — soy Addie, tu coach de ventas. Aquí una foto se convierte en un plan. Sube una imagen o abre la cámara, pulsa Analizar, y Jared cubrirá herramientas, tiempos, riesgos y precios mientras yo guío tus jugadas de venta.";
+    const basePt = " Olá — eu sou a Addie, sua coach de vendas. Aqui uma foto vira um plano. Envie uma imagem ou abra a câmera, toque Analisar, e o Jared cuida de ferramentas, prazos, riscos e preços enquanto eu apoio suas vendas.";
     let line = baseEn;
-    if(STATE.lang==='es') line = baseEs;
-    if(STATE.lang==='pt') line = basePt;
+    if(STATE.lang==='es') line = "Hello! Hola." + baseEs;
+    if(STATE.lang==='pt') line = "Hello! Olá." + basePt;
     speak(line,{female:true,rate:1.05,pitch:1.10});
   }
 
-  /* ========= REAL VOICE INPUT (tap to talk → tap to send) ========= */
-  const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-  if(SpeechRecognition){
-    STATE.recognition = new SpeechRecognition();
-    STATE.recognition.continuous = true; // tap to stop using Send
-    STATE.recognition.interimResults = true;
-    STATE.recognition.lang = (STATE.lang==='es' ? 'es-ES' : STATE.lang==='pt' ? 'pt-BR' : 'en-US');
-
-    STATE.recognition.onresult = (e)=>{
-      let interim = "", finalText = STATE.transcript;
-      for(let i=e.resultIndex; i<e.results.length; i++){
+  /* ========= TALK (speech recognition) ========= */
+  const SR = window.SpeechRecognition || window.webkitSpeechRecognition || null;
+  if(SR){
+    STATE.rec = new SR();
+    STATE.rec.continuous = false;
+    STATE.rec.interimResults = true;
+    STATE.rec.lang = (STATE.lang==='es') ? 'es-ES' : (STATE.lang==='pt') ? 'pt-PT' : 'en-US';
+    STATE.rec.onresult = (e)=>{
+      let final = "", interim = "";
+      for(let i=0; i<e.results.length; i++){
         const res = e.results[i];
-        if(res.isFinal) finalText += res[0].transcript;
+        if(res.isFinal) final += res[0].transcript;
         else interim += res[0].transcript;
       }
-      STATE.transcript = finalText.trim();
-      if(STATE.transcript.length>0){ el.btnSendTranscript.style.display='inline-block'; }
-      // Show a tiny rolling tip
-      if(interim) tip('🎙️ '+interim,'ok');
+      const text = final || interim;
+      STATE.lastTranscript = text.trim();
+      if(text){ tip('🗣️ '+text,'ok'); }
     };
-    STATE.recognition.onend = ()=>{ STATE.isListening=false; el.btnTalkAddie.textContent='🎙️ Talk'; };
-
-  }else{
-    el.hint.textContent = 'Voice not supported on this device.';
+    STATE.rec.onend = ()=>{ STATE.listening = false; el.btnTalk.classList.remove('ghost'); };
+    STATE.rec.onerror = ()=>{ STATE.listening = false; el.btnTalk.classList.remove('ghost'); };
   }
 
-  function toggleListen(){
-    if(!STATE.recognition){ tip(i18n('Speech recognition not supported here.','Reconocimiento de voz no soportado.','Reconhecimento de voz não suportado.'),'risk'); return; }
-    if(STATE.isListening){
-      STATE.recognition.stop();
-      STATE.isListening=false;
-      el.btnTalkAddie.textContent='🎙️ Talk';
+  el.btnTalk.addEventListener('click', ()=>{
+    if(!SR){ tip(i18n('Voice input not supported on this device.','Entrada de voz no soportada.','Sem suporte de voz neste dispositivo.'),'risk'); return; }
+    if(STATE.listening){
+      // stop listening → ready to send
+      try{ STATE.rec.stop(); }catch{}
+      STATE.listening = false;
+      el.btnTalk.classList.remove('ghost');
+      el.hintTalk.textContent = i18n('Tap Send to forward to Jared','Toca Enviar para pasar a Jared','Toque Enviar para encaminhar ao Jared');
     }else{
-      try{
-        STATE.transcript=""; el.btnSendTranscript.style.display='none';
-        STATE.recognition.lang = (STATE.lang==='es' ? 'es-ES' : STATE.lang==='pt' ? 'pt-BR' : 'en-US');
-        STATE.recognition.start();
-        STATE.isListening=true;
-        el.btnTalkAddie.textContent='⏹ Stop';
-        tip(i18n('Listening… tap Send when ready.','Escuchando… pulsa Enviar cuando listo.','Ouvindo… toque Enviar quando pronto.'),'ok');
-      }catch{
-        tip(i18n('Could not start microphone.','No se pudo iniciar el micrófono.','Não foi possível iniciar o microfone.'),'risk');
-      }
+      // start listening
+      STATE.lastTranscript = "";
+      STATE.rec.lang = (STATE.lang==='es') ? 'es-ES' : (STATE.lang==='pt') ? 'pt-PT' : 'en-US';
+      try{ STATE.rec.start(); STATE.listening=true; }catch{}
+      el.btnTalk.classList.add('ghost');
+      el.hintTalk.textContent = i18n('Listening… Tap again to stop','Escuchando… toca de nuevo para parar','Ouvindo… toque de novo para parar');
     }
-  }
-  el.btnTalkAddie.addEventListener('click', toggleListen);
-  el.btnSendTranscript.addEventListener('click', ()=>{
-    if(STATE.isListening && STATE.recognition) STATE.recognition.stop();
-    STATE.isListening=false; el.btnTalkAddie.textContent='🎙️ Talk';
-    el.btnSendTranscript.style.display='none';
-    const text = STATE.transcript.trim();
-    if(!text){ tip(i18n('Nothing captured. Try again.','Nada capturado. Inténtalo otra vez.','Nada capturado. Tente novamente.'),'risk'); return; }
-    // For now, generate a friendly Addie coaching reply locally (no backend roundtrip needed)
-    const reply = generateAddieReply(text);
-    tip('🗣️ You: '+text,'ok');
-    tip('✨ Addie: '+reply,'up');
-    speak(reply,{female:true,rate:1.04,pitch:1.12});
-    log('voice_send',{text});
   });
 
-  function generateAddieReply(text){
-    const low = text.toLowerCase();
-    if(low.includes('objection')||low.includes('price')||low.includes('too much')){
-      return i18n("Try anchoring value first, then price. Lead with outcome and timeline, then offer a good/better/best path.",
-                  "Ancla valor primero y luego precio. Lidera con resultado y plazo; ofrece opciones bueno/mejor/óptimo.",
-                  "Ancore valor antes do preço. Conduza com resultado e prazo; ofereça bom/melhor/ideal.");
+  // Send voice prompt to Jared (text inference)
+  el.btnSend.addEventListener('click', async ()=>{
+    if(!STATE.lastTranscript){ tip(i18n('No voice captured yet. Tap to talk first.','Sin voz capturada. Pulsa hablar.','Sem voz capturada. Toque para falar.'),'risk'); return; }
+    const prompt = STATE.lastTranscript;
+    tip('📨 '+i18n('Sending to Jared…','Enviando a Jared…','Enviando ao Jared…'),'ok');
+    stopSpeech();
+
+    // Try backend text analysis; fallback to on-screen coaching
+    try{
+      const res = await fetch(API+'/analyze-text', {
+        method:'POST',
+        headers:{},
+        body: (()=>{ const fd=new FormData(); fd.append('prompt', prompt); fd.append('lang', STATE.lang); return fd; })()
+      });
+      const data = await res.json();
+
+      const summary = data.summary || i18n('Analysis ready.','Análisis listo.','Análise pronta.');
+      const recommendation = data.recommendation || deriveRecommendation(summary);
+      const risks = Array.isArray(data.risks)?data.risks: (data.risks?String(data.risks).split(/[;,]/):[]);
+      const upsells = Array.isArray(data.upsells)?data.upsells: (data.upsells?String(data.upsells).split(/[;,]/):[]);
+
+      STATE.lastSummary = summary;
+      STATE.lastRecommendation = recommendation;
+      STATE.lastRisks = risks; STATE.lastUpsells = upsells;
+
+      tip('🛠️ '+recommendation,'ok');
+      risks.slice(0,3).forEach(r=> tip('⚠️ '+r.trim(),'risk'));
+      upsells.slice(0,3).forEach(u=> tip('⬆️ '+u.trim(),'up'));
+      speak(summary,{female:false,rate:0.98,pitch:1.0, onend:()=>showToast(summary, recommendation)});
+      log('text_inference',{prompt, data});
+    }catch{
+      // Fallback coaching only
+      const coach = i18n(
+        "Got it. Here’s your sales angle—lead with the visible wins, set expectations on clean-up, and close with a simple tiered offer.",
+        "Entendido. Tu ángulo de venta: lidera con los beneficios visibles, fija expectativas sobre limpieza y cierra con una oferta escalonada.",
+        "Entendi. Seu ângulo: destaque ganhos visíveis, alinhe expectativa de limpeza e feche com oferta em níveis."
+      );
+      tip('🗒️ '+coach,'ok');
+      speak(coach,{female:true,rate:1.04,pitch:1.1});
     }
-    if(low.includes('upsell')||low.includes('add-on')){
-      return i18n("Stack one small win: edging or weed barrier. Tie it to less rework and a cleaner handoff for the client.",
-                  "Suma una victoria pequeña: bordes o barrera de malezas. Átalo a menos retrabajo y mejor entrega.",
-                  "Empilhe uma pequena vitória: borda ou manta anti-ervas. Vincule a menos retrabalho e melhor entrega.");
-    }
-    return i18n("Got it — I’ll keep coaching. When you’re with the client, mirror back what you see, then present the plan in 3 steps: tools, time, price.",
-                "Entendido. Con el cliente, refleja lo que ves y presenta el plan en 3 pasos: herramientas, tiempo, precio.",
-                "Entendi. Com o cliente, espelhe o que vê e apresente o plano em 3 passos: ferramentas, tempo, preço.");
-  }
+  });
+
+  el.btnClearLog.onclick = ()=>{ clearTips(); tip(i18n('Cleared.','Borrado.','Limpado.'),'ok'); };
 
   /* ========= FILES / CAMERA ========= */
   const fileInput = document.createElement('input'); fileInput.type='file'; fileInput.accept='image/*';
@@ -519,19 +575,20 @@
     bumpUploads();
     tip(i18n('Photo ready — tap Analyze.','Foto lista — pulsa Analizar.','Foto pronta — toque Analisar.'), 'ok');
     log('upload',{name:f.name,size:f.size});
+    fadeMidHint();
   };
 
   el.btnCamera.onclick = openCamera;
   async function openCamera(){
     if(!(navigator.mediaDevices&&navigator.mediaDevices.getUserMedia)){ tip(i18n('Camera not supported.','Cámara no soportada.','Câmera não suportada.'), 'risk'); return; }
     try{
-      const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode:"environment" } }); // back camera if available
+      const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode:"environment" } });
       STATE.camStream = stream;
       STATE.camVideo = document.createElement('video');
       STATE.camVideo.playsInline=true; STATE.camVideo.muted=true; STATE.camVideo.srcObject=stream; await STATE.camVideo.play();
       el.preview.style.display='block'; replacePreview(STATE.camVideo); ensureCapBtn();
-      el.watermark.classList.add('hide');
       tip(i18n('Camera online — capture when ready.','Cámara lista — captura cuando quieras.','Câmera ativa — capture quando quiser.'), 'ok');
+      fadeMidHint();
     }catch{ tip(i18n('Camera access denied.','Acceso a cámara denegado.','Acesso à câmera negado.'), 'risk'); }
   }
   function ensureCapBtn(){
@@ -557,21 +614,21 @@
   }
   function showImage(url){
     el.previewImg.src=url; el.preview.style.display='block'; replacePreview(el.previewImg);
-    el.watermark.classList.add('hide');
+    fadeMidHint();
   }
   function replacePreview(node){ const old=el.preview.querySelector('img,video'); if(old) old.replaceWith(node); else el.preview.prepend(node); }
+  function fadeMidHint(){ if(!el.midHint) return; el.midHint.classList.add('fade'); setTimeout(()=>{el.midHint.style.display='none';}, 450); }
 
-  /* ========= PAYWALL (after first SUCCESSFUL analyze only) ========= */
+  /* ========= PAYWALL (after one successful full analyze) ========= */
   function canAnalyze(){
     if(STATE.accessUnlocked) return true;
-    // Allow unlimited attempts UNTIL one successful full analyze occurs (demo completes),
-    // then gate on subsequent analyze clicks.
-    return !STATE.demoCompleted;
+    // allow exactly ONE full analyze run; gate on second attempt
+    return !STATE.demoUsed;
   }
   function showPaywall(){
     modal(`
       <h3 style="margin:0 0 8px;color:var(--mintL)">Access Limit Reached</h3>
-      <p class="sub" style="margin:0 0 12px;opacity:.85">${i18n('Unlock Access+ for unlimited analyses (exports stay free TXT).','Desbloquea Access+ para análisis ilimitados (exportaciones TXT gratis).','Desbloqueie o Access+ para análises ilimitadas (exportações TXT grátis).')}</p>
+      <p class="sub" style="margin:0 0 12px;opacity:.85">${i18n('Unlock Access+ for unlimited analyses (exports stay free TXT/JSON).','Desbloquea Access+ para análisis ilimitados.','Desbloqueie Access+ para análises ilimitadas.')}</p>
       <div class="btn-row" style="justify-content:center">
         <a class="btn" href="${PAYPAL_URL}" target="_blank" rel="noopener">${i18n('Activate Access+','Activar Access+','Ativar Access+')}</a>
         <button class="btn" id="pwClose">${i18n('Close','Cerrar','Fechar')}</button>
@@ -579,12 +636,12 @@
     `, (root)=>{ root.querySelector('#pwClose').onclick=()=>root.remove(); });
   }
 
-  /* ========= ANALYZE ========= */
+  /* ========= ANALYZE (image) ========= */
   el.btnAnalyze.onclick = async ()=>{
     if(!el.previewImg.src){ tip(i18n('Upload or capture a photo first.','Sube o captura una foto primero.','Envie ou capture uma foto primeiro.'),'risk'); return; }
     if(!canAnalyze()){ showPaywall(); return; }
 
-    STATE.analyzing=true; clearTips(); el.preview.classList.add('glow-on'); stopSpeech();
+    STATE.analyzing=true; clearTips(); el.preview.classList.add('glow-on'); el.edgeGlow.classList.add('pulse'); stopSpeech();
     speak(i18n('Analyzing photo — one moment…','Analizando foto — un momento…','Analisando foto — um instante…'),{female:false,rate:0.96,pitch:1.0});
     log('analyze_start',{});
 
@@ -595,7 +652,6 @@
       formData.append('lang', STATE.lang);
 
       const res=await fetch(API+'/analyze-image',{method:'POST',body:formData});
-      if(!res.ok) throw new Error('Backend error: '+res.status);
       const data=await res.json();
 
       const summary = data.summary || i18n('Analysis complete.','Análisis completo.','Análise concluída.');
@@ -614,14 +670,14 @@
 
       speak(summary,{female:false,rate:0.98,pitch:1.0, onend:()=>showToast(summary, recommendation)});
 
-      // Mark demo **completed only on success**
-      if(!STATE.demoCompleted){ STATE.demoCompleted=true; localStorage.setItem('herohud_demo_used','1'); }
+      // mark demo used after first successful run
+      if(!STATE.demoUsed){ localStorage.setItem('herohud_demo_used','1'); STATE.demoUsed = true; }
 
     }catch(e){
       tip(i18n('Analysis failed. Please try again.','El análisis falló. Inténtalo de nuevo.','A análise falhou. Tente novamente.'),'risk');
       log('analyze_error',{msg:String(e)});
     }finally{
-      STATE.analyzing=false; el.preview.classList.remove('glow-on'); el.orb.className='idle';
+      STATE.analyzing=false; el.preview.classList.remove('glow-on'); el.edgeGlow.classList.remove('pulse'); el.orb.className='idle';
     }
   };
 
@@ -647,7 +703,7 @@
       "",
       `Summary: ${STATE.lastSummary}`,
       `Recommendation: ${STATE.lastRecommendation}`,
-      `Cost: ${STATE.lastCost}`,
+      `Cost: ${STATE.lastCost||''}`,
       "",
       "Risks:",
       (STATE.lastRisks||[]).map(x=>`- ${x}`).join("\n"),
@@ -669,8 +725,10 @@
   function openGarage(){ el.garage.classList.remove('hidden'); el.garage.style.display='block'; }
   function closeGarage(){ el.garage.style.display='none'; }
   el.btnGarage.onclick=openGarage; el.gClose.onclick=closeGarage;
+
   el.btnSalesUPortal.onclick=()=> alert(i18n('Sales U portal opening (placeholder).','Abriendo portal de Sales U (placeholder).','Abrindo portal Sales U (placeholder).'));
   el.btnDocsPortal.onclick=()=> alert(i18n('Docs portal opening (placeholder).','Abriendo portal de Documentos (placeholder).','Abrindo portal de Documentos (placeholder).'));
+  el.btnJrPro.onclick=()=> alert(i18n('Jr–Pro training portal opening (placeholder).','Abriendo portal Jr–Pro (placeholder).','Abrindo portal Jr–Pro (placeholder).'));
 
   /* ========= FULLSCREEN ========= */
   el.btnFull.onclick=()=>{ if(!document.fullscreenElement) document.documentElement.requestFullscreen().catch(()=>{}); else document.exitFullscreen().catch(()=>{}); };
@@ -681,29 +739,20 @@
     if(kind==='ok') t.classList.add('ok'); if(kind==='risk') t.classList.add('risk'); if(kind==='up') t.classList.add('up');
     el.tips.appendChild(t); requestAnimationFrame(()=>t.classList.add('show'));
   }
-  function clearTips(){ el.tips.innerHTML=''; }
 
   /* ========= MODAL ========= */
   function modal(innerHTML, after){
     const overlay=document.createElement('div');
     overlay.style="position:fixed;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,.8);z-index:9999;";
-    overlay.innerHTML=`<div style="background:#0f1916;border:1px solid var(--stroke);padding:1rem 1.3rem;border-radius:16px;text-align:center;max-width:560px;width:min(92vw,560px);color:var(--text);box-shadow:0 0 32px rgba(156,255,224,.28)">${innerHTML}</div>`;
+    overlay.innerHTML=`
+      <div style="background:#0f1916;border:1px solid var(--stroke);padding:1rem 1.3rem;border-radius:16px;text-align:center;max-width:560px;width:min(92vw,560px);color:var(--text);box-shadow:0 0 32px rgba(156,255,224,.28)">
+        ${innerHTML}
+      </div>`;
     document.body.appendChild(overlay); after && after(overlay);
   }
 
   /* ========= i18n helper ========= */
   function i18n(en,es,pt){ return STATE.lang==='es'?es: STATE.lang==='pt'?pt: en; }
-
-  /* ========= PayPal Hosted Buttons render (if you create one) ========= */
-  if (window.paypal && el.paypalSlot && PAYPAL_HOSTED_BUTTON_ID) {
-    try{
-      window.paypal.HostedButtons({
-        hostedButtonId: PAYPAL_HOSTED_BUTTON_ID
-      }).render("#paypal-hosted-buttons");
-    }catch(e){
-      console.warn("PayPal Hosted Buttons not rendered:", e);
-    }
-  }
 
 })();
 </script>
