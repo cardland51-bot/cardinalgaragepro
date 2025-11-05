@@ -10,6 +10,21 @@
 <meta name="theme-color" content="#0b1b16" />
 <style>
   :root{
+    :root{
+  --gold:#f6bf3a;
+}
+.icon {
+  width:14px; height:14px; display:inline-block; vertical-align:-2px; margin-right:6px;
+}
+.btn.gold, .pill.gold {
+  border-color: var(--gold) !important;
+  color: var(--gold) !important;
+  box-shadow: 0 0 16px rgba(246,191,58,.22);
+}
+.btn.gold:hover, .pill.gold:hover {
+  box-shadow: 0 0 26px rgba(246,191,58,.45);
+}
+
     --bg-top:#0b1b16; --bg-bot:#071219;
     --mintL:#c7ffe9; --mint:#34D1A0; --aqua:#2FB0E9; --teal:#0E8B67;
     --text:#E9FFF6; --textDim:rgba(233,255,246,.86);
@@ -352,15 +367,29 @@
   </div>
 
   <!-- Toast -->
-  <div id="toast">
-    <div class="t-title">Analysis Complete</div>
-    <div class="t-body" id="toastBody">Summary will appear here…</div>
-    <div class="t-actions">
-      <button class="btn gray" id="toastExport">Export Log (.txt)</button>
-      <button class="btn gray" id="toastBP">Best Practices</button>
-      <button class="btn gray" id="toastFG">Field Guides</button>
-    </div>
-  </div>
+ <div class="t-actions">
+  <button class="btn gold" id="toastExport">
+    <span class="icon" aria-hidden="true">
+      <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 3a1 1 0 0 1 1 1v7h3l-4 4-4-4h3V4a1 1 0 0 1 1-1zM5 20a2 2 0 0 1-2-2v-3a1 1 0 1 1 2 0v3h14v-3a1 1 0 1 1 2 0v3a2 2 0 0 1-2 2H5z"/></svg>
+    </span>
+    Export Log (.txt)
+  </button>
+
+  <button class="btn gold" id="toastBP">
+    <span class="icon" aria-hidden="true">
+      <svg viewBox="0 0 24 24" fill="currentColor"><path d="M5 4h14a1 1 0 0 1 1 1v12.5l-3.5-2.1a2 2 0 0 0-2.1 0L12 17.5l-2.4-1.6a2 2 0 0 0-2.1 0L4 17.5V5a1 1 0 0 1 1-1z"/></svg>
+    </span>
+    Best Practices
+  </button>
+
+  <button class="btn gold" id="toastFG">
+    <span class="icon" aria-hidden="true">
+      <svg viewBox="0 0 24 24" fill="currentColor"><path d="M4 5a2 2 0 0 1 2-2h8l6 6v10a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V5zm11 0v4h4"/></svg>
+    </span>
+    Field Guides
+  </button>
+</div>
+
 
   <!-- Calculator -->
   <div id="calcTab"><button class="pill" id="btnCalcTab">Calculator</button></div>
