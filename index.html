@@ -197,12 +197,144 @@
   #wakeBtn{margin-top:14px}
   #dedication{margin-top:14px;color:var(--mintL);opacity:0;transition:opacity .6s ease}
 
+<!-- ==== STYLE SECTION ==== -->
+<style>
   /* Voice orb (draggable) */
-  #voiceOrb{position:fixed;left:18px;bottom:80px;width:54px;height:54px;border-radius:999px;border:1px solid var(--mint);background:radial-gradient(circle at 60% 40%, rgba(156,255,224,.25), rgba(47,176,233,.12));box-shadow:0 0 16px rgba(156,255,224,.25);z-index:60;display:grid;place-items:center}
-  #voiceOrb.idle{box-shadow:0 0 10px rgba(156,255,224,.2)}
-  #voiceOrb.listening{animation:pulse 1.4s ease-in-out infinite}
-  #voiceOrb.speaking{box-shadow:0 0 20px rgba(156,255,224,.45), 0 0 28px rgba(47,176,233,.35)}
-  @keyframes pulse{0%,100%{transform:scale(1)}50%{transform:scale(1.08)}}
+  #voiceOrb {
+    position: fixed;
+    left: 18px;
+    bottom: 80px;
+    width: 54px;
+    height: 54px;
+    border-radius: 999px;
+    border: 1px solid var(--mint);
+    background: radial-gradient(circle at 60% 40%, rgba(156,255,224,.25), rgba(47,176,233,.12));
+    box-shadow: 0 0 16px rgba(156,255,224,.25);
+    z-index: 60;
+    display: grid;
+    place-items: center;
+  }
+
+  #voiceOrb.idle {
+    box-shadow: 0 0 10px rgba(156,255,224,.2);
+  }
+
+  #voiceOrb.listening {
+    animation: pulse 1.4s ease-in-out infinite;
+  }
+
+  #voiceOrb.speaking {
+    box-shadow: 0 0 20px rgba(156,255,224,.45),
+                0 0 28px rgba(47,176,233,.35);
+  }
+
+  @keyframes pulse {
+    0%,100% { transform: scale(1); }
+    50% { transform: scale(1.08); }
+  }
+
+  /* Listening indicator */
+  #listeningIndicator {
+    position: fixed;
+    bottom: 150px;
+    left: 50%;
+    transform: translateX(-50%) translateY(10px);
+    font-size: 14px;
+    color: var(--mint);
+    text-shadow: 0 0 8px rgba(156,255,224,.4);
+    opacity: 0;
+    transition: opacity .3s ease, transform .3s ease;
+    z-index: 99;
+  }
+
+  #listeningIndicator.visible {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+    animation: textPulse 1.6s ease-in-out infinite;
+  }
+
+  @keyframes textPulse {
+    0%,100% { opacity: .7; }
+    50% { opacity: 1; }
+  }
+</style>
+
+<!-- ==== BODY SECTION ==== -->
+<div id="voiceOrb" class="idle"></div>
+<div id="listeningIndicator" class="hidden">🎧 Listening…</div>
+
+<!-- ==== SCRIPT SECTION ==== -->
+<script>
+const orb = document.getElementById("voiceOrb");
+const indicator = document.getElementById("listeningIndicator");
+
+let recording = false;
+let mediaRecorder;
+let audioChunks = [];
+
+orb.onclick = async () => {
+  if (!recording) {
+    // Start recording
+    recording = true;
+    orb.classList.remove("idle", "speaking");
+    orb.classList.add("listening");
+    indicator.classList.add("visible");
+
+    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+    mediaRecorder = new MediaRecorder(stream);
+    audioChunks = [];
+
+    mediaRecorder.ondataavailable = e => audioChunks.push(e.data);
+    mediaRecorder.onstop = async () => {
+      orb.classList.remove("listening");
+      indicator.classList.remove("visible");
+      orb.classList.add("speaking");
+
+      const audioBlob = new Blob(audioChunks, { type: "audio/webm" });
+      const formData = new FormData();
+      formData.append("audio", audioBlob, "speech.webm");
+
+      const trans = await fetch("https://cardinalgaragepro.com/transcribe", {
+        method: "POST",
+        body: formData,
+      });
+      const result = await trans.json();
+
+      if (result.text) {
+        const infer = await fetch("https://cardinalgaragepro.com/inference", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ text: result.text, mode: "pro" }),
+        });
+        const ai = await infer.json();
+
+        const speak = await fetch("https://cardinalgaragepro.com/speak", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ text: ai.content }),
+        });
+
+        const audioBuffer = await speak.arrayBuffer();
+        const blob = new Blob([audioBuffer], { type: "audio/mpeg" });
+        const url = URL.createObjectURL(blob);
+        const audio = new Audio(url);
+        audio.onended = () => {
+          orb.classList.remove("speaking");
+          orb.classList.add("idle");
+        };
+        audio.play();
+      }
+    };
+
+    mediaRecorder.start();
+  } else {
+    // Stop recording
+    recording = false;
+    mediaRecorder.stop();
+  }
+};
+</script>
+
 
   /* Toast */
   #toast{position:fixed;left:50%;transform:translateX(-50%) translateY(120%);bottom:16px;
