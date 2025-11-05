@@ -759,6 +759,22 @@ speak(summary);
 tip(reco, false);
 showAnalysisTips(summary);
 
+// ✅ Now all data are ready — log and sync them here
+log('analyze_result', { summary, reco, closePct, upsellPct, riskPct });
+syncLogs();
+toast("Analysis Ready", "DOCpro™ can export your log anytime.");
+  } catch(e) {
+    tip("Analysis failed. Please try again.", true);
+    console.error(e);
+    log('analyze_error', { msg: String(e) });
+  } finally {
+    el.wheel.style.display = 'none';
+    STATE.analyzing = false;
+  }
+}  // <--- closes analyzeCore() cleanly
+
+
+// ========= Supporting Functions =========
 function deriveRecommendation(summary){
   const s = (summary||"").replace(/\s+/g,' ').trim();
   if(!s) return "Proceed with standard prep, edge cleanly, confirm depth.";
@@ -766,7 +782,6 @@ function deriveRecommendation(summary){
   return first.length>120 ? first.slice(0,118)+"…" : first;
 }
 
-//✅ Now all data are - ready log and syn them here
 function scoreFromSummary(s){
   const t=(s||"").toLowerCase();
   let close=60, upsell=50, risk=30;
@@ -778,100 +793,3 @@ function scoreFromSummary(s){
   risk=Math.max(3,Math.min(95,risk));
   return { closePct: close, upsellPct: upsell, riskPct: risk };
 }
-
-
-  function setBar(node, pct){
-    node.style.width = '0%';
-    requestAnimationFrame(()=> {
-      node.style.transition = 'width .9s cubic-bezier(.2,.9,.2,1)';
-      node.style.width = pct + '%';
-    });
-  }
-
-  function showAnalysisTips(summary){
-    const bits=(summary||"Define bed edge; Set mulch depth; Align shrub spacing.")
-      .replace(/\s+/g,' ').trim().split(/[.;]/).map(s=>s.trim()).filter(Boolean).slice(0,3);
-    let delay=120;
-    bits.forEach((b)=>{ setTimeout(()=>tip(b,true), delay); delay+=850; });
-  }
-
-  /* ========= SPEECH (backend TTS, alloy) ========= */
-  async function speak(text){
-    try{
-      el.voiceOrb.classList.remove('idle','listening');
-      el.voiceOrb.classList.add('speaking');
-      const res = await fetch(`${CONFIG.API_BASE}/speak`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ text, voice: "alloy" })
-      });
-      if(!res.ok) throw new Error('speak failed');
-      const blob = await res.blob();
-      const url = URL.createObjectURL(blob);
-      const audio = new Audio(url);
-      audio.onended = () => { el.voiceOrb.className='idle'; };
-      audio.play();
-      log('voice_speak',{text});
-    }catch(err){
-      el.voiceOrb.className='idle';
-      console.error("TTS error:", err);
-    }
-  }
-
-  /* ========= Web Speech API (tap-to-talk shortcuts) ========= */
-  const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
-  if(SR){
-    STATE.recognition = new SR();
-    STATE.recognition.continuous = false;
-    STATE.recognition.interimResults = false;
-    STATE.recognition.lang = 'en-US';
-    STATE.recognition.onresult = (e)=>{
-      const transcript = (e.results[0] && e.results[0][0] && e.results[0][0].transcript || "").trim().toLowerCase();
-      log('voice_input',{transcript});
-      if(/analy[sz]e|run|go/.test(transcript)){ el.btnAnalyze.click(); return; }
-      if(/garage|tools/.test(transcript)){ el.garageDoor.style.display='block'; return; }
-      tip("Heard: \""+transcript+"\"", true);
-    };
-    STATE.recognition.onend = ()=>{ STATE.listening=false; el.voiceOrb.className='idle'; el.listeningIndicator.classList.remove('visible'); };
-    STATE.recognition.onerror = ()=>{ STATE.listening=false; el.voiceOrb.className='idle'; el.listeningIndicator.classList.remove('visible'); };
-  } else {
-    el.voiceOrb.title = "Voice (not supported on this browser)";
-  }
-
-  el.voiceOrb.addEventListener('click', ()=>{
-    if(!SR || !STATE.recognition){ toast("Voice", "Speech recognition not supported here."); return; }
-    if(STATE.listening){
-      STATE.recognition.stop();
-      STATE.listening=false;
-      el.voiceOrb.className='idle';
-      el.listeningIndicator.classList.remove('visible');
-    }else{
-      try{
-        STATE.listening=true;
-        el.voiceOrb.classList.remove('idle','speaking');
-        el.voiceOrb.classList.add('listening');
-        el.listeningIndicator.classList.add('visible');
-        STATE.recognition.start();
-      }catch(_){ /* noop */ }
-    }
-  });
-
-  /* ========= TIPS ========= */
-  function tip(text, small=false){
-    const t = document.createElement('div');
-    t.className = 'tip'+(small?' small':'' );
-    t.textContent = text;
-    el.tips.appendChild(t);
-    requestAnimationFrame(()=>t.classList.add('show'));
-  }
-  function clearTips(){ el.tips.innerHTML=""; }
-
-  /* ========= INIT ========= */
-  window.addEventListener('load', ()=> {
-    // nothing auto-plays; user drives
-  });
-
-})();
-</script>
-</body>
-</html>
