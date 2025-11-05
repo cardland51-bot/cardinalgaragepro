@@ -667,63 +667,80 @@
     setTimeout(()=> el.preview.classList.remove('glow-on'), 900);
   }
  
-   /* ========= ANALYZE ========= */
-  el.btnAnalyze.onclick = ()=> analyzeCore();
+/* ========= ANALYZE ========= */
+el.btnAnalyze.onclick = ()=> analyzeCore();
 
-  async function analyzeCore(){
-    try{
-      if(!el.preview.style.display || el.preview.style.display==='none'){ tip("Upload or capture a photo first.", true); return; }
-      STATE.analyzing = true;
-      clearTips();
-      el.metrics.style.display='none';
-      el.wheel.style.display='flex'; el.wheelText.textContent="Analyzing…";
-      log('analyze_start', {});
-
-      const node=el.preview.querySelector("img,video");
-      if(!node){ tip("No image found.", true); return; }
-
-      let blob;
-      if(node.tagName==='VIDEO'){
-        const canvas=document.createElement("canvas");
-        canvas.width=node.videoWidth||1280; canvas.height=node.videoHeight||720;
-        canvas.getContext("2d").drawImage(node,0,0,canvas.width,canvas.height);
-        blob=await new Promise(res=>canvas.toBlob(res,'image/jpeg',0.92));
-      }else{
-        const resp=await fetch(node.src); blob=await resp.
-      const formData=new FormData(); formData.append("file",blob,"capture.jpg");
-      const resp = await fetch(`${CONFIG.API_BASE}/analyze-image`, { method:"POST", body:formData });
-      if(!resp.ok){ throw new Error("analyze-image failed"); }
-      const data = await resp.json();
-
-      const summary = (data.summary||"Analysis complete.").trim();
-      STATE.summary = summary;
-
-      const reco = deriveRecommendation(summary);
-      STATE.recommendation = reco;
-
-      // Metrics
-      const { closePct, upsellPct, riskPct } = scoreFromSummary(summary);
-      setBar(el.mClose, closePct);
-      setBar(el.mUpsell, upsellPct);
-      setBar(el.mRisk,  riskPct);
-      el.metrics.style.display='block';
-
-      // Brief readout + tips
-      speak(summary);
-      tip(reco, false);
-      showAnalysisTips(summary);
-
-      log('analyze_result', { summary, reco, closePct, upsellPct, riskPct });
-      toast("Analysis Ready", "DOCpro™ can export your log anytime.");
-    }catch(e){
-      tip("Analysis failed. Please try again.", true);
-      console.error(e);
-      log('analyze_error', { msg:String(e) });
-    }finally{
-      el.wheel.style.display='none';
-      STATE.analyzing = false;
+async function analyzeCore(){
+  try{
+    if(!el.preview.style.display || el.preview.style.display === 'none'){
+      tip("Upload or capture a photo first.", true);
+      return;
     }
+
+    STATE.analyzing = true;
+    clearTips();
+    el.metrics.style.display = 'none';
+    el.wheel.style.display = 'flex';
+    el.wheelText.textContent = "Analyzing…";
+    log('analyze_start', {});
+
+    const node = el.preview.querySelector("img,video");
+    if(!node){ tip("No image found.", true); return; }
+
+    let blob;
+    if(node.tagName === 'VIDEO'){
+      const canvas = document.createElement("canvas");
+      canvas.width = node.videoWidth || 1280;
+      canvas.height = node.videoHeight || 720;
+      canvas.getContext("2d").drawImage(node, 0, 0, canvas.width, canvas.height);
+      blob = await new Promise(res => canvas.toBlob(res, 'image/jpeg', 0.92));
+    } else {
+      const resp = await fetch(node.src);
+      blob = await resp.blob();
+    }
+
+    // Send to backend
+    const formData = new FormData();
+    formData.append("file", blob, "capture.jpg");
+
+    const resp = await fetch(`${CONFIG.API_BASE}/analyze-image`, {
+      method: "POST",
+      body: formData
+    });
+
+    if(!resp.ok){ throw new Error("analyze-image failed"); }
+    const data = await resp.json();
+
+    const summary = (data.summary || "Analysis complete.").trim();
+    STATE.summary = summary;
+
+    const reco = deriveRecommendation(summary);
+    STATE.recommendation = reco;
+
+    // Metrics
+    const { closePct, upsellPct, riskPct } = scoreFromSummary(summary);
+    setBar(el.mClose, closePct);
+    setBar(el.mUpsell, upsellPct);
+    setBar(el.mRisk, riskPct);
+    el.metrics.style.display = 'block';
+
+    // Readout + tips
+    speak(summary);
+    tip(reco, false);
+    showAnalysisTips(summary);
+
+    log('analyze_result', { summary, reco, closePct, upsellPct, riskPct });
+    toast("Analysis Ready", "DOCpro™ can export your log anytime.");
+  } catch(e) {
+    tip("Analysis failed. Please try again.", true);
+    console.error(e);
+    log('analyze_error', { msg: String(e) });
+  } finally {
+    el.wheel.style.display = 'none';
+    STATE.analyzing = false;
   }
+}
+
 
   function deriveRecommendation(summary){
     const s = (summary||"").replace(/\s+/g,' ').trim();
