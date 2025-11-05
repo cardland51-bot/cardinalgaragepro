@@ -793,3 +793,98 @@ function scoreFromSummary(s){
   risk=Math.max(3,Math.min(95,risk));
   return { closePct: close, upsellPct: upsell, riskPct: risk };
 }
+
+function setBar(barEl, pct){ barEl.style.width = pct + "%"; }
+
+function tip(text, small){
+  const div=document.createElement("div");
+  div.className="tip"+(small?" small":"");
+  div.textContent=text;
+  el.tips.appendChild(div);
+  requestAnimationFrame(()=>div.classList.add("show"));
+}
+
+function clearTips(){ el.tips.innerHTML=""; }
+
+function showAnalysisTips(summary){
+  const s=(summary||"").toLowerCase();
+  if(/mulch/.test(s)) tip("Add delivery fee and cleanup charge to maximize margin.", true);
+  if(/trim|edge/.test(s)) tip("Offer quarterly maintenance discount for loyalty.", true);
+  if(/bare|thin/.test(s)) tip("Upsell turf repair or reseed options.", true);
+  if(/water|drain/.test(s)) tip("Flag drainage risk for extra prep labor.", true);
+  if(/stone|border/.test(s)) tip("Use premium edging material for higher perceived value.", true);
+}
+
+// ========= VOICE (TTS) =========
+async function speak(text){
+  if(!text) return;
+  log('speak',{text});
+  try{
+    const resp=await fetch(`${CONFIG.API_BASE}/speak`,{
+      method:"POST",
+      headers:{"Content-Type":"application/json"},
+      body:JSON.stringify({voice:CONFIG.voices.jared,text})
+    });
+    if(!resp.ok) throw new Error("TTS failed");
+    const blob=await resp.blob();
+    const url=URL.createObjectURL(blob);
+    const audio=new Audio(url);
+    audio.play();
+    el.voiceOrb.classList.add("speaking");
+    audio.onended=()=>el.voiceOrb.classList.remove("speaking");
+  }catch(err){
+    console.error("TTS error:",err);
+    tip("Speech temporarily unavailable.",true);
+  }
+}
+
+// ========= VOICE ORB =========
+el.voiceOrb.onclick=()=>{ STATE.listening?stopListening():startListening(); };
+
+function startListening(){
+  if(!('webkitSpeechRecognition' in window)){ tip("Voice input not supported.", true); return; }
+  STATE.recognition=new webkitSpeechRecognition();
+  STATE.recognition.lang="en-US";
+  STATE.recognition.interimResults=false;
+  STATE.recognition.onstart=()=>{
+    STATE.listening=true;
+    el.voiceOrb.classList.add("listening");
+    el.listeningIndicator.classList.add("visible");
+  };
+  STATE.recognition.onresult=(e)=>{
+    const transcript=e.results[0][0].transcript.trim();
+    log('voice_input',{transcript});
+    tip(`You said: “${transcript}”`,true);
+    handleVoiceCommand(transcript.toLowerCase());
+  };
+  STATE.recognition.onerror=()=>stopListening();
+  STATE.recognition.onend=()=>stopListening();
+  STATE.recognition.start();
+}
+
+function stopListening(){
+  if(STATE.recognition) STATE.recognition.stop();
+  STATE.listening=false;
+  el.voiceOrb.classList.remove("listening");
+  el.listeningIndicator.classList.remove("visible");
+}
+
+function handleVoiceCommand(cmd){
+  if(cmd.includes("upload")) el.btnUpload.click();
+  else if(cmd.includes("camera")) el.btnCamera.click();
+  else if(cmd.includes("analyze")) el.btnAnalyze.click();
+  else if(cmd.includes("garage")) el.garageBtn.click();
+  else if(cmd.includes("export")) el.docproBtn.click();
+  else tip("Say 'upload', 'camera', or 'analyze' to start.", true);
+}
+
+// ========= INIT =========
+window.addEventListener("load",()=>{
+  tip("Ready — upload or capture a photo to begin.",true);
+  log("init",{});
+  speak("System online. Ready for photo input.");
+});
+})();
+</script>
+</body>
+</html>
