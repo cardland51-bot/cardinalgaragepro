@@ -754,31 +754,31 @@ async function analyzeCore() {
     setBar(el.mRisk, riskPct);
     el.metrics.style.display = 'block';
 
-    // Readout + tips
-    speak(summary);
-    tip(reco, false);
-    showAnalysisTips(summary);
+// Readout + tips
+speak(summary);
+tip(reco, false);
+showAnalysisTips(summary);
 
-    // ✅ Now all data are ready — log and sync them here
-    log('analyze_result', { summary, reco, closePct, ups_
+function deriveRecommendation(summary){
+  const s = (summary||"").replace(/\s+/g,' ').trim();
+  if(!s) return "Proceed with standard prep, edge cleanly, confirm depth.";
+  const first = s.split(/[.;]/).map(x=>x.trim()).filter(Boolean)[0] || s;
+  return first.length>120 ? first.slice(0,118)+"…" : first;
+}
 
+//✅ Now all data are - ready log and syn them here
+function scoreFromSummary(s){
+  const t=(s||"").toLowerCase();
+  let close=60, upsell=50, risk=30;
+  if(/clean|defined|fresh|crisp|edg(e|ing)/.test(t)) close+=15;
+  if(/overgrown|bare|patchy|erosion|standing water|drain/.test(t)) { risk+=25; close-=10; }
+  if(/mulch|edging|stone|trim|reshape|border/.test(t)) upsell+=20;
+  close=Math.max(5,Math.min(98,close)); 
+  upsell=Math.max(5,Math.min(98,upsell)); 
+  risk=Math.max(3,Math.min(95,risk));
+  return { closePct: close, upsellPct: upsell, riskPct: risk };
+}
 
-  function deriveRecommendation(summary){
-    const s = (summary||"").replace(/\s+/g,' ').trim();
-    if(!s) return "Proceed with standard prep, edge cleanly, confirm depth.";
-    const first = s.split(/[.;]/).map(x=>x.trim()).filter(Boolean)[0] || s;
-    return first.length>120 ? first.slice(0,118)+"…" : first;
-  }
-
-  function scoreFromSummary(s){
-    const t=(s||"").toLowerCase();
-    let close=60, upsell=50, risk=30;
-    if(/clean|defined|fresh|crisp|edg(e|ing)/.test(t)) close+=15;
-    if(/overgrown|bare|patchy|erosion|standing water|drain/.test(t)) { risk+=25; close-=10; }
-    if(/mulch|edging|stone|trim|reshape|border/.test(t)) upsell+=20;
-    close=Math.max(5,Math.min(98,close)); upsell=Math.max(5,Math.min(98,upsell)); risk=Math.max(3,Math.min(95,risk));
-    return { closePct: close, upsellPct: upsell, riskPct: risk };
-  }
 
   function setBar(node, pct){
     node.style.width = '0%';
