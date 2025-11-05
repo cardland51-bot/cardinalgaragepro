@@ -528,7 +528,37 @@
   function log(kind, payload){ STATE.logs.entries.push({ t:Date.now(), kind, payload }); localStorage.setItem('herohud_logs', JSON.stringify(STATE.logs)); }
   function loadLogs(){ const raw=localStorage.getItem('herohud_logs'); return raw?JSON.parse(raw):{ startedAt: Date.now(), entries: [] } }
   function dateStamp(){ const d=new Date(); const z=n=>String(n).padStart(2,'0'); return `${d.getFullYear()}${z(d.getMonth()+1)}${z(d.getDate())}_${z(d.getHours())}${z(d.getMinutes())}${z(d.getSeconds())}`; }
-  function downloadTxt(filename, text){ const blob=new Blob([text],{type:"text/plain"}); const a=document.createElement("a"); a.href=URL.createObjectURL(blob); a.download=filename; a.click(); }
+  function downloadTxt(filename, text){ const blob=new Blob([text],{type:"text/plain"}); const a=document.createElement("a"); a.href=URL.createObjectURL(blob); a.download=filename; a.click(); 
+
+// ========= TRAINING SYNC =========                                     
+async function syncLogs(){
+  console.log("🔄 syncLogs() called!");
+try{
+    const data = STATE.logs;
+    await fetch(`${CONFIG.API_BASE}/train-collect`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(data)
+    });
+    console.log("Synced logs to backend.");
+  }catch(err){
+    console.warn("Log sync failed:", err);
+  }
+}                          
+async function syncLogs(){
+  try{
+    const data = STATE.logs;
+    await fetch(`${CONFIG.API_BASE}/train-collect`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(data)
+    });
+    console.log("Synced logs to backend.");
+  }catch(err){
+    console.warn("Log sync failed:", err);
+  }
+}
+
 
   /* ========= TOAST / DOCpro ========= */
   function toast(title, body){
@@ -668,11 +698,11 @@
   }
  
 /* ========= ANALYZE ========= */
-el.btnAnalyze.onclick = ()=> analyzeCore();
+el.btnAnalyze.onclick = () => analyzeCore();
 
-async function analyzeCore(){
-  try{
-    if(!el.preview.style.display || el.preview.style.display === 'none'){
+async function analyzeCore() {
+  try {
+    if (!el.preview.style.display || el.preview.style.display === 'none') {
       tip("Upload or capture a photo first.", true);
       return;
     }
@@ -685,10 +715,10 @@ async function analyzeCore(){
     log('analyze_start', {});
 
     const node = el.preview.querySelector("img,video");
-    if(!node){ tip("No image found.", true); return; }
+    if (!node) { tip("No image found.", true); return; }
 
     let blob;
-    if(node.tagName === 'VIDEO'){
+    if (node.tagName === 'VIDEO') {
       const canvas = document.createElement("canvas");
       canvas.width = node.videoWidth || 1280;
       canvas.height = node.videoHeight || 720;
@@ -708,7 +738,7 @@ async function analyzeCore(){
       body: formData
     });
 
-    if(!resp.ok){ throw new Error("analyze-image failed"); }
+    if (!resp.ok) { throw new Error("analyze-image failed"); }
     const data = await resp.json();
 
     const summary = (data.summary || "Analysis complete.").trim();
@@ -729,17 +759,8 @@ async function analyzeCore(){
     tip(reco, false);
     showAnalysisTips(summary);
 
-    log('analyze_result', { summary, reco, closePct, upsellPct, riskPct });
-    toast("Analysis Ready", "DOCpro™ can export your log anytime.");
-  } catch(e) {
-    tip("Analysis failed. Please try again.", true);
-    console.error(e);
-    log('analyze_error', { msg: String(e) });
-  } finally {
-    el.wheel.style.display = 'none';
-    STATE.analyzing = false;
-  }
-}
+    // ✅ Now all data are ready — log and sync them here
+    log('analyze_result', { summary, reco, closePct, ups_
 
 
   function deriveRecommendation(summary){
