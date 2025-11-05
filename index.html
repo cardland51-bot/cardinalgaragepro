@@ -14,22 +14,24 @@
     --warn:#f6bf3a; --ink:#0e1815;
   }
   html,body{margin:0;height:100%;background:linear-gradient(180deg,var(--bg-top),var(--bg-bot));color:var(--text);font-family:ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial}
-  *{box-sizing:border-box}
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  button{user-select:none;-webkit-user-select:none;touch-action:manipulation}
   .hidden{display:none!important}
 
   /* Topbar */
   .topbar{position:fixed;inset:0 0 auto 0;height:56px;display:flex;align-items:center;justify-content:space-between;padding:0 12px;background:linear-gradient(180deg, rgba(0,0,0,.45), rgba(0,0,0,.1));border-bottom:1px solid var(--stroke);z-index:50;backdrop-filter:blur(6px)}
   .brand{font-weight:900;letter-spacing:.08em;color:var(--mintL)}
   .menu{display:flex;gap:8px;align-items:center}
-  .pill{border:1px solid var(--stroke);background:var(--glass);color:var(--text);cursor:pointer;border-radius:999px;padding:.45rem .85rem;font-size:12px;user-select:none}
+  .pill{border:1px solid var(--stroke);background:var(--glass);color:var(--text);cursor:pointer;border-radius:999px;padding:.45rem .85rem;font-size:12px}
+
   .lang{display:flex;gap:6px}
   .lang button{border:1px solid var(--stroke);background:rgba(255,255,255,.05);color:var(--text);border-radius:999px;padding:.25rem .55rem;font-size:11px;cursor:pointer}
   .lang .on{border-color:var(--mint);color:var(--mintL)}
 
   /* Cinematic boot */
   #boot{position:fixed;inset:0;background:radial-gradient(120% 80% at 50% 20%, rgba(156,255,224,.12), transparent 60%), #03100c;z-index:99;display:grid;place-items:center}
-  .bootbox{border:1px solid var(--stroke);background:rgba(15,25,22,.78);backdrop-filter:blur(8px);border-radius:16px;padding:18px 20px;max-width:640px;width:min(92vw,640px);text-align:center;box-shadow:0 0 40px rgba(0,0,0,.6)}
-  .bootline{opacity:0;transform:translateY(6px);transition:all .5s}
+  .bootbox{border:1px solid var(--stroke);background:rgba(15,25,22,.78);backdrop-filter:blur(10px);border-radius:18px;padding:22px 22px;max-width:680px;width:min(92vw,680px);text-align:center;box-shadow:0 0 40px rgba(0,0,0,.6)}
+  .bootline{opacity:0;transform:translateY(8px);transition:all .55s ease}
   .bootline.show{opacity:1;transform:none}
   .bootstep{font-family:ui-monospace,Menlo,Consolas,monospace;color:var(--textDim);margin:6px 0}
   .big{font-weight:800;letter-spacing:.12em;color:var(--mintL);margin:6px 0 2px}
@@ -40,15 +42,24 @@
   .btn{appearance:none;border:1px solid var(--mint);background:var(--glass);color:var(--mintL);
     padding:.85rem 1.4rem;border-radius:999px;letter-spacing:.08em;text-transform:uppercase;font-weight:700;
     backdrop-filter:blur(6px);cursor:pointer;transition:box-shadow .2s,transform .1s,opacity .2s;
-    box-shadow:0 0 16px rgba(156,255,224,.14);font-size:13px;user-select:none}
+    box-shadow:0 0 16px rgba(156,255,224,.14);font-size:13px}
   .btn:hover{box-shadow:0 0 26px rgba(156,255,224,.45)}
   .btn-row{display:flex;gap:10px;flex-wrap:wrap;justify-content:center;margin:8px 0}
+
+  /* Watermark headline (fades when preview shows) */
+  #watermark{
+    position:relative;margin:40px auto 0; width:min(94vw,980px); height:120px; display:grid; place-items:center;
+    color:rgba(233,255,246,.6); letter-spacing:.18em; text-transform:uppercase; font-weight:900;
+    border:1px dashed rgba(156,255,224,.18); border-radius:14px; background:rgba(255,255,255,.02)
+  }
+  #watermark.hide{opacity:0; transition:opacity .35s ease}
 
   /* Camera & Upload preview */
   #preview{display:none;position:relative;width:min(94vw,980px);aspect-ratio:16/10;border-radius:16px;overflow:hidden;border:1px solid var(--stroke);margin:12px auto;box-shadow:0 0 24px rgba(156,255,224,.14)}
   #preview img,#preview video{width:100%;height:100%;object-fit:cover}
   #edgeGlow{position:absolute;inset:0;border-radius:16px;pointer-events:none;opacity:0;box-shadow:0 0 28px rgba(156,255,224,.6),inset 0 0 18px rgba(14,139,103,.55);transition:opacity .25s}
-  .glow-on #edgeGlow{opacity:1}
+  .glow-on #edgeGlow{opacity:1; animation:pulse 1.1s ease-in-out infinite}
+  @keyframes pulse{0%{box-shadow:0 0 18px rgba(156,255,224,.35),inset 0 0 10px rgba(14,139,103,.35)}50%{box-shadow:0 0 36px rgba(156,255,224,.65),inset 0 0 22px rgba(14,139,103,.65)}100%{box-shadow:0 0 18px rgba(156,255,224,.35),inset 0 0 10px rgba(14,139,103,.35)}}
   .capBtn{position:absolute;right:10px;bottom:10px}
 
   /* Tips & results */
@@ -63,12 +74,21 @@
   .risk{border-color:#f6bf3a}
   .up{border-color:#2FB0E9}
 
-  /* Voice orb (drag, speak, stop) */
+  /* Voice orb (Stop) */
   #orb{position:fixed;left:18px;bottom:86px;width:56px;height:56px;border-radius:999px;border:1px solid var(--mint);
     background:radial-gradient(circle at 60% 40%, rgba(156,255,224,.25), rgba(47,176,233,.12));box-shadow:0 0 16px rgba(156,255,224,.25);display:grid;place-items:center;z-index:60}
   #orb.idle{box-shadow:0 0 10px rgba(156,255,224,.2)}
   #orb.speaking{box-shadow:0 0 20px rgba(156,255,224,.45),0 0 28px rgba(47,176,233,.35)}
   .orbStop{position:absolute;inset:auto auto -28px 50%;transform:translateX(-50%);font-size:11px;opacity:.85}
+
+  /* Talk / Send dock (opposite side of Stop orb) */
+  #talkDock{position:fixed;right:18px;bottom:70px;display:flex;gap:8px;z-index:60;align-items:flex-end}
+  #btnTalkAddie, #btnSendTranscript{
+    border:1px solid var(--mint); background:var(--glass); color:var(--mintL); border-radius:999px;
+    padding:.85rem 1.1rem; letter-spacing:.06em; font-weight:800; text-transform:uppercase; cursor:pointer; box-shadow:0 0 16px rgba(156,255,224,.14)
+  }
+  #hint{font-size:11px;opacity:.75;text-align:right;margin-right:4px;max-width:160px}
+  #btnSendTranscript{display:none}
 
   /* Toast */
   #toast{position:fixed;left:50%;transform:translateX(-50%) translateY(120%);bottom:16px;width:min(92vw,540px);
@@ -80,7 +100,7 @@
   .t-actions{display:flex;gap:8px;margin-top:10px;flex-wrap:wrap}
   .t-actions .btn{padding:.55rem .9rem;text-transform:none;font-weight:700}
 
-  /* Garage (tiers + portals) */
+  /* Garage */
   #garage{position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:80;display:none}
   .garageWrap{position:absolute;inset:5% 4%;background:var(--ink);border:1px solid var(--stroke);border-radius:16px;box-shadow:0 0 40px rgba(0,0,0,.6);display:flex;flex-direction:column}
   .gHead{display:flex;justify-content:space-between;align-items:center;padding:12px 14px;border-bottom:1px solid var(--stroke)}
@@ -120,7 +140,8 @@
       <div class="bootline big" id="b4">Activating your sales coach</div>
       <div class="bootline bootstep" id="b5">Loading Addie + Jared</div>
       <button class="pill bootline" id="wake">Tap to Wake</button>
-      <div class="bootline bootstep" id="ded">Precision meets grit. Heart meets hustle. — Dedicated to Addison</div>
+      <!-- Dedication should appear AFTER Wake tap but BEFORE complete boot hides -->
+      <div class="bootline bootstep" id="ded" style="display:none">Precision meets grit. Heart meets hustle. — Dedicated to Addison</div>
     </div>
   </div>
 
@@ -130,8 +151,10 @@
       <button class="btn" id="btnUpload">⬆ Upload Photo</button>
       <button class="btn" id="btnCamera">📷 Camera</button>
       <button class="btn" id="btnAnalyze">🔍 Analyze</button>
-      <button class="btn" id="btnTalkAddie" aria-label="Hold to talk to Addie">🎙️ Hold to Talk</button>
     </div>
+
+    <!-- watermark band that fades once a photo is present -->
+    <div id="watermark">UPLOAD • ESTIMATE • SEND</div>
 
     <div id="preview">
       <img id="previewImg" alt="preview"/>
@@ -143,10 +166,17 @@
     <div id="tips"></div>
   </main>
 
-  <!-- Voice orb with STOP -->
+  <!-- Voice STOP orb (left) -->
   <div id="orb" class="idle" title="Stop speaking">
     ⏹
     <div class="orbStop">Stop</div>
+  </div>
+
+  <!-- Talk dock (right): tap to talk → tap to send -->
+  <div id="talkDock">
+    <div id="hint">Tap to talk • Tap to send</div>
+    <button class="btn" id="btnTalkAddie" aria-label="Tap to talk to Addie">🎙️ Talk</button>
+    <button class="btn" id="btnSendTranscript" aria-label="Send your voice message">➤ Send</button>
   </div>
 
   <!-- Toast -->
@@ -166,13 +196,13 @@
       <div class="gHead">
         <div class="gTitle">CARDINAL GARAGE • Tiers & Portals</div>
         <div class="btn-row">
+          <!-- Put the PDF in the repo root or adjust this path -->
           <a class="pill" id="founderBook" href="./GarageMind_Founder_Black_Book.pdf" target="_blank" rel="noopener">Founders Black Book</a>
           <button class="pill" id="gClose">Close</button>
         </div>
       </div>
       <div class="gBody">
         <div class="gGrid">
-          <!-- BASIC -->
           <div class="card">
             <span class="tag">BASIC • Demo</span>
             <div>One full Analyze run (photo → cost, risks, upsells). Exports included.</div>
@@ -183,16 +213,14 @@
               <span class="chip">Garage Access (read-only)</span>
             </div>
           </div>
-          <!-- UNLIMITED -->
+
           <div class="card">
-            <span class="tag">Unlimited Analyses</span>
-            <div>Removes daily caps. Run as many photo analyses as you want.</div>
+            <span class="tag">Access+ Unlimited</span>
+            <div>Unlimited photo analyses. Remove demo cap.</div>
             <div class="price">$25 / month</div>
-            <div class="btn-row">
-              <a class="btn" href="https://www.paypal.com/ncp/payment/MVWW6VPEHJKKU" target="_blank" rel="noopener">Activate</a>
-            </div>
+            <div id="paypal-hosted-buttons"></div>
           </div>
-          <!-- PRO ESTIMATE -->
+
           <div class="card">
             <span class="tag">Pro Estimate</span>
             <div>Sales logic, premium upsell scripts, and risk banding + client handoff.</div>
@@ -202,20 +230,14 @@
               <span class="chip risk">Risk Bands</span>
               <span class="chip">Client Script</span>
             </div>
-            <div class="btn-row">
-              <a class="btn" href="https://www.paypal.com/ncp/payment/MVWW6VPEHJKKU" target="_blank" rel="noopener">Upgrade</a>
-            </div>
           </div>
-          <!-- SALES TRAINING LIVE -->
+
           <div class="card">
             <span class="tag">Sales Training • Live Roleplay</span>
             <div>Addie-led interactive drills, tone/objection handling, junior/pro tracks.</div>
             <div class="price">$129 / week</div>
-            <div class="btn-row">
-              <a class="btn" href="https://www.paypal.com/ncp/payment/MVWW6VPEHJKKU" target="_blank" rel="noopener">Enroll</a>
-            </div>
           </div>
-          <!-- PORTALS -->
+
           <div class="card">
             <span class="tag">Portals</span>
             <div class="btn-row">
@@ -231,12 +253,22 @@
 
   <div class="footer">Powered by Cardinal-Garage_MND Inc.</div>
 
+<!-- PayPal Hosted Buttons (beta lifetime example) -->
+<script src="https://www.paypal.com/sdk/js?client-id=BAAgXonbH0yUmJj_xSSeLh_w8p-DJ9TonsElCjBeVs8qg5g-Mr_jJ34rNAHR879Z39mEgd9RjyojPdWaF0&components=hosted-buttons&enable-funding=venmo&currency=USD"></script>
+
 <script>
 (() => {
   /* ========= CONFIG ========= */
-const API = (location.hostname.includes("localhost")||location.hostname.includes("127.0.0.1"))
-  ? "http://localhost:3001"
-  : "https://cardinalgaragepro.com";
+  // Backend: localhost in dev, Render in prod (don’t point to your GitHub Pages domain for API)
+  const API = (location.hostname.includes("localhost")||location.hostname.includes("127.0.0.1"))
+    ? "http://localhost:3001"
+    : "https://jared-hero2-backend.onrender.com";
+
+  // Fix for undefined constant earlier
+  const PAYPAL_URL = "https://www.paypal.com/ncp/payment/MVWW6VPEHJKKU";
+
+  // Optional: set a Hosted Buttons ID if you have one created in your PayPal dashboard
+  const PAYPAL_HOSTED_BUTTON_ID = "K3PD4N7B9Y8ZQ"; // <-- replace with your real hosted button ID when you create it
 
   /* ========= ELEMENTS ========= */
   const el = {
@@ -253,10 +285,19 @@ const API = (location.hostname.includes("localhost")||location.hostname.includes
     // boot
     boot: qs('#boot'), b1: qs('#b1'), b2: qs('#b2'), b3: qs('#b3'), b4: qs('#b4'), b5: qs('#b5'), wake: qs('#wake'), ded: qs('#ded'),
     // main
-    btnUpload: qs('#btnUpload'), btnCamera: qs('#btnCamera'), btnAnalyze: qs('#btnAnalyze'), btnTalkAddie: qs('#btnTalkAddie'),
+    btnUpload: qs('#btnUpload'), btnCamera: qs('#btnCamera'), btnAnalyze: qs('#btnAnalyze'),
     preview: qs('#preview'), previewImg: qs('#previewImg'), edgeGlow: qs('#edgeGlow'), tips: qs('#tips'),
-    // orb / toast
-    orb: qs('#orb'), toast: qs('#toast'), toastBody: qs('#toastBody'), btnExportTxt: qs('#btnExportTxt'), btnExportLogs: qs('#btnExportLogs'), btnOpenGarage: qs('#btnOpenGarage')
+    watermark: qs('#watermark'),
+    // voice
+    orb: qs('#orb'),
+    btnTalkAddie: qs('#btnTalkAddie'),
+    btnSendTranscript: qs('#btnSendTranscript'),
+    hint: qs('#hint'),
+    // toast
+    toast: qs('#toast'), toastBody: qs('#toastBody'),
+    btnExportTxt: qs('#btnExportTxt'), btnExportLogs: qs('#btnExportLogs'), btnOpenGarage: qs('#btnOpenGarage'),
+    // paypal
+    paypalSlot: qs('#paypal-hosted-buttons')
   };
 
   /* ========= STATE ========= */
@@ -265,11 +306,14 @@ const API = (location.hostname.includes("localhost")||location.hostname.includes
     audioEnabled: false,
     uploadsToday: getUploadsToday(),
     accessUnlocked: localStorage.getItem('herohud_access_unlocked')==='1',
+    demoCompleted: localStorage.getItem('herohud_demo_used')==='1',
     logs: loadLogs(),
     lastSummary: "", lastRecommendation: "", lastCost: "", lastRisks: [], lastUpsells: [],
     analyzing: false,
     camStream: null, camVideo: null, capBtn: null,
-    activeUtter: null
+    activeUtter: null,
+    // speech
+    recognition: null, isListening:false, transcript:"", nudgeTimer:null
   };
 
   /* ========= UTIL ========= */
@@ -311,24 +355,43 @@ const API = (location.hostname.includes("localhost")||location.hostname.includes
     await wait(400); el.b3.classList.add('show');
     await wait(400); el.b4.classList.add('show');
     await wait(400); el.b5.classList.add('show');
-    await wait(500); el.wake.classList.add('show'); el.ded.classList.add('show');
+    await wait(500); el.wake.classList.add('show');
   })();
 
-  el.wake.onclick=()=>{
-    STATE.audioEnabled = true;
-    speakAddieIntro(); // starts Addie intro (youthful)
+  el.wake.onclick=async ()=>{
+    STATE.audioEnabled = true; // allow speech
+    // Dedication now shows AFTER Wake tap
+    el.ded.style.display = 'block';
+    await wait(1200);
+    // Don’t hide boot until after dedication flashes in
     el.boot.style.display='none';
+    // Greeting (once)
+    speakAddieIntroOnce();
+    // Idle nudge after 10s of inactivity (no preview shown)
+    startIdleNudge();
   };
+
+  function startIdleNudge(){
+    clearTimeout(STATE.nudgeTimer);
+    STATE.nudgeTimer = setTimeout(()=>{
+      if(!el.previewImg.src){ // still nothing uploaded
+        speak(i18n(
+          "C'mon, let’s get to work — upload a photo. Jared is ready to get you selling!",
+          "¡Vamos a trabajar! Sube una foto. ¡Jared está listo para ayudarte a vender!",
+          "Vamos trabalhar! Envie uma foto. O Jared está pronto para te ajudar a vender!"
+        ), {female:true,rate:1.06,pitch:1.12});
+      }
+    }, 10000);
+  }
 
   /* ========= SPEECH (no overlap) ========= */
   function stopSpeech(){ if(STATE.activeUtter){ window.speechSynthesis.cancel(); STATE.activeUtter=null; el.orb.className='idle'; } }
-  el.orb.onclick = stopSpeech; // stop button on orb
+  el.orb.onclick = stopSpeech;
 
   function pickVoice(preferFemale=true){
     const voices = window.speechSynthesis.getVoices();
     if(!voices || !voices.length) return null;
     const us = voices.filter(v=>/en-us/i.test(v.lang) || /en_/i.test(v.lang));
-    // Youthful female names (common across platforms)
     const femaleNames = ["Google US English", "Samantha", "Jenny", "Aria", "Amelia", "Sara", "Alloy", "Nova", "Olivia", "Emma"];
     const maleNames   = ["Daniel", "Alex", "Matthew", "Guy", "Christopher"];
     if(preferFemale){
@@ -340,8 +403,8 @@ const API = (location.hostname.includes("localhost")||location.hostname.includes
   window.speechSynthesis.onvoiceschanged = ()=>window.speechSynthesis.getVoices();
 
   function speak(text,{female=true,rate=1.02,pitch=1.08,onend}={}){
-    if(!STATE.audioEnabled) return onend && onend();
-    stopSpeech(); // ensure never overlaps
+    if(!STATE.audioEnabled){ onend && onend(); return; }
+    stopSpeech();
     try{
       const u = new SpeechSynthesisUtterance(text);
       const v = pickVoice(female);
@@ -356,30 +419,95 @@ const API = (location.hostname.includes("localhost")||location.hostname.includes
     }catch{ onend && onend(); }
   }
 
-  function speakAddieIntro(){
+  let greetedOnce=false;
+  function speakAddieIntroOnce(){
+    if(greetedOnce) return;
+    greetedOnce=true;
     const baseEn = "Welcome to Cardinal’s Garage. I’m Addie — your personal sales coach. This is where a photo becomes a plan. Upload or open the camera, tap Analyze, and Jared will handle tools, timing, risks, and pricing while I guide your sales moves.";
-    const baseEs = " Bienvenidos. Hola — soy Addie, tu coach de ventas. Aquí una foto se convierte en un plan. Sube una imagen o abre la cámara, pulsa Analizar, y Jared cubrirá herramientas, tiempos, riesgos y precios mientras yo guío tus jugadas de venta.";
-    const basePt = " Olá — eu sou a Addie, sua coach de vendas. Aqui uma foto vira um plano. Envie uma imagem ou abra a câmera, toque Analisar, e o Jared cuida de ferramentas, prazos, riscos e preços enquanto eu apoio suas vendas.";
+    const baseEs = "Bienvenidos. Hola — soy Addie, tu coach de ventas. Aquí una foto se convierte en un plan. Sube una imagen o abre la cámara, pulsa Analizar, y Jared cubrirá herramientas, tiempos, riesgos y precios mientras yo guío tus jugadas de venta.";
+    const basePt = "Olá — eu sou a Addie, sua coach de vendas. Aqui uma foto vira um plano. Envie uma imagem ou abra a câmera, toque Analisar, e o Jared cuida de ferramentas, prazos, riscos e preços enquanto eu apoio suas vendas.";
     let line = baseEn;
-    if(STATE.lang==='es') line = "Hello! Hola." + baseEs;
-    if(STATE.lang==='pt') line = "Hello! Olá." + basePt;
+    if(STATE.lang==='es') line = baseEs;
+    if(STATE.lang==='pt') line = basePt;
     speak(line,{female:true,rate:1.05,pitch:1.10});
   }
 
-  /* ========= TALK TO ADDIE (press & hold) ========= */
-  // Use a button and pointer events (no text selection issues)
-  let holding = false, holdTimer = null;
-  el.btnTalkAddie.addEventListener('pointerdown', e=>{
-    holding = true; e.currentTarget.setPointerCapture(e.pointerId);
-    // Start Addie listening prompt (simulated tip)
-    tip(i18n('Hold detected. Tell me what you see — I’ll coach the pitch.', 'Mantén presionado. Cuéntame qué ves — te ayudo con el guion.', 'Segure pressionado. Diga o que vê — eu ajudo no discurso.'), 'ok');
-    // If we wanted live speech-in, hook Web Speech recognition here later.
+  /* ========= REAL VOICE INPUT (tap to talk → tap to send) ========= */
+  const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+  if(SpeechRecognition){
+    STATE.recognition = new SpeechRecognition();
+    STATE.recognition.continuous = true; // tap to stop using Send
+    STATE.recognition.interimResults = true;
+    STATE.recognition.lang = (STATE.lang==='es' ? 'es-ES' : STATE.lang==='pt' ? 'pt-BR' : 'en-US');
+
+    STATE.recognition.onresult = (e)=>{
+      let interim = "", finalText = STATE.transcript;
+      for(let i=e.resultIndex; i<e.results.length; i++){
+        const res = e.results[i];
+        if(res.isFinal) finalText += res[0].transcript;
+        else interim += res[0].transcript;
+      }
+      STATE.transcript = finalText.trim();
+      if(STATE.transcript.length>0){ el.btnSendTranscript.style.display='inline-block'; }
+      // Show a tiny rolling tip
+      if(interim) tip('🎙️ '+interim,'ok');
+    };
+    STATE.recognition.onend = ()=>{ STATE.isListening=false; el.btnTalkAddie.textContent='🎙️ Talk'; };
+
+  }else{
+    el.hint.textContent = 'Voice not supported on this device.';
+  }
+
+  function toggleListen(){
+    if(!STATE.recognition){ tip(i18n('Speech recognition not supported here.','Reconocimiento de voz no soportado.','Reconhecimento de voz não suportado.'),'risk'); return; }
+    if(STATE.isListening){
+      STATE.recognition.stop();
+      STATE.isListening=false;
+      el.btnTalkAddie.textContent='🎙️ Talk';
+    }else{
+      try{
+        STATE.transcript=""; el.btnSendTranscript.style.display='none';
+        STATE.recognition.lang = (STATE.lang==='es' ? 'es-ES' : STATE.lang==='pt' ? 'pt-BR' : 'en-US');
+        STATE.recognition.start();
+        STATE.isListening=true;
+        el.btnTalkAddie.textContent='⏹ Stop';
+        tip(i18n('Listening… tap Send when ready.','Escuchando… pulsa Enviar cuando listo.','Ouvindo… toque Enviar quando pronto.'),'ok');
+      }catch{
+        tip(i18n('Could not start microphone.','No se pudo iniciar el micrófono.','Não foi possível iniciar o microfone.'),'risk');
+      }
+    }
+  }
+  el.btnTalkAddie.addEventListener('click', toggleListen);
+  el.btnSendTranscript.addEventListener('click', ()=>{
+    if(STATE.isListening && STATE.recognition) STATE.recognition.stop();
+    STATE.isListening=false; el.btnTalkAddie.textContent='🎙️ Talk';
+    el.btnSendTranscript.style.display='none';
+    const text = STATE.transcript.trim();
+    if(!text){ tip(i18n('Nothing captured. Try again.','Nada capturado. Inténtalo otra vez.','Nada capturado. Tente novamente.'),'risk'); return; }
+    // For now, generate a friendly Addie coaching reply locally (no backend roundtrip needed)
+    const reply = generateAddieReply(text);
+    tip('🗣️ You: '+text,'ok');
+    tip('✨ Addie: '+reply,'up');
+    speak(reply,{female:true,rate:1.04,pitch:1.12});
+    log('voice_send',{text});
   });
-  el.btnTalkAddie.addEventListener('pointerup', e=>{
-    if(!holding) return; holding=false;
-    tip(i18n('Got it. I’ll tailor the pitch for this job.', 'Listo. Ajusto el discurso para este trabajo.', 'Pronto. Vou ajustar o discurso para este serviço.'), 'up');
-  });
-  el.btnTalkAddie.addEventListener('pointercancel', ()=>{ holding=false; });
+
+  function generateAddieReply(text){
+    const low = text.toLowerCase();
+    if(low.includes('objection')||low.includes('price')||low.includes('too much')){
+      return i18n("Try anchoring value first, then price. Lead with outcome and timeline, then offer a good/better/best path.",
+                  "Ancla valor primero y luego precio. Lidera con resultado y plazo; ofrece opciones bueno/mejor/óptimo.",
+                  "Ancore valor antes do preço. Conduza com resultado e prazo; ofereça bom/melhor/ideal.");
+    }
+    if(low.includes('upsell')||low.includes('add-on')){
+      return i18n("Stack one small win: edging or weed barrier. Tie it to less rework and a cleaner handoff for the client.",
+                  "Suma una victoria pequeña: bordes o barrera de malezas. Átalo a menos retrabajo y mejor entrega.",
+                  "Empilhe uma pequena vitória: borda ou manta anti-ervas. Vincule a menos retrabalho e melhor entrega.");
+    }
+    return i18n("Got it — I’ll keep coaching. When you’re with the client, mirror back what you see, then present the plan in 3 steps: tools, time, price.",
+                "Entendido. Con el cliente, refleja lo que ves y presenta el plan en 3 pasos: herramientas, tiempo, precio.",
+                "Entendi. Com o cliente, espelhe o que vê e apresente o plano em 3 passos: ferramentas, tempo, preço.");
+  }
 
   /* ========= FILES / CAMERA ========= */
   const fileInput = document.createElement('input'); fileInput.type='file'; fileInput.accept='image/*';
@@ -389,21 +517,22 @@ const API = (location.hostname.includes("localhost")||location.hostname.includes
     const url=URL.createObjectURL(f);
     showImage(url);
     bumpUploads();
-    tip(i18n('Photo ready — tap Analyze.', 'Foto lista — pulsa Analizar.', 'Foto pronta — toque Analisar.'), 'ok');
+    tip(i18n('Photo ready — tap Analyze.','Foto lista — pulsa Analizar.','Foto pronta — toque Analisar.'), 'ok');
     log('upload',{name:f.name,size:f.size});
   };
 
   el.btnCamera.onclick = openCamera;
   async function openCamera(){
-    if(!(navigator.mediaDevices&&navigator.mediaDevices.getUserMedia)){ tip(i18n('Camera not supported.', 'Cámara no soportada.', 'Câmera não suportada.'), 'risk'); return; }
+    if(!(navigator.mediaDevices&&navigator.mediaDevices.getUserMedia)){ tip(i18n('Camera not supported.','Cámara no soportada.','Câmera não suportada.'), 'risk'); return; }
     try{
-      const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode:"user" } }); // forward-facing
+      const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode:"environment" } }); // back camera if available
       STATE.camStream = stream;
       STATE.camVideo = document.createElement('video');
       STATE.camVideo.playsInline=true; STATE.camVideo.muted=true; STATE.camVideo.srcObject=stream; await STATE.camVideo.play();
       el.preview.style.display='block'; replacePreview(STATE.camVideo); ensureCapBtn();
-      tip(i18n('Camera online — capture when ready.', 'Cámara lista — captura cuando quieras.', 'Câmera ativa — capture quando quiser.'), 'ok');
-    }catch{ tip(i18n('Camera access denied.', 'Acceso a cámara denegado.', 'Acesso à câmera negado.'), 'risk'); }
+      el.watermark.classList.add('hide');
+      tip(i18n('Camera online — capture when ready.','Cámara lista — captura cuando quieras.','Câmera ativa — capture quando quiser.'), 'ok');
+    }catch{ tip(i18n('Camera access denied.','Acceso a cámara denegado.','Acesso à câmera negado.'), 'risk'); }
   }
   function ensureCapBtn(){
     if(STATE.capBtn) STATE.capBtn.remove();
@@ -422,18 +551,22 @@ const API = (location.hostname.includes("localhost")||location.hostname.includes
       const url=URL.createObjectURL(blob);
       showImage(url);
       bumpUploads();
-      tip(i18n('Captured — tap Analyze.', 'Capturado — pulsa Analizar.', 'Capturado — toque Analisar.'),'ok');
+      tip(i18n('Captured — tap Analyze.','Capturado — pulsa Analizar.','Capturado — toque Analisar.'),'ok');
       log('camera_capture',{size:blob.size});
     };
   }
-  function showImage(url){ el.previewImg.src=url; el.preview.style.display='block'; replacePreview(el.previewImg); }
+  function showImage(url){
+    el.previewImg.src=url; el.preview.style.display='block'; replacePreview(el.previewImg);
+    el.watermark.classList.add('hide');
+  }
   function replacePreview(node){ const old=el.preview.querySelector('img,video'); if(old) old.replaceWith(node); else el.preview.prepend(node); }
 
-  /* ========= PAYWALL (after second analyze attempt) ========= */
+  /* ========= PAYWALL (after first SUCCESSFUL analyze only) ========= */
   function canAnalyze(){
     if(STATE.accessUnlocked) return true;
-    // allow exactly ONE full analyze run; gate on second attempt
-    return STATE.uploadsToday < 1 && !localStorage.getItem('herohud_demo_used');
+    // Allow unlimited attempts UNTIL one successful full analyze occurs (demo completes),
+    // then gate on subsequent analyze clicks.
+    return !STATE.demoCompleted;
   }
   function showPaywall(){
     modal(`
@@ -456,16 +589,15 @@ const API = (location.hostname.includes("localhost")||location.hostname.includes
     log('analyze_start',{});
 
     try{
-      // Build form
       const formData=new FormData();
       const blob=await fetch(el.previewImg.src).then(r=>r.blob());
       formData.append('file', blob, 'upload.jpg');
       formData.append('lang', STATE.lang);
 
       const res=await fetch(API+'/analyze-image',{method:'POST',body:formData});
+      if(!res.ok) throw new Error('Backend error: '+res.status);
       const data=await res.json();
 
-      // expected fields (fallbacks if backend returns only summary/recommendation)
       const summary = data.summary || i18n('Analysis complete.','Análisis completo.','Análise concluída.');
       const recommendation = data.recommendation || deriveRecommendation(summary);
       const cost = data.cost_estimate || i18n('Estimated cost: $—','Costo estimado: $—','Custo estimado: R$—');
@@ -475,17 +607,15 @@ const API = (location.hostname.includes("localhost")||location.hostname.includes
       STATE.lastSummary=summary; STATE.lastRecommendation=recommendation; STATE.lastCost=cost;
       STATE.lastRisks=risks; STATE.lastUpsells=upsells;
 
-      // Visual tips
       tip('💵 '+cost,'ok');
       tip('🛠️ '+recommendation,'ok');
       risks.slice(0,3).forEach(r=> tip('⚠️ '+r.trim(),'risk'));
       upsells.slice(0,3).forEach(u=> tip('⬆️ '+u.trim(),'up'));
 
-      // Speak the summary (Jared voice)
       speak(summary,{female:false,rate:0.98,pitch:1.0, onend:()=>showToast(summary, recommendation)});
 
-      // mark demo used after first successful run
-      if(!localStorage.getItem('herohud_demo_used')) localStorage.setItem('herohud_demo_used','1');
+      // Mark demo **completed only on success**
+      if(!STATE.demoCompleted){ STATE.demoCompleted=true; localStorage.setItem('herohud_demo_used','1'); }
 
     }catch(e){
       tip(i18n('Analysis failed. Please try again.','El análisis falló. Inténtalo de nuevo.','A análise falhou. Tente novamente.'),'risk');
@@ -539,7 +669,6 @@ const API = (location.hostname.includes("localhost")||location.hostname.includes
   function openGarage(){ el.garage.classList.remove('hidden'); el.garage.style.display='block'; }
   function closeGarage(){ el.garage.style.display='none'; }
   el.btnGarage.onclick=openGarage; el.gClose.onclick=closeGarage;
-
   el.btnSalesUPortal.onclick=()=> alert(i18n('Sales U portal opening (placeholder).','Abriendo portal de Sales U (placeholder).','Abrindo portal Sales U (placeholder).'));
   el.btnDocsPortal.onclick=()=> alert(i18n('Docs portal opening (placeholder).','Abriendo portal de Documentos (placeholder).','Abrindo portal de Documentos (placeholder).'));
 
@@ -554,23 +683,29 @@ const API = (location.hostname.includes("localhost")||location.hostname.includes
   }
   function clearTips(){ el.tips.innerHTML=''; }
 
-  /* ========= MODAL (paywall) ========= */
+  /* ========= MODAL ========= */
   function modal(innerHTML, after){
     const overlay=document.createElement('div');
     overlay.style="position:fixed;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,.8);z-index:9999;";
-    overlay.innerHTML=`
-      <div style="background:#0f1916;border:1px solid var(--stroke);padding:1rem 1.3rem;border-radius:16px;text-align:center;max-width:560px;width:min(92vw,560px);color:var(--text);box-shadow:0 0 32px rgba(156,255,224,.28)">
-        ${innerHTML}
-      </div>`;
+    overlay.innerHTML=`<div style="background:#0f1916;border:1px solid var(--stroke);padding:1rem 1.3rem;border-radius:16px;text-align:center;max-width:560px;width:min(92vw,560px);color:var(--text);box-shadow:0 0 32px rgba(156,255,224,.28)">${innerHTML}</div>`;
     document.body.appendChild(overlay); after && after(overlay);
   }
 
   /* ========= i18n helper ========= */
   function i18n(en,es,pt){ return STATE.lang==='es'?es: STATE.lang==='pt'?pt: en; }
 
+  /* ========= PayPal Hosted Buttons render (if you create one) ========= */
+  if (window.paypal && el.paypalSlot && PAYPAL_HOSTED_BUTTON_ID) {
+    try{
+      window.paypal.HostedButtons({
+        hostedButtonId: PAYPAL_HOSTED_BUTTON_ID
+      }).render("#paypal-hosted-buttons");
+    }catch(e){
+      console.warn("PayPal Hosted Buttons not rendered:", e);
+    }
+  }
+
 })();
 </script>
 </body>
 </html>
-
-
