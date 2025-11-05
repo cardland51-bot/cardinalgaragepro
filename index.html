@@ -666,41 +666,8 @@
     el.preview.classList.add('glow-on');
     setTimeout(()=> el.preview.classList.remove('glow-on'), 900);
   }
-
-  /* ========= ANALYZE ========= */
-  el.btnAnalyze.onclick = ()=> analyzeCore();
-
-  async function analyzeCore(){
-    try{
-      if(!el.preview.style.display || el.preview.style.display==='none'){ tip("Upload or capture a photo first.", true); return; }
-      STATE.analyzing = true;
-      clearTips();
-      el.metrics.style.display='none';
-      el.wheel.style.display='flex'; el.wheelText.textContent="Analyzing…";
-      log('analyze_start', {});
-
-      const node=el.preview.querySelector("img,video");
-      if(!node){ tip("No image found.", true); return; }
-
-      let blob;
-      if(node.tagName==='VIDEO'){
-        const canvas=document.createElement("canvas");
-        canvas.width=node.videoWidth||1280; canvas.height=node.videoHeight||720;
-        canvas.getContext("2d").drawImage(node,0,0,canvas.width,canvas.height);
-        blob=await new Promise(res=>canvas.toBlob(res,'image/jpeg',0.92));
-        const img=document.createElement("img");
-    img.id="previewImg"; img.alt="preview"; img.src=url;
-    showPreviewNode(img);
-  }
-  function showPreviewNode(node){
-    const old=el.preview.querySelector("img,video");
-    if(old) old.replaceWith(node); else el.preview.prepend(node);
-    el.preview.style.display='block';
-    el.preview.classList.add('glow-on');
-    setTimeout(()=> el.preview.classList.remove('glow-on'), 900);
-  }
-
-  /* ========= ANALYZE ========= */
+ 
+   /* ========= ANALYZE ========= */
   el.btnAnalyze.onclick = ()=> analyzeCore();
 
   async function analyzeCore(){
