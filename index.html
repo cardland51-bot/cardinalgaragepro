@@ -849,17 +849,12 @@ window.addEventListener("load", () => {
   tip("Ready — upload or capture a photo to begin.", true);
   log("init", {});
   speak("System online. Ready for photo input.");
-});
-})();
-</script>
-</body>
-</html>
 
-                                       
-// ========= VOICE (TTS) =========
+
+  // ========= VOICE (TTS) =========
 async function speak(text){
   if(!text) return;
-  log('speak',{text});
+  log('ak',{text});
   try{
     const resp=await fetch(`${CONFIG.API_BASE}/speak`,{
       method:"POST",
@@ -974,22 +969,52 @@ function clearTips() {
   el.tips.innerHTML = "";
 }
 
-// ========= VOICE =========
-function speak(text) {
-  if (!("speechSynthesis" in window)) return;
-  const u = new SpeechSynthesisUtterance(text);
-  u.voice = speechSynthesis.getVoices().find(v =>
-    v.name.toLowerCase().includes(CONFIG.voices.jared)
-  ) || null;
-  speechSynthesis.cancel();
-  speechSynthesis.speak(u);
+// ========= VOICE (Jared TTS) =========
+async function speak(text) {
+  if (!text) return;
+  log('ak', { text });
+
+  try {
+    const resp = await fetch(`${CONFIG.API_BASE}/speak`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        voice: CONFIG.voices.jared,
+        text
+      })
+    });
+
+    if (!resp.ok) throw new Error("TTS failed");
+
+    const blob = await resp.blob();
+    const url = URL.createObjectURL(blob);
+    const audio = new Audio(url);
+
+    // Visual cue while speaking
+    el.voiceOrb?.classList.add("speaking");
+
+    // Play Jared's voice
+    audio.play();
+
+    // Remove speaking indicator when done
+    audio.onended = () => el.voiceOrb?.classList.remove("speaking");
+
+  } catch (err) {
+    console.error("TTS error:", err);
+    tip("Speech temporarily unavailable.", true);
+  }
 }
 
-// ========= INIT =========
-window.addEventListener("load", () => {
-  tip("Ready — upload or capture a photo to begin.", true);
-  log("init", {});
-  speak("System online. Ready for photo input.");
+// ========= INITIALIZE =========
+window.addEventListener("load", async () => {
+  try {
+    tip("Ready — upload or capture a photo to begin.", true);
+    log("init", { status: "ok" });
+    await speak("System online. Ready for photo input.");
+  } catch (err) {
+    console.error("Initialization error:", err);
+    tip("Initialization error — please refresh.", true);
+  }
 });
 })();
 </script>
