@@ -2,747 +2,255 @@
 <html lang="en">
 <head>
 <meta charset="utf-8" />
-<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,maximum-scale=1,user-scalable=no" />
-<title>ZeroFriction™ Beta • HEROHUD</title>
-<meta name="theme-color" content="#ffffff" />
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800;900&display=swap" rel="stylesheet">
-
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>ZeroFriction™ • Cardinal GaragePro</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;900&display=swap" rel="stylesheet">
 <style>
   :root{
-    --bgTop:#f6f6f6;
-    --bgBot:#e8e8e8;
-    --panel:#fafafa;
-    --panelEdge:#ececec;
+    --red:#C41E3A;
+    --red-dark:#A91B32;
+    --bg-top:#ffffff;
+    --bg-bot:#f3f3f3;
+    --line:#ddd;
     --ink:#111;
-    --inkDim:#333;
-    --muted:#666;
-    --line:#d9d9d9;
-    --accent:#C41E3A; /* Cardinal red */
-    --accentDim:#a81b33;
-
-    --ok:#2f7d32;
-    --warn:#c07a10;
-    --bad:#b42a2a;
+    --muted:#555;
   }
-
   *{box-sizing:border-box}
-  html,body{margin:0;height:100%;font-family:Inter,system-ui,Segoe UI,Roboto,Helvetica,Arial;color:var(--ink);background:linear-gradient(180deg,var(--bgTop),var(--bgBot));}
-  .wrap{min-height:100%;display:grid;grid-template-rows:auto 1fr auto}
-
-  /* Topbar */
-  .topbar{
-    height:64px;border-bottom:1px solid var(--line);
-    display:flex;align-items:center;justify-content:space-between;gap:12px;padding:0 14px;background:#fffdfdcc;backdrop-filter:saturate(140%) blur(6px);
+  html,body{
+    margin:0;height:100%;
+    font-family:Inter,system-ui,sans-serif;
+    color:var(--ink);
+    background:linear-gradient(180deg,var(--bg-top),var(--bg-bot));
+    overflow-x:hidden;
   }
-  .brand{
-    display:flex;align-items:center;gap:10px;font-weight:900;letter-spacing:.12em;color:var(--ink);
+  header{
+    display:flex;justify-content:space-between;align-items:center;
+    padding:.8rem 1.2rem;border-bottom:1px solid var(--line);
+    background:#fffdfdcc;backdrop-filter:saturate(140%) blur(6px);
   }
-  .brand small{display:block;font-weight:600;opacity:.7;letter-spacing:.06em;margin-top:-2px;font-size:11px}
-  .menu{display:flex;gap:8px;align-items:center}
-  .pill{
-    border:1px solid var(--line);background:white;color:var(--ink);
-    cursor:pointer;border-radius:999px;padding:.5rem .9rem;font-size:12px;font-weight:700;
-  }
-  .pill:hover{border-color:#cfcfcf}
-  .pill.red{border-color:var(--accent);color:var(--accent)}
-  .pill.ghost{opacity:.6}
-  .sep{width:1px;height:20px;background:var(--line);margin:0 4px}
-
-  /* Stage */
-  .stage{padding:18px 14px;display:grid;place-items:center}
-  .stack{display:flex;flex-direction:column;align-items:center;gap:14px;width:min(1100px,96vw);text-align:center}
-
-  /* Banner */
-  .banner{display:flex;gap:16px;align-items:center;justify-content:center;flex-wrap:wrap}
-  .word{
-    font-size:clamp(28px, 4.6vw, 56px);
-    font-weight:900;letter-spacing:.06em;
-  }
-  .chev{
-    width:clamp(26px, 3.8vw, 44px);height:auto;flex:0 0 auto
-  }
-  .subline{margin-top:-6px;color:var(--muted);font-weight:600}
-
-  /* Controls */
-  .btnRow{display:flex;gap:10px;flex-wrap:wrap;justify-content:center;margin-top:6px}
+  header .brand{font-weight:900;letter-spacing:.08em;color:var(--red-dark)}
+  main{display:grid;place-items:center;padding:2rem;text-align:center}
+  h1{font-weight:900;letter-spacing:.08em;color:var(--red);margin-bottom:.4rem}
+  p{color:var(--muted);max-width:460px;margin:auto}
+  .btnRow{margin-top:1rem;display:flex;flex-wrap:wrap;justify-content:center;gap:.6rem}
   .btn{
-    border:1px solid var(--line);background:#fff;color:var(--ink);
-    padding:.8rem 1.2rem;border-radius:999px;cursor:pointer;font-weight:800;letter-spacing:.04em;
+    border:1px solid var(--line);
+    border-radius:999px;
+    padding:.7rem 1.3rem;
+    font-weight:800;
+    cursor:pointer;
+    background:#fff;
   }
-  .btn.red{border-color:var(--accent);color:var(--accent)}
-  .btn:active{transform:translateY(1px)}
-
-  /* Preview frame */
-  .frame{
-    width:min(1100px,96vw);aspect-ratio:16/9;background:var(--panel);border:1px solid var(--panelEdge);
-    border-radius:14px;overflow:hidden;display:none;position:relative;
-  }
+  .btn.red{color:var(--red);border-color:var(--red)}
+  .frame{margin-top:1.4rem;width:min(96vw,600px);aspect-ratio:16/9;border:1px solid var(--line);border-radius:12px;overflow:hidden;display:none;position:relative}
   .frame img,.frame video{width:100%;height:100%;object-fit:cover}
-  .badge{
-    position:absolute;right:10px;bottom:10px;border:1px solid var(--line);background:rgba(255,255,255,.85);
-    padding:.3rem .6rem;border-radius:999px;font-size:12px;display:flex;gap:8px;align-items:center
-  }
-  .spin{width:14px;height:14px;border-radius:50%;border:2px solid #ccc;border-top-color:var(--accent);animation:spin 1s linear infinite}
-  @keyframes spin{to{transform:rotate(360deg)}}
+  .badge{position:absolute;bottom:10px;right:10px;background:#fff;border:1px solid var(--line);border-radius:999px;padding:.4rem .7rem;font-size:.8rem;display:none}
+  .result{margin-top:1rem;border:1px solid var(--line);background:#fff;border-radius:12px;padding:1rem;display:none;text-align:left;max-width:600px}
+  .result strong{color:var(--red-dark)}
+  footer{margin-top:2rem;text-align:center;font-size:11px;letter-spacing:.1em;color:#777}
 
-  /* Limited Metrics (Risk + Duration) */
-  .metrics{
-    display:none;width:min(1100px,96vw);margin-top:10px;background:#fff;border:1px solid var(--panelEdge);
-    border-radius:12px;padding:12px 14px;text-align:left;
+  /* === Calculator Drawer === */
+  #drawerToggle{
+    position:fixed;bottom:20px;right:20px;
+    background:var(--red);color:#fff;
+    border:none;border-radius:50%;width:58px;height:58px;
+    font-size:26px;cursor:pointer;box-shadow:0 6px 20px rgba(0,0,0,.2);
   }
-  .mHead{font-weight:800;letter-spacing:.06em;margin-bottom:6px;color:var(--ink)}
-  .mRow{display:grid;grid-template-columns:160px 1fr 60px;gap:10px;align-items:center;margin:10px 0}
-  .mLabel{font-size:13px;color:var(--muted);text-align:right}
-  .mBar{height:12px;border-radius:999px;background:#f1f1f1;border:1px solid var(--panelEdge);overflow:hidden}
-  .mVal{height:100%;width:0}
-  .grad-risk{background:linear-gradient(90deg,#ddd,#f1c27b,#e88973)}
-  .grad-dur {background:linear-gradient(90deg,#ddd,#c7c7c7,#9a9a9a)}
-  .mPct{font-size:12px;color:#444;text-align:right}
-
-  /* Readout (Basic) */
-  .readout{
-    width:min(1100px,96vw);margin-top:10px;background:#fff;border:1px solid var(--panelEdge);
-    border-radius:12px;padding:14px 14px;text-align:left
+  #calcDrawer{
+    position:fixed;top:0;right:-350px;height:100%;width:340px;
+    background:#fff;border-left:3px solid var(--red);
+    box-shadow:-10px 0 28px rgba(0,0,0,.1);
+    transition:right .4s ease;
+    display:flex;flex-direction:column;align-items:center;padding:1.2rem;overflow-y:auto;
   }
-  .readout h4{margin:0 0 6px}
-  .readout .hint{font-size:12px;color:#777}
-
-  /* Garage Drawer */
-  .drawer{display:none;position:fixed;left:0;right:0;bottom:0;background:#fff;border-top:2px solid var(--accent);
-    box-shadow:0 -18px 40px rgba(0,0,0,.1);padding:16px 14px 18px;z-index:50
+  #calcDrawer.open{right:0;}
+  #calcDrawer h3{color:var(--red-dark);margin:.6rem 0 1rem}
+  .in{
+    width:100%;padding:.5rem;border:1px solid var(--line);
+    border-radius:8px;margin-bottom:.8rem;
   }
-  .dHead{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}
-  .dTitle{font-weight:900;letter-spacing:.08em}
-  .dRow{display:flex;gap:12px;flex-wrap:wrap}
-  .card{
-    flex:1 1 280px;max-width:360px;border:1px solid var(--panelEdge);border-radius:12px;background:#fafafa;padding:12px 12px 14px;
+  select.in{background:#fff}
+  #calcOut{white-space:pre-line;font-weight:600;color:#333;margin-top:1rem}
+  .calcBtn{
+    background:var(--red);color:#fff;border:none;
+    border-radius:8px;padding:.7rem 1rem;
+    font-weight:800;cursor:pointer;width:100%;margin-top:.4rem;
   }
-  .card h5{margin:4px 0 6px}
-  .badgeLock{
-    font-size:11px;border:1px solid var(--line);border-radius:999px;padding:.18rem .5rem;opacity:.7
-  }
-  .buy{border:1px solid var(--accent);color:var(--accent);background:#fff;border-radius:999px;padding:.5rem .9rem;cursor:pointer;font-weight:800}
-  .buy:active{transform:translateY(1px)}
-  .muted{color:#777}
-  .coming{opacity:.55}
-
-  /* Email Modal */
-  .modal{
-    position:fixed;inset:0;display:none;align-items:center;justify-content:center;background:rgba(0,0,0,.3);z-index:80;
-  }
-  .modalCard{
-    width:min(520px,92vw);background:#fff;border:1px solid var(--panelEdge);border-radius:12px;padding:14px
-  }
-  .modalCard h4{margin:6px 0 4px}
-  .row{display:flex;gap:8px;flex-wrap:wrap}
-  .in{flex:1;border:1px solid var(--panelEdge);border-radius:10px;padding:.6rem .7rem;font-size:14px}
-  .ghostBtn{border:1px solid var(--line);background:#fff;border-radius:999px;padding:.5rem .9rem;font-weight:800}
-  .ghostBtn.red{border-color:var(--accent);color:var(--accent)}
-  .ghostBtn:active{transform:translateY(1px)}
-
-  /* Footer */
-  .foot{height:56px;display:grid;place-items:center;font-size:11px;letter-spacing:.12em;color:#555}
+  .calcBtn:hover{background:var(--red-dark);}
 </style>
 </head>
 <body>
-<div class="wrap">
+<header>
+  <div class="brand">CARDINAL SYSTEMS</div>
+  <div class="brand">ZeroFriction™</div>
+</header>
 
-  <!-- Topbar -->
-  <header class="topbar">
-    <div class="brand">CARDINAL SYSTEMS <small>ZeroFriction™ Suite</small></div>
-    <div class="brand" style="flex-direction:column;gap:0;align-items:center;">
-      <div style="font-weight:900;letter-spacing:.10em">HEROHUD</div>
-      <small style="margin-top:-2px">Precision Meets Grit • Beta Access</small>
-    </div>
-    <nav class="menu">
-      <button class="pill" id="garageBtn">Garage</button>
-      <span class="sep"></span>
-      <button class="pill red" id="docsBtn" title="Exclusive Beta Access">DOCS • $25 Lifetime</button>
-      <button class="pill ghost" id="proBtn" title="Coming Soon" disabled>Pro Reports</button>
-      <button class="pill ghost" id="coachBtn" title="Coming Soon" disabled>Sales Coach</button>
-    </nav>
-  </header>
-
-  <!-- Stage -->
-  <main class="stage">
-    <section class="stack">
-      <!-- Banner -->
-      <div class="banner" aria-label="Upload, Estimate, Send">
-        <div class="word">UPLOAD</div>
-        <svg class="chev" viewBox="0 0 32 16" aria-hidden="true"><path d="M0 8h26M18 2l8 6-8 6" fill="none" stroke="var(--accent)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
-        <div class="word">ESTIMATE</div>
-        <svg class="chev" viewBox="0 0 32 16" aria-hidden="true"><path d="M0 8h26M18 2l8 6-8 6" fill="none" stroke="var(--accent)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
-        <div class="word">SEND</div>
-      </div>
-      <div class="subline">ZeroFriction™ Beta — Operational factors only (Risk & Duration).</div>
-
-      <!-- Controls -->
-      <div class="btnRow">
-        <button class="btn" id="btnUpload">Upload</button>
-        <button class="btn" id="btnCamera">Camera</button>
-        <button class="btn red" id="btnAnalyze">Analyze</button>
-      </div>
-
-      <!-- Preview -->
-      <div class="frame" id="frame">
-        <img id="previewImg" alt="preview" />
-        <div class="badge" id="busy" style="display:none;"><div class="spin"></div> Analyzing…</div>
-      </div>
-
-      <!-- Metrics (Limited) -->
-      <div class="metrics" id="metrics">
-        <div class="mHead">Operational Factors (Preview)</div>
-        <div class="mRow">
-          <div class="mLabel">Risk Factor</div>
-          <div class="mBar"><div class="mVal grad-risk" id="mRisk"></div></div>
-          <div class="mPct" id="tRisk">0%</div>
-        </div>
-        <div class="mRow">
-          <div class="mLabel">Duration Estimate</div>
-          <div class="mBar"><div class="mVal grad-dur" id="mDur"></div></div>
-          <div class="mPct" id="tDur">0%</div>
-        </div>
-      </div>
-
-      <!-- Readout (Basic) -->
-      <div class="readout" id="readout" style="display:none;">
-        <h4>Estimate (Basic)</h4>
-        <div id="summary" style="color:#222;margin-bottom:8px"></div>
-        <div class="hint">Full ZeroFriction™ analysis (Upsell, Confidence, Tips) unlocks with Pro Access.</div>
-      </div>
-
-      <input type="file" id="file" accept="image/*" hidden />
-    </section>
-  </main>
-
-  <!-- Garage Drawer -->
-  <aside class="drawer" id="drawer" aria-hidden="true">
-    <div class="dHead">
-      <div class="dTitle">GARAGE • Tools & Programs</div>
-      <button class="ghostBtn" id="dClose">Close</button>
-    </div>
-    <div class="dRow">
-      <!-- DOCS -->
-      <div class="card">
-        <div style="display:flex;justify-content:space-between;align-items:center">
-          <h5>Docs — Lifetime Beta Pass</h5>
-          <span class="badgeLock" style="border-color:var(--accent);color:var(--accent)">Unlocked</span>
-        </div>
-        <p class="muted">Professional templates, client estimate sheets, and ZeroFriction™ reference docs.</p>
-        <div class="muted" style="font-weight:800;margin:6px 0">• $25 (one-time)</div>
-        <button class="buy" id="buyDocs">Buy Access</button>
-      </div>
-
-      <!-- Pro Reports (Coming Soon) -->
-      <div class="card coming">
-        <div style="display:flex;justify-content:space-between;align-items:center">
-          <h5>Pro Reports</h5>
-          <span class="badgeLock">Coming Soon</span>
-        </div>
-        <p class="muted">Client-ready exports with ZeroFriction™ confidence bars and structured upsell cues.</p>
-        <button class="ghostBtn" disabled>Notify Me</button>
-      </div>
-
-      <!-- Sales Coach (Coming Soon) -->
-      <div class="card coming">
-        <div style="display:flex;justify-content:space-between;align-items:center">
-          <h5>Sales Coach</h5>
-          <span class="badgeLock">Coming Soon</span>
-        </div>
-        <p class="muted">Two-week intensive with live playbooks and objection handlers. Practice till you own it.</p>
-        <button class="ghostBtn" disabled>Notify Me</button>
-      </div>
-    </div>
-  </aside>
-
-  <!-- Email Modal (after 3rd analyze) -->
-  <div class="modal" id="emailModal" aria-hidden="true">
-    <div class="modalCard">
-      <h4>Stay in the Beta Loop</h4>
-      <p style="margin:4px 0 10px;color:#444">
-        We’re always offering new tools — don’t miss out. Drop your email to get updates (optional).
-      </p>
-      <div class="row">
-        <input class="in" id="emailInput" placeholder="you@example.com" type="email" />
-        <button class="ghostBtn red" id="emailSave">Stay Updated</button>
-        <button class="ghostBtn" id="emailSkip">No Thanks</button>
-      </div>
-    </div>
+<main>
+  <h1>UPLOAD → ESTIMATE → SEND</h1>
+  <p>Instant AI-driven field estimator. Risk, duration, and pricing revealed in seconds.</p>
+  <div class="btnRow">
+    <button class="btn" id="btnUpload">Upload</button>
+    <button class="btn" id="btnCamera">Camera</button>
+    <button class="btn red" id="btnAnalyze">Analyze</button>
   </div>
 
-  <!-- Footer -->
-  <footer class="foot">POWERED BY CARDINAL SYSTEMS • ZEROFRICTION™ SUITE • DOCpro™ Integrated</footer>
+  <div class="frame" id="frame">
+    <img id="previewImg" alt="preview" />
+    <div class="badge" id="busy">Analyzing…</div>
+  </div>
+
+  <div class="result" id="result">
+    <div id="summary"></div>
+  </div>
+</main>
+
+<footer>POWERED BY CARDINAL SYSTEMS • ZEROFRICTION™ SUITE</footer>
+
+<!-- Calculator Drawer -->
+<button id="drawerToggle">⚙️</button>
+<div id="calcDrawer">
+  <h3>Estimator Utility</h3>
+  <input class="in" id="c_yard" placeholder="Yard size (sq ft)" type="number">
+  <select class="in" id="c_freq">
+    <option value="weekly">Weekly</option>
+    <option value="biweekly">Bi-Weekly</option>
+    <option value="monthly">Monthly</option>
+    <option value="rarely">Rarely</option>
+  </select>
+  <input class="in" id="c_mulchBeds" placeholder="Number of mulch beds" type="number">
+  <input class="in" id="c_shrubs" placeholder="Number of shrubs" type="number">
+  <select class="in" id="c_weeds">
+    <option value="none">No weeds</option>
+    <option value="moderate">Moderate</option>
+    <option value="overgrown">Overgrown</option>
+    <option value="taken">Taken over</option>
+  </select>
+  <input class="in" id="c_effort" placeholder="Effort multiplier (1.0 - 2.0)" type="number" step="0.1" value="1.0">
+  <button class="calcBtn" id="btnCalc">Calculate</button>
+  <pre id="calcOut"></pre>
 </div>
 
 <script>
 (() => {
-  /* ========= CONFIG ========= */
-  const CONFIG = {
-    API_BASE: "https://jared-hero2-backend.onrender.com"
-  };
+/* ========= CONFIG / GATE ========= */
+const CONFIG = { API_BASE: "https://cardinalgaragepro.com" };
 
-  /* ========= ELEMENTS ========= */
-  const el = {
-    frame: qs('#frame'),
-    img: qs('#previewImg'),
-    busy: qs('#busy'),
-    btnUpload: qs('#btnUpload'),
-    btnCamera: qs('#btnCamera'),
-    btnAnalyze: qs('#btnAnalyze'),
-    file: qs('#file'),
-    metrics: qs('#metrics'),
-    mRisk: qs('#mRisk'),
-    mDur: qs('#mDur'),
-    tRisk: qs('#tRisk'),
-    tDur: qs('#tDur'),
-    readout: qs('#readout'),
-    summary: qs('#summary'),
-    // garage
-    drawer: qs('#drawer'),
-    garageBtn: qs('#garageBtn'),
-    dClose: qs('#dClose'),
-    buyDocs: qs('#buyDocs'),
-    // email
-    emailModal: qs('#emailModal'),
-    emailInput: qs('#emailInput'),
-    emailSave: qs('#emailSave'),
-    emailSkip: qs('#emailSkip'),
-    // menu
-    docsBtn: qs('#docsBtn')
-  };
+/* ========= ELEMENTS ========= */
+const el = {
+  frame: document.getElementById("frame"),
+  img: document.getElementById("previewImg"),
+  busy: document.getElementById("busy"),
+  upload: document.getElementById("btnUpload"),
+  camera: document.getElementById("btnCamera"),
+  analyze: document.getElementById("btnAnalyze"),
+  result: document.getElementById("result"),
+  summary: document.getElementById("summary"),
+  drawer: document.getElementById("calcDrawer"),
+  drawerToggle: document.getElementById("drawerToggle"),
+  calcBtn: document.getElementById("btnCalc"),
+  yard: document.getElementById("c_yard"),
+  freq: document.getElementById("c_freq"),
+  mulchBeds: document.getElementById("c_mulchBeds"),
+  shrubs: document.getElementById("c_shrubs"),
+  weeds: document.getElementById("c_weeds"),
+  effort: document.getElementById("c_effort"),
+  calcOut: document.getElementById("calcOut"),
+  fileInput: (()=>{const f=document.createElement("input");f.type="file";f.accept="image/*";f.hidden=true;document.body.appendChild(f);return f})()
+};
 
-  /* ========= STATE ========= */
-  const STATE = {
-    analyzes: Number(localStorage.getItem('herohud_analyzes')||0),
-    optedOut: localStorage.getItem('herohud_optout') === 'true',
-    email: localStorage.getItem('herohud_email') || ""
-  };
+/* ========= Drawer Control ========= */
+el.drawerToggle.onclick=()=>el.drawer.classList.toggle("open");
 
-  /* ========= UTIL ========= */
-  function qs(s){ return document.querySelector(s); }
-  function setBar(barEl,pct){ barEl.style.width = pct + "%"; }
-  function clamp(n,min,max){ return Math.max(min,Math.min(max,n)); }
-  const emailRE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+/* ========= Upload / Camera / Analyze ========= */
+el.upload.onclick=()=>el.fileInput.click();
+el.fileInput.onchange=()=>{const f=el.fileInput.files[0];if(!f)return;const url=URL.createObjectURL(f);showPreview(url);};
+el.camera.onclick=()=>openCamera();
+el.analyze.onclick=()=>analyzeCore();
 
-  /* ========= GARAGE ========= */
-  el.garageBtn.onclick = ()=> el.drawer.style.display='block';
-  el.dClose.onclick = ()=> el.drawer.style.display='none';
+function showPreview(url){
+  const img=document.createElement("img");
+  img.src=url;
+  el.frame.style.display="block";
+  const old=el.frame.querySelector("img,video");
+  if(old) old.replaceWith(img); else el.frame.prepend(img);
+}
 
-  // Docs purchase (placeholder PayPal)
-  el.buyDocs.onclick = ()=> window.open("https://www.paypal.com/ncp/payment/LD5BM638SRCFA","_blank","noopener");
+async function openCamera(){
+  try{
+    const stream=await navigator.mediaDevices.getUserMedia({video:true});
+    const v=document.createElement("video");
+    v.srcObject=stream;v.muted=true;v.playsInline=true;await v.play();
+    el.frame.style.display="block";el.frame.prepend(v);
+    const cap=document.createElement("button");
+    cap.textContent="Capture";cap.className="btn red";
+    cap.style.position="absolute";cap.style.bottom="10px";cap.style.left="10px";
+    el.frame.appendChild(cap);
+    cap.onclick=async()=>{
+      const c=document.createElement("canvas");
+      c.width=v.videoWidth;c.height=v.videoHeight;
+      c.getContext("2d").drawImage(v,0,0,c.width,c.height);
+      const blob=await new Promise(r=>c.toBlob(r,'image/jpeg',0.9));
+      stream.getTracks().forEach(t=>t.stop());
+      const url=URL.createObjectURL(blob);
+      showPreview(url);cap.remove();
+    };
+  }catch{alert("Camera not available.");}
+}
 
-  // Also allow Docs from top menu
-  el.docsBtn.onclick = ()=> el.drawer.style.display='block';
-
-  /* ========= UPLOAD & CAMERA ========= */
-  el.btnUpload.onclick = ()=> el.file.click();
-  el.file.onchange = ()=>{
-    const f=el.file.files[0]; if(!f) return;
-    const url = URL.createObjectURL(f);
-    showPreview(url);
-  };
-
-  el.btnCamera.onclick = openCamera;
-
-  async function openCamera(){
-    try{
-      const stream = await navigator.mediaDevices.getUserMedia({ video:{ facingMode:{ exact:"user" }}}).catch(()=>navigator.mediaDevices.getUserMedia({video:true}));
-      const v=document.createElement("video");
-      v.playsInline=true; v.muted=true; v.srcObject=stream; await v.play();
-      showNode(v);
-      // Add capture button
-      const cap=document.createElement("button");
-      cap.textContent="Capture";
-      cap.className="btn";
-      cap.style.position="absolute"; cap.style.right="10px"; cap.style.bottom="10px";
-      el.frame.appendChild(cap);
-      cap.onclick=async()=>{
-        const c=document.createElement("canvas");
-        c.width=v.videoWidth||1280; c.height=v.videoHeight||720;
-        c.getContext("2d").drawImage(v,0,0,c.width,c.height);
-        const blob=await new Promise(r=>c.toBlob(r,'image/jpeg',0.92));
-        stream.getTracks().forEach(t=>t.stop());
-        cap.remove();
-        const url=URL.createObjectURL(blob);
-        showPreview(url);
-      };
-    }catch(e){
-      alert("Camera not available.");
-    }
-  }
-
-  function showPreview(url){
-    const img=document.createElement("img");
-    img.id="previewImg"; img.alt="preview"; img.src=url;
-    showNode(img);
-  }
-  function showNode(node){
-    el.frame.style.display='block';
-    const old=el.frame.querySelector("img,video");
-    if(old) old.replaceWith(node); else el.frame.prepend(node);
-  }
-
-/* ========= ANALYZE (Simplified, Price-Focused) ========= */
-el.btnAnalyze.onclick = ()=> analyze();
-
-async function analyze(){
-  if(!el.frame.style.display || el.frame.style.display==='none'){
-    alert("Upload or capture a photo first."); return;
-  }
+/* ========= AI ANALYZE ========= */
+async function analyzeCore(){
+  const node=el.frame.querySelector("img,video");
+  if(!node){alert("Upload or capture a photo first.");return;}
+  el.busy.style.display="inline-flex";el.result.style.display="none";
 
   try{
-    const node = el.frame.querySelector("img,video");
-    if(!node){ alert("No image found."); return; }
-
-    el.busy.style.display='flex';
-    el.summary.textContent = "Analyzing…";
-
-    // Build blob
     let blob;
-    if(node.tagName==='VIDEO'){
+    if(node.tagName==="VIDEO"){
       const c=document.createElement("canvas");
-      c.width=node.videoWidth||1280; c.height=node.videoHeight||720;
+      c.width=node.videoWidth;c.height=node.videoHeight;
       c.getContext("2d").drawImage(node,0,0,c.width,c.height);
-      blob=await new Promise(r=>c.toBlob(r,'image/jpeg',0.92));
+      blob=await new Promise(r=>c.toBlob(r,"image/jpeg",0.9));
     }else{
-      const resp=await fetch(node.src); blob=await resp.blob();
+      const resp=await fetch(node.src);blob=await resp.blob();
     }
 
-    const fd = new FormData();
-    fd.append("file", blob, "capture.jpg");
-
-    const resp = await fetch(`${CONFIG.API_BASE}/analyze`, { method:"POST", body:fd });
-    if(!resp.ok) throw new Error("analysis failed");
-    const data = await resp.json();
-
-    // Parse text (expected AI output)
-    const text = (data.text||"").trim();
-    el.metrics.style.display = 'none';
-
-    // Extract estimate + risk + upsell heuristics
-    const price = extractPrice(text);
-    const risk = deriveRisk(text);
-    const upsell = Math.round(price * (risk >= 60 ? 0.4 : 0.25));
-
-    // Display clean readout
-    const resultLine = `💰 Estimated Price: $${price}  |  ⚠️ Risk: ${risk >= 60 ? "High" : risk >= 35 ? "Medium" : "Low"}  |  💡 Upsell Potential: +$${upsell}`;
-    el.summary.textContent = resultLine;
-    el.readout.style.display = 'block';
-
-    // Add replay + export controls
-    addResultControls(resultLine);
-
-  }catch(e){
-    console.error(e);
-    alert("Analysis failed. Please try again.");
-  }finally{
-    el.busy.style.display='none';
-  }
+    const fd=new FormData();fd.append("file",blob,"capture.jpg");
+    const resp=await fetch(`${CONFIG.API_BASE}/analyze`,{method:"POST",body:fd});
+    if(!resp.ok)throw new Error("Analyze failed");
+    const data=await resp.json();
+    const text=(data.text||"").trim();
+    const priceMatch=text.match(/\$[0-9]+(?:\.[0-9]{1,2})?/);
+    const summaryLine=priceMatch?`💰 Estimated Price: ${priceMatch[0]}\n${text}`:text;
+    el.summary.textContent=summaryLine;
+    el.result.style.display="block";
+  }catch(err){console.error(err);alert("Analysis failed.");}
+  finally{el.busy.style.display="none";}
 }
 
-// Extract numeric price from AI text
-function extractPrice(txt){
-  const match = txt.match(/\$?(\d{2,5})/);
-  if(match) return Number(match[1]);
-  return 125; // fallback default
-}
+/* ========= CALCULATOR (Effort Logic) ========= */
+el.calcBtn.onclick=()=>{
+  const yard=+el.yard.value||0;
+  const freq=el.freq.value;
+  const mulchBeds=+el.mulchBeds.value||0;
+  const shrubs=+el.shrubs.value||0;
+  const weeds=el.weeds.value;
+  const effort=+el.effort.value||1;
 
-// Add stop/replay + export buttons inside readout
-function addResultControls(summary){
-  const wrap = document.createElement("div");
-  wrap.style.marginTop = "8px";
-  wrap.innerHTML = `
-    <button class="ghostBtn" id="btnReplay">↻ Replay</button>
-    <button class="ghostBtn red" id="btnExport">Export .TXT</button>
-  `;
-  el.readout.appendChild(wrap);
+  let base=yard*0.005;
+  const freqMod={weekly:.8,biweekly:1,monthly:1.2,rarely:1.4}[freq]||1;
+  const weedMod={none:1,moderate:1.1,overgrown:1.25,taken:1.45}[weeds]||1;
+  const mulch=mulchBeds*100;
+  const shrubTrim=Math.max(1,Math.ceil(shrubs/12))*100;
+  let total=Math.round((base+mulch+shrubTrim)*freqMod*weedMod*effort);
+  const upsellMin=Math.round(total*.25),upsellMax=Math.round(total*.45);
 
-  document.getElementById("btnReplay").onclick = ()=> analyze();
-  document.getElementById("btnExport").onclick = ()=>{
-    const ok = confirm("Download this estimate as .txt?");
-    if(!ok) return;
-    const blob = new Blob([summary + '\n'], { type:'text/plain' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    const stamp = new Date().toISOString().slice(0,19).replace(/[:T]/g,'-');
-    a.href = url; a.download = `ZeroFriction_Estimate_${stamp}.txt`;
-    document.body.appendChild(a);
-    a.click(); a.remove(); URL.revokeObjectURL(url);
-  };
-}
-
-
-    // Parse text (expected AI output)
-    const text = (data.text||"").trim();
-    el.metrics.style.display = 'none';
-
-    // Extract estimate + risk + upsell heuristics
-    const price = extractPrice(text);
-    const risk = deriveRisk(text);
-    const upsell = Math.round(price * (risk >= 60 ? 0.4 : 0.25));
-
-    // Display clean readout
-    const resultLine = `💰 Estimated Price: $${price}  |  ⚠️ Risk: ${risk >= 60 ? "High" : risk >= 35 ? "Medium" : "Low"}  |  💡 Upsell Potential: +$${upsell}`;
-    el.summary.textContent = resultLine;
-    el.readout.style.display = 'block';
-
-    // Add replay + export controls
-    addResultControls(resultLine);
-
-  }catch(e){
-    console.error(e);
-    alert("Analysis failed. Please try again.");
-  }finally{
-    el.busy.style.display='none';
-  }
-}
-
-// Extract numeric price from AI text
-function extractPrice(txt){
-  const match = txt.match(/\$?(\d{2,5})/);
-  if(match) return Number(match[1]);
-  return 125; // fallback default
-}
-
-// Add stop/replay + export buttons inside readout
-function addResultControls(summary){
-  const wrap = document.createElement("div");
-  wrap.style.marginTop = "8px";
-  wrap.innerHTML = `
-    <button class="ghostBtn" id="btnReplay">↻ Replay</button>
-    <button class="ghostBtn red" id="btnExport">Export .TXT</button>
-  `;
-  el.readout.appendChild(wrap);
-
-  document.getElementById("btnReplay").onclick = ()=> analyze();
-  document.getElementById("btnExport").onclick = ()=>{
-    const ok = confirm("Download this estimate as .txt?");
-    if(!ok) return;
-    const blob = new Blob([summary + '\n'], { type:'text/plain' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    const stamp = new Date().toISOString().slice(0,19).replace(/[:T]/g,'-');
-    a.href = url; a.download = `ZeroFriction_Estimate_${stamp}.txt`;
-    document.body.appendChild(a);
-    a.click(); a.remove(); URL.revokeObjectURL(url);
-  };
-}
-
-
-  /* ========= Derivers (Risk/Duration only) ========= */
-  function deriveRisk(s){
-    const t=(s||"").toLowerCase();
-    let r=30;
-    if(/overgrown|dense|thick|ivy|vines|brush|debris|rock|uneven|steep|slope/.test(t)) r+=25;
-    if(/water|drain|standing|mud|erosion|washout|sink|rut/.test(t)) r+=20;
-    if(/wires|utility|gas|line|sprinkler|fence|pet|poop/.test(t)) r+=10;
-    if(/clean|clear|simple|flat|open|trimmed|fresh/.test(t)) r-=10;
-    return Math.round(clamp(r,3,95));
-  }
-  // We convert qualitative duration to a 0–100 bar (not actual minutes)
-  function deriveDurationPct(s){
-    const t=(s||"").toLowerCase();
-    let d=40;
-    if(/large|wide|long|many|multiple|extensive/.test(t)) d+=25;
-    if(/edging|reshape|bed|stone|mulch|haul|remove|root/.test(t)) d+=20;
-    if(/tight|small|simple|minor|light/.test(t)) d-=12;
-    return Math.round(clamp(d,5,98));
-  }
-  function composeBasic(s){
-    // Extract a tight one-liner implying duration + risk
-    const risk = deriveRisk(s);
-    let durLabel="~moderate duration";
-    const dur=deriveDurationPct(s);
-    if(dur<30) durLabel="~short duration";
-    else if(dur>70) durLabel="~long duration";
-    return `Predicted duration: ${durLabel}. Risk level: ${risk >= 60 ? "High" : risk >= 35 ? "Moderate" : "Low" }.`;
-  }
-
-  /* ========= EMAIL AFTER 3RD ========= */
-  function bumpAnalyzeCount(){
-    STATE.analyzes++; localStorage.setItem('herohud_analyzes', String(STATE.analyzes));
-  }
-  function maybeAskEmail(){
-    if(STATE.optedOut) return;
-    if(STATE.email) return;
-    if(STATE.analyzes >= 3){
-      el.emailModal.style.display='flex';
-    }
-  }
-  el.emailSave.onclick = ()=>{
-    const v=(el.emailInput.value||"").trim();
-    if(!emailRE.test(v)){ el.emailInput.focus(); return; }
-    STATE.email=v; localStorage.setItem('herohud_email', v);
-    el.emailModal.style.display='none';
-    // optional backend ping
-    try{
-      fetch(`${CONFIG.API_BASE}/train-collect`,{
-        method:"POST",
-        headers:{ "Content-Type":"application/json" },
-        body:JSON.stringify({ t:Date.now(), kind:"email_capture", email:v })
-      });
-    }catch(_){}
-  };
-  el.emailSkip.onclick = ()=>{
-    STATE.optedOut=true; localStorage.setItem('herohud_optout','true');
-    el.emailModal.style.display='none';
-  };
-
-  /* ========= INIT ========= */
-  window.addEventListener("load", ()=>{
-    // greet quietly, no TTS, no tips
-  });
-
+  const out=`💰 Estimate: $${total}
+• Risk: ${weeds}
+• Effort Multiplier: x${effort}
+• Upsell Potential: +$${upsellMin}–$${upsellMax}`;
+  el.calcOut.textContent=out;
+};
 })();
 </script>
 </body>
 </html>
-
-
-  // ===== CONFIG / GATE =====
-  const IS_PRO = false;         // flip to true after PayPal capture to unlock Advanced
-  let advancedUnlocked = IS_PRO; // runtime flag
-
-  const el = {
-    yard: document.getElementById('c_yard'),
-    freq: document.getElementById('c_freq'),
-    mulchBeds: document.getElementById('c_mulchBeds'),
-    mulchColor: document.getElementById('c_mulchColor'),
-    shrubs: document.getElementById('c_shrubs'),
-    weeds: document.getElementById('c_weeds'),
-    edgeBeds: document.getElementById('c_edgebeds'),
-    tallShrubs: document.getElementById('c_tallShrubs'),
-    advPanel: document.getElementById('advPanel'),
-    unlock: document.getElementById('btnUnlockAdvanced'),
-    calc: document.getElementById('btnCalc'),
-    exportTxt: document.getElementById('btnExportTxt'),
-    out: document.getElementById('calcOut'),
-  };
-
-  // lock/visual
-  function refreshAdvanced() {
-    if (advancedUnlocked) {
-      el.advPanel.style.display = 'block';
-      el.unlock.textContent = 'Advanced Unlocked';
-      el.unlock.disabled = true;
-      el.unlock.style.opacity = .7;
-    } else {
-      el.advPanel.style.display = 'none';
-    }
-  }
-  refreshAdvanced();
-
-  // fake unlock action (hook to PayPal success)
-  el.unlock.onclick = () => {
-    alert('Advanced requires upgrade. After payment capture, set IS_PRO=true or call window.unlockAdvanced()');
-  };
-  window.unlockAdvanced = () => { advancedUnlocked = true; refreshAdvanced(); };
-
-  // ===== BASIC PRICE MODEL (clean + transparent) =====
-  function priceCalculator() {
-    const yard = +el.yard.value || 0;
-    const freq = el.freq.value;
-    const mulchBeds = +el.mulchBeds.value || 0;
-    const shrubs = +el.shrubs.value || 0;
-    const weeds = el.weeds.value;
-
-    // Base mowing (very simple model by sq ft + frequency)
-    let mow = 0;
-    if (yard > 0) {
-      const baseRate = 0.005; // $ per sq ft baseline
-      const freqMod = { weekly: 0.8, biweekly: 1.0, monthly: 1.2, rarely: 1.4 }[freq] || 1.0;
-      mow = Math.max(25, Math.round(yard * baseRate * freqMod));
-    }
-
-    // Mulch: per bed base install (includes light weeding + edge)
-    let mulch = mulchBeds * 100;
-
-    // Shrubs: simple $ per batch of 10–15 shrubs ~ $100/hr
-    let shrubTrim = 0;
-    if (shrubs > 0) {
-      const hours = Math.max(1, Math.ceil(shrubs / 12));
-      shrubTrim = hours * 100;
-    }
-
-    // Weed level surcharge (time overrun)
-    const weedMod = { none: 1.0, moderate: 1.1, overgrown: 1.25, taken: 1.45 }[weeds] || 1.0;
-
-    let subtotal = Math.round((mow + mulch + shrubTrim) * weedMod);
-
-    // ===== ADVANCED INTERNALS (only if unlocked) =====
-    let notes = [];
-    if (advancedUnlocked) {
-      const edgeBeds = +el.edgeBeds.value || 0;
-      const tall = el.tallShrubs.value === 'yes';
-      // Edging internal pricing (earth)
-      const edgeCost = edgeBeds * 35;
-      subtotal += edgeCost;
-      if (edgeBeds > 0) notes.push(`Edge beds: +$${edgeCost}`);
-
-      if (tall) { subtotal += 75; notes.push('Tall shrubs adj: +$75'); }
-    }
-
-    // Upsell potential (simple heuristic)
-    const upsellMin = Math.round(subtotal * 0.25);
-    const upsellMax = Math.round(subtotal * 0.45);
-
-    // Risk based on weed level + shrubs
-    const risk = (weeds === 'taken') ? 'High' :
-                 (weeds === 'overgrown') ? 'Medium-High' :
-                 (weeds === 'moderate') ? 'Medium' : 'Low';
-
-    return {
-      subtotal,
-      mow, mulch, shrubTrim,
-      weeds, risk,
-      upsellMin, upsellMax,
-      advancedNotes: notes
-    };
-  }
-
-  // ===== RENDER RESULT =====
-  function renderResult(r) {
-    const lines = [];
-    lines.push(`💰 Estimate: $${r.subtotal}`);
-    lines.push(`• Mow: $${r.mow} • Mulch: $${r.mulch} • Shrubs: $${r.shrubTrim}`);
-    lines.push(`• Risk: ${r.risk} (weed level: ${el.weeds.value})`);
-    lines.push(`• Upsell Potential: +$${r.upsellMin} to +$${r.upsellMax}`);
-    if (advancedUnlocked && r.advancedNotes.length) {
-      lines.push(`• Advanced: ${r.advancedNotes.join(' | ')}`);
-    }
-    el.out.textContent = lines.join('\n');
-    return lines.join('\n');
-  }
-
-  // Calculate
-  el.calc.onclick = () => {
-    const result = priceCalculator();
-    renderResult(result);
-  };
-
-  // ===== EXPORT TO TXT (user must accept) =====
-  el.exportTxt.onclick = () => {
-    // ensure there is something to export
-    const snapshot = el.out.textContent.trim();
-    if (!snapshot) {
-      alert('Run Calculate first.');
-      return;
-    }
-    const ok = confirm('Export this estimate to a .txt file?');
-    if (!ok) return;
-
-    const blob = new Blob([snapshot + '\n'], { type: 'text/plain' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    const stamp = new Date().toISOString().slice(0,19).replace(/[:T]/g,'-');
-    a.href = url;
-    a.download = `GaragePro_Estimate_${stamp}.txt`;
-    document.body.appendChild(a);
-    a.click();
-    a.remove();
-    URL.revokeObjectURL(url);
-  };
-})();
-</script>
-
