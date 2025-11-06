@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,maximum-scale=1,user-scalable=no" />
+  <title>Grass Analyst • Cardinal Systems (Beta)</title>
+  <style>
+    :root {
+      --bg: #ffffff;
+      --bg2: #f6f7f8;
+      --ink: #111;
+      --muted: #555;
+      --line: #e5e5e5;
+      --red: #C41E3A;
+      --red-dark: #a61b33;
+    }
+    *{box-sizing:border-box;}
+    body {
+      margin: 0;
+      font-family: Inter, system-ui, sans-serif;
+      background: var(--bg);
+      color: var(--ink);
+    }
+    header {
+      background: linear-gradient(180deg, #fff, #fafbfc);
+      border-bottom: 1px solid var(--line);
+      padding: .8rem 1rem;
+      text-align: center;
+    }
+    header strong {color: var(--red);}
+    main {
+      max-width: 480px;
+      margin: 2rem auto;
+      background: var(--bg2);
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 1.2rem;
+      text-align: center;
+    }
+    .btn {
+      display: inline-block;
+      padding: .8rem 1.2rem;
+      border-radius: 10px;
+      border: 1px solid var(--red);
+      background: var(--red);
+      color: #fff;
+      font-weight: 700;
+      cursor: pointer;
+      margin: .4rem;
+    }
+    .btn:active {transform: translateY(1px);}
+    #preview {
+      width: 100%;
+      border-radius: 10px;
+      overflow: hidden;
+      margin-top: 1rem;
+      display: none;
+      border: 1px solid var(--line);
+    }
+    #preview img {
+      width: 100%;
+      height: auto;
+      display: block;
+    }
+    #analysis {
+      background: #fff;
+      border-radius: 10px;
+      border: 1px solid var(--line);
+      margin-top: 1rem;
+      padding: .8rem;
+      min-height: 80px;
+      font-size: 1rem;
+      color: var(--muted);
+      text-align: left;
+    }
+    footer {
+      text-align: center;
+      font-size: .8rem;
+      color: var(--muted);
+      margin-top: 2rem;
+      padding-bottom: 1rem;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <strong>Cardinal Grass Analyst</strong><br />
+    <small>Beta Mode • Upload → Analyze → Read</small>
+  </header>
+
+  <main>
+    <button class="btn" id="btnUpload">📷 Upload / Take Photo</button>
+    <input type="file" id="file" accept="image/*" hidden />
+
+    <div id="preview"><img id="previewImg" /></div>
+
+    <button class="btn" id="btnAnalyze">🔍 Analyze Grass</button>
+
+    <div id="analysis">Awaiting photo…</div>
+  </main>
+
+  <footer>© Cardinal Systems — Grass Analyst Beta</footer>
+
+  <script>
+    const CONFIG = {
+      API_BASE: "https://jared-hero2-backend.onrender.com",
+      ROUTES: { analyze: "/analyze", speak: "/speak" },
+      voice: "alloy"
+    };
+
+    const el = {
+      file: document.getElementById("file"),
+      btnUpload: document.getElementById("btnUpload"),
+      btnAnalyze: document.getElementById("btnAnalyze"),
+      preview: document.getElementById("preview"),
+      previewImg: document.getElementById("previewImg"),
+      analysis: document.getElementById("analysis")
+    };
+
+    el.btnUpload.onclick = () => el.file.click();
+
+    el.file.onchange = () => {
+      const f = el.file.files[0];
+      if (!f) return;
+      const url = URL.createObjectURL(f);
+      el.previewImg.src = url;
+      el.preview.style.display = "block";
+      el.analysis.textContent = "Photo ready. Tap Analyze.";
+    };
+
+    el.btnAnalyze.onclick = async () => {
+      const f = el.file.files[0];
+      if (!f) { el.analysis.textContent = "Please upload a photo first."; return; }
+
+      el.analysis.textContent = "Analyzing grass condition…";
+      try {
+        const formData = new FormData();
+        formData.append("file", f, "grass.jpg");
+
+        const resp = await fetch(CONFIG.API_BASE + CONFIG.ROUTES.analyze, { method: "POST", body: formData });
+        if (!resp.ok) throw new Error("Analyze request failed");
+        const data = await resp.json();
+
+        const summary = data.summary || "Grass analysis complete.";
+        el.analysis.textContent = summary;
+
+        // Speak via backend TTS
+        const speakResp = await fetch(CONFIG.API_BASE + CONFIG.ROUTES.speak, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ voice: CONFIG.voice, text: summary })
+        });
+        if (speakResp.ok) {
+          const blob = await speakResp.blob();
+          const url = URL.createObjectURL(blob);
+          const audio = new Audio(url);
+          audio.play();
+        }
+      } catch (err) {
+        console.error(err);
+        el.analysis.textContent = "Analysis failed. Please try again.";
+      }
+    };
+  </script>
+</body>
+</html>

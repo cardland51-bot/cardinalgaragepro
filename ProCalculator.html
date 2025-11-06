@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,maximum-scale=1,user-scalable=no" />
+  <title>Cardinal Calculator • Upload → Estimate → Send</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand">
+      <strong>Cardinal Calculator</strong>
+      <small>Fast price. Clear upsell. Field-first.</small>
+    </div>
+  </header>
+
+  <main class="wrap">
+    <!-- Service grid -->
+    <section class="panel">
+      <h2 class="panel-title">Services</h2>
+      <div class="grid" id="serviceGrid">
+        <button class="chip" data-service="mulch">Mulch</button>
+        <button class="chip" data-service="trimming">Trimming</button>
+        <button class="chip" data-service="weeding">Weeding</button>
+        <button class="chip" data-service="edging">Edging</button>
+        <button class="chip" data-service="cleanup">Cleanup</button>
+        <button class="chip" data-service="haulaway">Haul-Away</button>
+      </div>
+    </section>
+
+    <!-- Inputs (lightweight; backend owns logic) -->
+    <section class="panel">
+      <h2 class="panel-title">Inputs</h2>
+      <form id="calcForm" class="form">
+        <div class="row">
+          <label>Selected Service</label>
+          <input id="service" name="service" type="text" class="input" placeholder="Pick a service above" readonly />
+        </div>
+
+        <!-- Common, optional fields (backend may ignore or use). Keep simple. -->
+        <div class="row">
+          <label>Bed Size</label>
+          <select id="bedSize" name="bedSize" class="input">
+            <option value="">—</option>
+            <option value="small">Small (1 space)</option>
+            <option value="medium">Medium (2 spaces)</option>
+            <option value="large">Large (3 spaces)</option>
+          </select>
+        </div>
+
+        <div class="row">
+          <label>Area (sq ft)</label>
+          <input id="areaSqFt" name="areaSqFt" type="number" min="0" class="input" placeholder="e.g., 400" />
+        </div>
+
+        <div class="row">
+          <label>Shrub Count</label>
+          <input id="shrubCount" name="shrubCount" type="number" min="0" class="input" placeholder="e.g., 12" />
+        </div>
+
+        <div class="row">
+          <label>Material</label>
+          <select id="material" name="material" class="input">
+            <option value="">—</option>
+            <option value="mulch">Mulch</option>
+            <option value="stone">Stone</option>
+            <option value="soil">Soil</option>
+          </select>
+        </div>
+
+        <div class="row">
+          <label>Mowing Frequency</label>
+          <select id="mowingFreq" name="mowingFreq" class="input">
+            <option value="">—</option>
+            <option value="weekly">Weekly</option>
+            <option value="biweekly">Bi-Weekly</option>
+            <option value="monthly">Monthly</option>
+            <option value="rarely">Rarely</option>
+          </select>
+        </div>
+
+        <div class="actions">
+          <button id="btnCalculate" class="btn-primary" type="button">Calculate</button>
+          <button id="btnReset" class="btn" type="button">Reset</button>
+        </div>
+      </form>
+    </section>
+
+    <!-- Results -->
+    <section class="panel">
+      <h2 class="panel-title">Result</h2>
+
+      <div id="result" class="result">
+        <div class="main">
+          <div class="price" id="price">$—</div>
+          <div class="upsell" id="upsell">Upsell potential: —</div>
+        </div>
+
+        <div class="bars">
+          <div class="bar">
+            <div class="bar-head">
+              <span>Close %</span><span id="closeVal">0%</span>
+            </div>
+            <div class="bar-track"><div id="closeBar" class="bar-fill"></div></div>
+          </div>
+
+          <div class="bar">
+            <div class="bar-head">
+              <span>Upsell %</span><span id="upsellVal">0%</span>
+            </div>
+            <div class="bar-track"><div id="upsellBar" class="bar-fill"></div></div>
+          </div>
+
+          <div class="bar">
+            <div class="bar-head">
+              <span>Risk %</span><span id="riskVal">0%</span>
+            </div>
+            <div class="bar-track"><div id="riskBar" class="bar-fill"></div></div>
+          </div>
+        </div>
+
+        <div class="speak">
+          <button id="btnSpeak" class="btn" type="button">🔊 Read Result</button>
+        </div>
+      </div>
+
+      <div id="note" class="note">Tip: Your backend controls all inputs and pricing logic. Frontend just sends JSON and speaks what you return.</div>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <span>© Cardinal Systems</span>
+  </footer>
+
+  <script src="script.js"></script>
+</body>
+</html>
