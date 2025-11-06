@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+<!DOCTYPE html> 
 <html lang="en">
 <head>
 <meta charset="utf-8" />
@@ -112,7 +112,7 @@
   /* Tips (short readouts) */
   #tips{position:relative;width:min(94vw,980px);min-height:14px}
   .tip{
-    position:relative;opacity:0;transform:translateY(8px);transition:all .55s cubic-bezier(.2,.9,.2,1);
+    position:relative;opacity:0;transform:translateY(8px);transition:all .35s ease;
     background:rgba(255,255,255,.06);border:1px solid var(--stroke);backdrop-filter:blur(8px);color:var(--text);
     padding:.55rem .75rem;border-radius:10px;box-shadow:0 0 18px rgba(0,0,0,.25);margin:.35rem auto;max-width:92%;text-align:left
   }
@@ -158,23 +158,7 @@
   .btn-row{justify-content:flex-start}
   .gClose{border:1px solid var(--stroke);background:#0e1613;color:var(--text);border-radius:999px;padding:.35rem .6rem;cursor:pointer}
 
-  /* Voice orb (tap-to-talk) */
-  #voiceOrb{
-    position:fixed;left:18px;bottom:122px;width:54px;height:54px;border-radius:999px;border:1px solid var(--gold);
-    background:radial-gradient(circle at 60% 40%, rgba(246,191,58,.22), rgba(63,209,160,.10));box-shadow:var(--goldGlow);
-    z-index:60;display:grid;place-items:center;cursor:pointer
-  }
-  #voiceOrb.idle{box-shadow:0 0 10px rgba(246,191,58,.2)}
-  #voiceOrb.listening{animation:pulse 1.4s ease-in-out infinite}
-  #voiceOrb.speaking{box-shadow:0 0 20px rgba(246,191,58,.5), 0 0 28px rgba(63,209,160,.35)}
-  @keyframes pulse{0%,100%{transform:scale(1)}50%{transform:scale(1.08)}}
-  #listeningIndicator{
-    position:fixed;bottom:190px;left:50%;transform:translateX(-50%) translateY(10px);
-    font-size:13px;color:var(--gold);text-shadow:0 0 8px rgba(246,191,58,.35);opacity:0;transition:opacity .3s, transform .3s;z-index:59
-  }
-  #listeningIndicator.visible{opacity:1;transform:translateX(-50%) translateY(0)}
-
-  /* Always-visible Founder banner */
+  /* Founder banner */
   .founderBar{
     position:fixed;left:12px;right:12px;bottom:10px;z-index:80;
     display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:center;
@@ -185,7 +169,7 @@
     color:var(--gold);font-weight:800;letter-spacing:.06em;text-align:center
   }
 
-  /* Footer (sits above founder bar spacing-wise) */
+  /* Footer */
   .footer{
     position:fixed;left:50%;transform:translateX(-50%);bottom:52px;
     font-size:11px;color:rgba(236,248,241,.7);letter-spacing:.12em;text-transform:uppercase;z-index:5
@@ -193,7 +177,7 @@
 
   /* Safe areas */
   @supports(padding:max(0px)){
-    #voiceOrb{bottom:calc(122px + env(safe-area-inset-bottom))}
+    /* (kept for layout) */
   }
 </style>
 </head>
@@ -257,10 +241,6 @@
     </div>
   </section>
 
-  <!-- Voice orb + indicator -->
-  <div id="voiceOrb" class="idle" title="Tap to talk / Tap to stop">🎙️</div>
-  <div id="listeningIndicator">🎧 Listening…</div>
-
   <!-- Garage -->
   <div id="garageDoor">
     <div class="garageCard">
@@ -271,7 +251,6 @@
       <div class="gBody">
         <h3 style="margin:6px 0 10px">Hand Tools <span style="font-weight:600;opacity:.8">(Monthly)</span></h3>
         <div class="gRow">
-          <!-- Keep all previous + NEW flags -->
           <div class="card glow">
             <span class="tag">NEW</span><span class="lockedBadge" id="lockHT1">Locked</span>
             <h4>Lot Size Finder</h4>
@@ -429,7 +408,7 @@
     <a class="pill gold" id="founderJoin" target="_blank" rel="noopener" href="https://www.paypal.com/ncp/payment/LD5BM638SRCFA">💎 Join Founder</a>
   </div>
 
-  <!-- Footer (sits above founder bar) -->
+  <!-- Footer -->
   <div class="footer">Powered by Garage_Mnd</div>
 
   <!-- Hidden file input -->
@@ -438,9 +417,8 @@
 <script>
 (() => {
   /* ========= CONFIG ========= */
-const CONFIG = {
-  API_BASE: "https://jared-hero2-backend.onrender.com",  // your backend
- voices: { jared: "alloy" },
+  const CONFIG = {
+    API_BASE: "https://jared-hero2-backend.onrender.com",
     emailRequiredForPay: true
   };
 
@@ -448,7 +426,6 @@ const CONFIG = {
   const el = {
     // Stage
     preview: qs('#preview'),
-    previewImg: qs('#previewImg'),
     edgeGlow: qs('#edgeGlow'),
     wheel: qs('#wheel'),
     wheelText: qs('#wheelText'),
@@ -465,10 +442,6 @@ const CONFIG = {
     mClose: qs('#mClose'),
     mUpsell: qs('#mUpsell'),
     mRisk: qs('#mRisk'),
-
-    // Voice
-    voiceOrb: qs('#voiceOrb'),
-    listeningIndicator: qs('#listeningIndicator'),
 
     // Garage
     garageBtn: qs('#garageBtn'),
@@ -504,7 +477,6 @@ const CONFIG = {
     // Founder banner
     founderBar: qs('#founderBar'),
     founderOpen: qs('#founderOpen'),
-    founderJoin: qs('#founderJoin'),
   };
 
   /* ========= STATE ========= */
@@ -512,8 +484,6 @@ const CONFIG = {
     email: localStorage.getItem('herohud_email') || "",
     logs: loadLogs(),
     analyzing: false,
-    recognition: null,
-    listening: false,
     camStream: null,
     camVideo: null,
     captureBtn: null,
@@ -527,37 +497,22 @@ const CONFIG = {
   function log(kind, payload){ STATE.logs.entries.push({ t:Date.now(), kind, payload }); localStorage.setItem('herohud_logs', JSON.stringify(STATE.logs)); }
   function loadLogs(){ const raw=localStorage.getItem('herohud_logs'); return raw?JSON.parse(raw):{ startedAt: Date.now(), entries: [] } }
   function dateStamp(){ const d=new Date(); const z=n=>String(n).padStart(2,'0'); return `${d.getFullYear()}${z(d.getMonth()+1)}${z(d.getDate())}_${z(d.getHours())}${z(d.getMinutes())}${z(d.getSeconds())}`; }
-  function downloadTxt(filename, text){ const blob=new Blob([text],{type:"text/plain"}); const a=document.createElement("a"); a.href=URL.createObjectURL(blob); a.download=filename; a.click(); 
+  function downloadTxt(filename, text){ const blob=new Blob([text],{type:"text/plain"}); const a=document.createElement("a"); a.href=URL.createObjectURL(blob); a.download=filename; a.click(); }
 
-// ========= TRAINING SYNC =========                                     
-async function syncLogs(){
-  console.log("🔄 syncLogs() called!");
-try{
-    const data = STATE.logs;
-    await fetch(`${CONFIG.API_BASE}/train-collect`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(data)
-    });
-    console.log("Synced logs to backend.");
-  }catch(err){
-    console.warn("Log sync failed:", err);
+  // ========= TRAINING SYNC (single, non-duplicated) =========                                     
+  async function syncLogs(){
+    try{
+      const data = STATE.logs;
+      await fetch(`${CONFIG.API_BASE}/train-collect`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(data)
+      });
+      console.log("Synced logs to backend.");
+    }catch(err){
+      console.warn("Log sync failed:", err);
+    }
   }
-}                          
-async function syncLogs(){
-  try{
-    const data = STATE.logs;
-    await fetch(`${CONFIG.API_BASE}/train-collect`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(data)
-    });
-    console.log("Synced logs to backend.");
-  }catch(err){
-    console.warn("Log sync failed:", err);
-  }
-}
-
 
   /* ========= TOAST / DOCpro ========= */
   function toast(title, body){
@@ -633,7 +588,6 @@ async function syncLogs(){
 
   // Founder gold bar
   el.founderOpen.onclick = ()=> { el.deckModal.style.display='block'; };
-  // el.founderJoin uses anchor href directly
 
   /* ========= UPLOAD / CAMERA ========= */
   el.btnUpload.onclick = ()=> el.file.click();
@@ -695,326 +649,128 @@ async function syncLogs(){
     el.preview.classList.add('glow-on');
     setTimeout(()=> el.preview.classList.remove('glow-on'), 900);
   }
- 
-/* ========= ANALYZE ========= */
-el.btnAnalyze.onclick = () => analyzeCore();
 
-async function analyzeCore() {
-  try {
-    if (!el.preview.style.display || el.preview.style.display === 'none') {
-      tip("Upload or capture a photo first.", true);
-      return;
+  /* ========= ANALYZE ========= */
+  el.btnAnalyze.onclick = () => analyzeCore();
+
+  async function analyzeCore() {
+    try {
+      if (!el.preview.style.display || el.preview.style.display === 'none') {
+        tip("Upload or capture a photo first.", true);
+        return;
+      }
+
+      STATE.analyzing = true;
+      clearTips();
+      el.metrics.style.display = 'none';
+      el.wheel.style.display = 'flex';
+      el.wheelText.textContent = "Analyzing…";
+      log('analyze_start', {});
+
+      const node = el.preview.querySelector("img,video");
+      if (!node) { tip("No image found.", true); return; }
+
+      let blob;
+      if (node.tagName === 'VIDEO') {
+        const canvas = document.createElement("canvas");
+        canvas.width = node.videoWidth || 1280;
+        canvas.height = node.videoHeight || 720;
+        canvas.getContext("2d").drawImage(node, 0, 0, canvas.width, canvas.height);
+        blob = await new Promise(res => canvas.toBlob(res, 'image/jpeg', 0.92));
+      } else {
+        const resp = await fetch(node.src);
+        blob = await resp.blob();
+      }
+
+      // Send to backend
+      const formData = new FormData();
+      formData.append("file", blob, "capture.jpg");
+
+      const resp = await fetch(`${CONFIG.API_BASE}/analyze`, {
+        method: "POST",
+        body: formData
+      });
+
+      if (!resp.ok) { throw new Error("analyze-image failed"); }
+      const data = await resp.json();
+
+      const summary = (data.summary || "Analysis complete.").trim();
+      STATE.summary = summary;
+
+      const reco = deriveRecommendation(summary);
+      STATE.recommendation = reco;
+
+      // Metrics
+      const { closePct, upsellPct, riskPct } = scoreFromSummary(summary);
+      setBar(el.mClose, closePct);
+      setBar(el.mUpsell, upsellPct);
+      setBar(el.mRisk, riskPct);
+      el.metrics.style.display = 'block';
+
+      // Readout + tips (no speech)
+      tip(reco, false);
+      showAnalysisTips(summary);
+
+      // Log/sync
+      log('analyze_result', { summary, reco, closePct, upsellPct, riskPct });
+      syncLogs();
+      toast("Analysis Ready", "DOCpro™ can export your log anytime.");
+    } catch(e) {
+      tip("Analysis failed. Please try again.", true);
+      console.error(e);
+      log('analyze_error', { msg: String(e) });
+    } finally {
+      el.wheel.style.display = 'none';
+      STATE.analyzing = false;
+    }
+  }
+
+  // ========= Supporting Functions =========
+  function deriveRecommendation(summary){
+    const s = (summary||"").replace(/\s+/g,' ').trim();
+    if(!s) return "Proceed with standard prep, edge cleanly, confirm depth.";
+    const first = s.split(/[.;]/).map(x=>x.trim()).filter(Boolean)[0] || s;
+    return first.length>120 ? first.slice(0,118)+"…" : first;
+  }
+
+  function scoreFromSummary(s){
+    const t=(s||"").toLowerCase();
+    let close=60, upsell=50, risk=30;
+    if(/clean|defined|fresh|crisp|edg(e|ing)/.test(t)) close+=15;
+    if(/overgrown|bare|patchy|erosion|standing water|drain/.test(t)) { risk+=25; close-=10; }
+    if(/mulch|edging|stone|trim|reshape|border/.test(t)) upsell+=20;
+    close=Math.max(5,Math.min(98,close)); 
+    upsell=Math.max(5,Math.min(98,upsell)); 
+    risk=Math.max(3,Math.min(95,risk));
+    return { closePct: close, upsellPct: upsell, riskPct: risk };
+  }
+
+  function setBar(barEl, pct){ barEl.style.width = pct + "%"; }
+  function clearTips(){ el.tips.innerHTML=""; }
+  function tip(text, small=false){
+    const div=document.createElement("div");
+    div.className="tip"+(small?" small":"");
+    div.textContent=text;
+    el.tips.prepend(div);
+    requestAnimationFrame(()=>div.classList.add("show"));
+    setTimeout(()=> div.classList.remove("show"), 4500);
+  }
+  function showAnalysisTips(summary){
+    const s=(summary||"").toLowerCase();
+    if(/mulch/.test(s)) tip("Add delivery fee and cleanup charge to maximize margin.", true);
+    if(/trim|edge/.test(s)) tip("Offer quarterly maintenance
+                                      if(/bare|thin/.test(s)) tip("Upsell turf repair or reseed options.", true);
+      if(/water|drain/.test(s)) tip("Flag drainage risk for extra prep labor.", true);
+      if(/stone|border/.test(s)) tip("Use premium edging material for higher perceived value.", true);
     }
 
-    STATE.analyzing = true;
-    clearTips();
-    el.metrics.style.display = 'none';
-    el.wheel.style.display = 'flex';
-    el.wheelText.textContent = "Analyzing…";
-    log('analyze_start', {});
-
-    const node = el.preview.querySelector("img,video");
-    if (!node) { tip("No image found.", true); return; }
-
-    let blob;
-    if (node.tagName === 'VIDEO') {
-      const canvas = document.createElement("canvas");
-      canvas.width = node.videoWidth || 1280;
-      canvas.height = node.videoHeight || 720;
-      canvas.getContext("2d").drawImage(node, 0, 0, canvas.width, canvas.height);
-      blob = await new Promise(res => canvas.toBlob(res, 'image/jpeg', 0.92));
-    } else {
-      const resp = await fetch(node.src);
-      blob = await resp.blob();
-    }
-
-    // Send to backend
-    const formData = new FormData();
-    formData.append("file", blob, "capture.jpg");
-
-    const resp = await fetch(`${CONFIG.API_BASE}/analyze`, {
-      method: "POST",
-      body: formData
+    // ========= INIT =========
+    window.addEventListener("load", () => {
+      tip("Ready — upload or capture a photo to begin.", true);
+      log("init", {});
     });
 
-    if (!resp.ok) { throw new Error("analyze-image failed"); }
-    const data = await resp.json();
-
-    const summary = (data.summary || "Analysis complete.").trim();
-    STATE.summary = summary;
-
-    const reco = deriveRecommendation(summary);
-    STATE.recommendation = reco;
-
-    // Metrics
-    const { closePct, upsellPct, riskPct } = scoreFromSummary(summary);
-    setBar(el.mClose, closePct);
-    setBar(el.mUpsell, upsellPct);
-    setBar(el.mRisk, riskPct);
-    el.metrics.style.display = 'block';
-
-// Readout + tips
-speak(summary);
-tip(reco, false);
-showAnalysisTips(summary);
-
-// ✅ Now all data are ready — log and sync them here
-log('analyze_result', { summary, reco, closePct, upsellPct, riskPct });
-syncLogs();
-toast("Analysis Ready", "DOCpro™ can export your log anytime.");
-  } catch(e) {
-    tip("Analysis failed. Please try again.", true);
-    console.error(e);
-    log('analyze_error', { msg: String(e) });
-  } finally {
-    el.wheel.style.display = 'none';
-    STATE.analyzing = false;
-  }
-}  // <--- closes analyzeCore() cleanly
-
-
-// ========= Supporting Functions =========
-function deriveRecommendation(summary){
-  const s = (summary||"").replace(/\s+/g,' ').trim();
-  if(!s) return "Proceed with standard prep, edge cleanly, confirm depth.";
-  const first = s.split(/[.;]/).map(x=>x.trim()).filter(Boolean)[0] || s;
-  return first.length>120 ? first.slice(0,118)+"…" : first;
-}
-
-function scoreFromSummary(s){
-  const t=(s||"").toLowerCase();
-  let close=60, upsell=50, risk=30;
-  if(/clean|defined|fresh|crisp|edg(e|ing)/.test(t)) close+=15;
-  if(/overgrown|bare|patchy|erosion|standing water|drain/.test(t)) { risk+=25; close-=10; }
-  if(/mulch|edging|stone|trim|reshape|border/.test(t)) upsell+=20;
-  close=Math.max(5,Math.min(98,close)); 
-  upsell=Math.max(5,Math.min(98,upsell)); 
-  risk=Math.max(3,Math.min(95,risk));
-  return { closePct: close, upsellPct: upsell, riskPct: risk };
-}
-
-function setBar(barEl, pct){ barEl.style.width = pct + "%"; }
-
-function tip(text, small){
-  const div=document.createElement("div");
-  div.className="tip"+(small?" small":"");
-  div.textContent=text;
-  el.tips.appendChild(div);
-  requestAnimationFrame(()=>div.classList.add("show"));
-}
-
-function clearTips(){ el.tips.innerHTML=""; }
-
-function showAnalysisTips(summary){
-  const s=(summary||"").toLowerCase();
-  if(/mulch/.test(s)) tip("Add delivery fee and cleanup charge to maximize margin.", true);
-  if(/trim|edge/.test(s)) tip("Offer quarterly maintenance discount for loyalty.", true);
-  if(/bare|thin/.test(s)) tip("Upsell turf repair or reseed options.", true);
-  if(/water|drain/.test(s)) tip("Flag drainage risk for extra prep labor.", true);
-  if(/stone|border/.test(s)) tip("Use premium edging material for higher perceived value.", true);
-}
-  return { closePct: close, upsellPct: upsell, riskPct: risk };
-}
-
-// ========= UI UTILITIES =========
-function setBar(barEl, pct) {
-  barEl.style.width = pct + "%";
-}
-
-function clearTips() {
-  el.tips.innerHTML = "";
-}
-
-function tip(text, small = false) {
-  const div = document.createElement("div");
-  div.className = "tip" + (small ? " small" : "");
-  div.textContent = text;
-  el.tips.prepend(div);
-  requestAnimationFrame(() => div.classList.add("show"));
-  setTimeout(() => div.classList.remove("show"), 5500);
-}
-
-// ========= VOICE =========
-function speak(text) {
-  if (!("speechSynthesis" in window)) return;
-  const u = new SpeechSynthesisUtterance(text);
-  u.voice = speechSynthesis.getVoices().find(v => v.name.toLowerCase().includes(CONFIG.voices.jared)) || null;
-  speechSynthesis.cancel();
-  speechSynthesis.speak(u);
-}
-
-// ========= INITIALIZE =========
-window.addEventListener("load", () => {
-  tip("Ready — upload or capture a photo to begin.", true);
-  log("init", {});
-  speak("System online. Ready for photo input.");
-
-
-  // ========= VOICE (TTS) =========
-async function speak(text){
-  if(!text) return;
-  log('ak',{text});
-  try{
-    const resp=await fetch(`${CONFIG.API_BASE}/speak`,{
-      method:"POST",
-      headers:{"Content-Type":"application/json"},
-      body:JSON.stringify({voice:CONFIG.voices.jared,text})
-    });
-    if(!resp.ok) throw new Error("TTS failed");
-    const blob=await resp.blob();
-    const url=URL.createObjectURL(blob);
-    const audio=new Audio(url);
-    audio.play();
-    el.voiceOrb.classList.add("speaking");
-    audio.onended=()=>el.voiceOrb.classList.remove("speaking");
-  }catch(err){
-    console.error("TTS error:",err);
-    tip("Speech temporarily unavailable.",true);
-  }
-}
-
-// ========= VOICE ORB =========
-el.voiceOrb.onclick=()=>{ STATE.listening?stopListening():startListening(); };
-
-function startListening(){
-  if(!('webkitSpeechRecognition' in window)){ tip("Voice input not supported.", true); return; }
-  STATE.recognition=new webkitSpeechRecognition();
-  STATE.recognition.lang="en-US";
-  STATE.recognition.interimResults=false;
-  STATE.recognition.onstart=()=>{
-    STATE.listening=true;
-    el.voiceOrb.classList.add("listening");
-    el.listeningIndicator.classList.add("visible");
-  };
-  STATE.recognition.onresult=(e)=>{
-    const transcript=e.results[0][0].transcript.trim();
-    log('voice_input',{transcript});
-    tip(`You said: “${transcript}”`,true);
-    handleVoiceCommand(transcript.toLowerCase());
-  };
-  STATE.recognition.onerror=()=>stopListening();
-  STATE.recognition.onend=()=>stopListening();
-  STATE.recognition.start();
-}
-
-function stopListening(){
-  if(STATE.recognition) STATE.recognition.stop();
-  STATE.listening=false;
-  el.voiceOrb.classList.remove("listening");
-  el.listeningIndicator.classList.remove("visible");
-}
-
-function handleVoiceCommand(cmd){
-  if(cmd.includes("upload")) el.btnUpload.click();
-  else if(cmd.includes("camera")) el.btnCamera.click();
-  else if(cmd.includes("analyze")) el.btnAnalyze.click();
-  else if(cmd.includes("garage")) el.garageBtn.click();
-  else if(cmd.includes("export")) el.docproBtn.click();
-  else tip("Say 'upload', 'camera', or 'analyze' to start.", true);
-}
-
-// ========= INIT =========
-window.addEventListener("load",()=>{
-  tip("Ready — upload or capture a photo to begin.",true);
-  log("init",{});
-  speak("System online. Ready for photo input.");
-
-// ========= Supporting Functions =========
-function deriveRecommendation(summary) {
-  const s = (summary || "").replace(/\s+/g, " ").trim();
-  if (!s) return "Proceed with standard prep, edge cleanly, confirm depth.";
-  const first = s.split(/[.;]/).map(x => x.trim()).filter(Boolean)[0] || s;
-  return first.length > 120 ? first.slice(0, 118) + "…" : first;
-}
-
-function scoreFromSummary(s) {
-  const t = (s || "").toLowerCase();
-  let close = 60, upsell = 50, risk = 30;
-
-  if (/clean|defined|fresh|crisp|edg(e|ing)/.test(t)) close += 15;
-  if (/overgrown|bare|patchy|erosion|standing water|drain/.test(t)) {
-    risk += 25;
-    close -= 10;
-  }
-  if (/mulch|edging|stone|trim|reshape|border/.test(t)) upsell += 20;
-
-  close = Math.max(5, Math.min(98, close));
-  upsell = Math.max(5, Math.min(98, upsell));
-  risk = Math.max(3, Math.min(95, risk));
-
-  return { closePct: close, upsellPct: upsell, riskPct: risk };
-}
-
-function showAnalysisTips(summary) {
-  const s = (summary || "").toLowerCase();
-  if (/mulch/.test(s)) tip("Add delivery fee and cleanup charge to maximize margin.", true);
-  if (/trim|edge/.test(s)) tip("Offer quarterly maintenance discount for loyalty.", true);
-  if (/bare|thin/.test(s)) tip("Upsell turf repair or reseed options.", true);
-  if (/water|drain/.test(s)) tip("Flag drainage risk for extra prep labor.", true);
-  if (/stone|border/.test(s)) tip("Use premium edging material for higher perceived value.", true);
-}
-
-// ========= UI UTILITIES =========
-function setBar(barEl, pct) {
-  barEl.style.width = pct + "%";
-}
-
-// ========= UI UTILITIES =========
-function setBar(barEl, pct) {
-  barEl.style.width = pct + "%";
-}
-
-function clearTips() {
-  el.tips.innerHTML = "";
-}
-
-// ========= VOICE (Jared TTS) =========
-async function speak(text) {
-  if (!text) return;
-  log('speak', { text });
-
-  try {
-    const resp = await fetch(`${CONFIG.API_BASE}/speak`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        voice: CONFIG.voices.jared,
-        text
-      })
-
-    if (!resp.ok) throw new Error("TTS failed");
-
-    const blob = await resp.blob();
-    const url = URL.createObjectURL(blob);
-    const audio = new Audio(url);
-
-    // Visual cue while speaking
-    el.voiceOrb?.classList.add("speaking");
-
-    // Play Jared's voice
-    audio.play();
-
-    // Remove speaking indicator when done
-    audio.onended = () => el.voiceOrb?.classList.remove("speaking");
-
-  } catch (err) {
-    console.error("TTS error:", err);
-    tip("Speech temporarily unavailable.", true);
-  }
-}
-
-// ========= INITIALIZE =========
-window.addEventListener("load", async () => {
-  try {
-    tip("Ready — upload or capture a photo to begin.", true);
-    log("init", { status: "ok" });
-    await speak("System online. Ready for photo input.");
-  } catch (err) {
-    console.error("Initialization error:", err);
-    tip("Initialization error — please refresh.", true);
-  }
-});
-})();
+  })(); // end IIFE
 </script>
 </body>
 </html>
