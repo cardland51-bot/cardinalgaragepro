@@ -3,1019 +3,523 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,maximum-scale=1,user-scalable=no" />
-<title>HeroHUD • Upload → Analyze → Send</title>
-<meta name="theme-color" content="#121716" />
+<title>ZeroFriction™ Beta • HEROHUD</title>
+<meta name="theme-color" content="#ffffff" />
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800;900&display=swap" rel="stylesheet">
+
 <style>
   :root{
-    --bg:#121716;
-    --panel:#1b221f;
-    --ink:#0f1412;
-    --glass:rgba(255,255,255,.05);
-    --stroke:rgba(255,255,255,.16);
+    --bgTop:#f6f6f6;
+    --bgBot:#e8e8e8;
+    --panel:#fafafa;
+    --panelEdge:#ececec;
+    --ink:#111;
+    --inkDim:#333;
+    --muted:#666;
+    --line:#d9d9d9;
+    --accent:#C41E3A; /* Cardinal red */
+    --accentDim:#a81b33;
 
-    --text:#ecf8f1;
-    --textDim:rgba(236,248,241,.8);
-    --mint:#3fd1a0;
-    --aqua:#2fb0e9;
-
-    --gold:#f6bf3a;
-    --goldGlow: 0 0 18px rgba(246,191,58,.35);
-
-    --ok:#57e0a0;
-    --warn:#ffcc66;
-    --bad:#ff7e7e;
+    --ok:#2f7d32;
+    --warn:#c07a10;
+    --bad:#b42a2a;
   }
 
-  html,body{
-    margin:0;height:100%;
-    background:linear-gradient(180deg,#111514,#0e1312);
-    color:var(--text);
-    font-family:ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial;
-    overflow:hidden;
-  }
   *{box-sizing:border-box}
-
-  /* Ambient */
-  body::before{
-    content:"";position:fixed;inset:-10% -5%;pointer-events:none;
-    background:
-      radial-gradient(100% 60% at 50% -10%, rgba(255,255,255,.05), transparent 50%),
-      radial-gradient(120% 80% at 50% 120%, rgba(63,209,160,.06), transparent 60%);
-    filter:blur(.2px);opacity:.9;
-  }
+  html,body{margin:0;height:100%;font-family:Inter,system-ui,Segoe UI,Roboto,Helvetica,Arial;color:var(--ink);background:linear-gradient(180deg,var(--bgTop),var(--bgBot));}
+  .wrap{min-height:100%;display:grid;grid-template-rows:auto 1fr auto}
 
   /* Topbar */
   .topbar{
-    position:fixed;inset:0 0 auto 0;height:56px;
-    display:flex;align-items:center;justify-content:space-between;
-    padding:0 10px;background:linear-gradient(180deg, rgba(0,0,0,.5), rgba(0,0,0,.15));
-    border-bottom:1px solid var(--stroke);backdrop-filter:blur(6px);z-index:40;
+    height:64px;border-bottom:1px solid var(--line);
+    display:flex;align-items:center;justify-content:space-between;gap:12px;padding:0 14px;background:#fffdfdcc;backdrop-filter:saturate(140%) blur(6px);
   }
-  .brand{font-weight:900;letter-spacing:.12em;color:#e8f8f1}
-  .brand small{display:block;opacity:.75;font-weight:600;letter-spacing:.08em;margin-top:-2px;font-size:11px}
+  .brand{
+    display:flex;align-items:center;gap:10px;font-weight:900;letter-spacing:.12em;color:var(--ink);
+  }
+  .brand small{display:block;font-weight:600;opacity:.7;letter-spacing:.06em;margin-top:-2px;font-size:11px}
   .menu{display:flex;gap:8px;align-items:center}
   .pill{
-    border:1px solid var(--stroke);background:var(--glass);color:var(--text);
-    cursor:pointer;border-radius:999px;padding:.45rem .85rem;font-size:12px;
-    box-shadow:0 0 10px rgba(255,255,255,.08)
+    border:1px solid var(--line);background:white;color:var(--ink);
+    cursor:pointer;border-radius:999px;padding:.5rem .9rem;font-size:12px;font-weight:700;
   }
-  .pill:hover{box-shadow:0 0 22px rgba(255,255,255,.16)}
-  .pill.gold{border-color:var(--gold);color:var(--gold);box-shadow:var(--goldGlow)}
-  .pill.gold:hover{box-shadow:0 0 26px rgba(246,191,58,.55)}
-  .menu-center{position:fixed;left:50%;transform:translateX(-50%);top:10px;display:flex;gap:8px;z-index:41}
+  .pill:hover{border-color:#cfcfcf}
+  .pill.red{border-color:var(--accent);color:var(--accent)}
+  .pill.ghost{opacity:.6}
+  .sep{width:1px;height:20px;background:var(--line);margin:0 4px}
 
   /* Stage */
-  .stage{
-    position:fixed;inset:56px 0 148px 0;
-    display:grid;place-items:center;padding:14px;overflow:auto;
+  .stage{padding:18px 14px;display:grid;place-items:center}
+  .stack{display:flex;flex-direction:column;align-items:center;gap:14px;width:min(1100px,96vw);text-align:center}
+
+  /* Banner */
+  .banner{display:flex;gap:16px;align-items:center;justify-content:center;flex-wrap:wrap}
+  .word{
+    font-size:clamp(28px, 4.6vw, 56px);
+    font-weight:900;letter-spacing:.06em;
   }
-  .stack{display:flex;flex-direction:column;align-items:center;text-align:center;gap:12px;max-width:980px;width:100%}
-  .headline{font-weight:900;letter-spacing:.14em;margin:0}
-  .subline{margin:0 0 8px;color:var(--textDim);font-size:13px}
+  .chev{
+    width:clamp(26px, 3.8vw, 44px);height:auto;flex:0 0 auto
+  }
+  .subline{margin-top:-6px;color:var(--muted);font-weight:600}
 
   /* Controls */
+  .btnRow{display:flex;gap:10px;flex-wrap:wrap;justify-content:center;margin-top:6px}
   .btn{
-    appearance:none;border:1px solid var(--stroke);background:var(--glass);color:var(--text);
-    padding:.85rem 1.4rem;border-radius:999px;letter-spacing:.08em;text-transform:uppercase;font-weight:800;
-    backdrop-filter:blur(6px);cursor:pointer;transition:box-shadow .2s,transform .1s,opacity .2s;
-    box-shadow:0 0 16px rgba(255,255,255,.08);font-size:13px
+    border:1px solid var(--line);background:#fff;color:var(--ink);
+    padding:.8rem 1.2rem;border-radius:999px;cursor:pointer;font-weight:800;letter-spacing:.04em;
   }
+  .btn.red{border-color:var(--accent);color:var(--accent)}
   .btn:active{transform:translateY(1px)}
-  .btn-row{display:flex;gap:10px;flex-wrap:wrap;justify-content:center}
 
-  /* Preview */
-  #preview{
-    display:none;position:relative;width:min(94vw,980px);aspect-ratio:16/10;border-radius:16px;overflow:hidden;
-    border:1px solid var(--stroke);box-shadow:0 0 24px rgba(0,0,0,.35);background:#0c110f
+  /* Preview frame */
+  .frame{
+    width:min(1100px,96vw);aspect-ratio:16/9;background:var(--panel);border:1px solid var(--panelEdge);
+    border-radius:14px;overflow:hidden;display:none;position:relative;
   }
-  #preview img,#preview video{width:100%;height:100%;object-fit:cover}
-  #edgeGlow{position:absolute;inset:0;border-radius:16px;pointer-events:none;opacity:0;
-    box-shadow:0 0 28px rgba(246,191,58,.35), inset 0 0 18px rgba(63,209,160,.35);transition:opacity .35s}
-  .glow-on #edgeGlow{opacity:1}
-  .wheel{
-    position:absolute;right:10px;bottom:10px;background:rgba(0,0,0,.45);border:1px solid var(--stroke);
-    border-radius:999px;padding:.35rem .6rem;font-size:12px;display:flex;gap:.5rem;align-items:center
+  .frame img,.frame video{width:100%;height:100%;object-fit:cover}
+  .badge{
+    position:absolute;right:10px;bottom:10px;border:1px solid var(--line);background:rgba(255,255,255,.85);
+    padding:.3rem .6rem;border-radius:999px;font-size:12px;display:flex;gap:8px;align-items:center
   }
-  .mini-spin{width:14px;height:14px;border-radius:50%;border:2px solid rgba(255,255,255,.25);border-top-color:var(--gold);animation:spin 1s linear infinite}
+  .spin{width:14px;height:14px;border-radius:50%;border:2px solid #ccc;border-top-color:var(--accent);animation:spin 1s linear infinite}
   @keyframes spin{to{transform:rotate(360deg)}}
 
-  /* Metric bars */
-  #metrics{display:none;width:min(94vw,980px);margin-top:8px}
-  .mRow{display:grid;grid-template-columns:140px 1fr;gap:10px;align-items:center;margin:8px 0}
-  .mLabel{font-size:12px;color:var(--textDim);text-align:right}
-  .mBar{height:12px;border-radius:999px;background:rgba(255,255,255,.06);border:1px solid var(--stroke);overflow:hidden;position:relative}
-  .mVal{height:100%;width:0%}
-  .grad-close{background:linear-gradient(90deg,#7de3a9,#37cc95,#11b07e)}
-  .grad-upsell{background:linear-gradient(90deg,#c9e86c,#f6bf3a,#ff974a)}
-  .grad-risk{background:linear-gradient(90deg,#7bd0ff,#ffcc66,#ff7e7e)}
+  /* Limited Metrics (Risk + Duration) */
+  .metrics{
+    display:none;width:min(1100px,96vw);margin-top:10px;background:#fff;border:1px solid var(--panelEdge);
+    border-radius:12px;padding:12px 14px;text-align:left;
+  }
+  .mHead{font-weight:800;letter-spacing:.06em;margin-bottom:6px;color:var(--ink)}
+  .mRow{display:grid;grid-template-columns:160px 1fr 60px;gap:10px;align-items:center;margin:10px 0}
+  .mLabel{font-size:13px;color:var(--muted);text-align:right}
+  .mBar{height:12px;border-radius:999px;background:#f1f1f1;border:1px solid var(--panelEdge);overflow:hidden}
+  .mVal{height:100%;width:0}
+  .grad-risk{background:linear-gradient(90deg,#ddd,#f1c27b,#e88973)}
+  .grad-dur {background:linear-gradient(90deg,#ddd,#c7c7c7,#9a9a9a)}
+  .mPct{font-size:12px;color:#444;text-align:right}
 
-  /* Tips (short readouts) */
-  #tips{position:relative;width:min(94vw,980px);min-height:14px}
-  .tip{
-    position:relative;opacity:0;transform:translateY(8px);transition:all .55s cubic-bezier(.2,.9,.2,1);
-    background:rgba(255,255,255,.06);border:1px solid var(--stroke);backdrop-filter:blur(8px);color:var(--text);
-    padding:.55rem .75rem;border-radius:10px;box-shadow:0 0 18px rgba(0,0,0,.25);margin:.35rem auto;max-width:92%;text-align:left
+  /* Readout (Basic) */
+  .readout{
+    width:min(1100px,96vw);margin-top:10px;background:#fff;border:1px solid var(--panelEdge);
+    border-radius:12px;padding:14px 14px;text-align:left
   }
-  .tip.show{opacity:1;transform:translateY(0)}
-  .tip.small{max-width:52%;font-size:13px}
+  .readout h4{margin:0 0 6px}
+  .readout .hint{font-size:12px;color:#777}
 
-  /* Toast */
-  #toast{
-    position:fixed;left:50%;transform:translateX(-50%) translateY(120%);bottom:70px;
-    width:min(90vw,520px);background:var(--ink);border:1px solid var(--stroke);border-radius:14px;
-    box-shadow:0 18px 40px rgba(0,0,0,.45), 0 0 16px rgba(0,0,0,.25);
-    color:var(--text);z-index:100;padding:12px 12px 10px;transition:transform .35s ease, opacity .35s ease;opacity:0
+  /* Garage Drawer */
+  .drawer{display:none;position:fixed;left:0;right:0;bottom:0;background:#fff;border-top:2px solid var(--accent);
+    box-shadow:0 -18px 40px rgba(0,0,0,.1);padding:16px 14px 18px;z-index:50
   }
-  #toast.show{transform:translateX(-50%) translateY(0);opacity:1}
-  #toast .t-title{font-weight:800;margin-bottom:4px;color:var(--gold)}
-  #toast .t-body{font-size:13px;color:var(--textDim)}
-  #toast .t-actions{display:flex;gap:8px;margin-top:10px;flex-wrap:wrap}
-  #toast .t-actions .btn{padding:.55rem .9rem;text-transform:none;font-weight:700}
-
-  /* Garage */
-  #garageBtn{position:fixed;left:50%;transform:translateX(-50%);top:10px;z-index:41}
-  #garageDoor{
-    position:fixed;inset:56px 0 0 0;display:none;z-index:70;background:rgba(0,0,0,.72);backdrop-filter:blur(4px)
-  }
-  .garageCard{
-    position:absolute;inset:4% 4%;background:var(--panel);border:1px solid var(--stroke);border-radius:16px;
-    box-shadow:0 0 40px rgba(0,0,0,.6);display:flex;flex-direction:column;overflow:hidden
-  }
-  .gHead{display:flex;justify-content:space-between;align-items:center;padding:12px 14px;border-bottom:1px solid var(--stroke)}
-  .gTitle{font-weight:900;letter-spacing:.12em}
-  .gBody{flex:1;overflow:auto;padding:14px}
-  .gRow{display:flex;flex-wrap:wrap;gap:12px;justify-content:center}
+  .dHead{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}
+  .dTitle{font-weight:900;letter-spacing:.08em}
+  .dRow{display:flex;gap:12px;flex-wrap:wrap}
   .card{
-    flex:1 1 280px;max-width:360px;background:#151b19;border:1px solid var(--stroke);border-radius:14px;
-    padding:12px 12px 14px;box-shadow:0 0 26px rgba(0,0,0,.35);position:relative
+    flex:1 1 280px;max-width:360px;border:1px solid var(--panelEdge);border-radius:12px;background:#fafafa;padding:12px 12px 14px;
   }
-  .card.glow::before{content:"";position:absolute;inset:-4px;border-radius:16px;box-shadow:0 0 22px rgba(246,191,58,.25);pointer-events:none}
-  .tag{display:inline-block;border:1px solid var(--gold);color:var(--gold);padding:.25rem .5rem;border-radius:999px;font-size:11px;margin-bottom:8px}
-  .lockedBadge{position:absolute;right:10px;top:10px;font-size:11px;opacity:.75;border:1px solid var(--stroke);border-radius:999px;padding:.2rem .45rem}
-  .card h4{margin:.25rem 0 .25rem}
-  .card p{margin:0 0 8px;color:var(--textDim)}
-  .price{margin-top:8px;opacity:.9;font-weight:700}
-  .btn-row{justify-content:flex-start}
-  .gClose{border:1px solid var(--stroke);background:#0e1613;color:var(--text);border-radius:999px;padding:.35rem .6rem;cursor:pointer}
+  .card h5{margin:4px 0 6px}
+  .badgeLock{
+    font-size:11px;border:1px solid var(--line);border-radius:999px;padding:.18rem .5rem;opacity:.7
+  }
+  .buy{border:1px solid var(--accent);color:var(--accent);background:#fff;border-radius:999px;padding:.5rem .9rem;cursor:pointer;font-weight:800}
+  .buy:active{transform:translateY(1px)}
+  .muted{color:#777}
+  .coming{opacity:.55}
 
-  /* Voice orb (tap-to-talk) */
-  #voiceOrb{
-    position:fixed;left:18px;bottom:122px;width:54px;height:54px;border-radius:999px;border:1px solid var(--gold);
-    background:radial-gradient(circle at 60% 40%, rgba(246,191,58,.22), rgba(63,209,160,.10));box-shadow:var(--goldGlow);
-    z-index:60;display:grid;place-items:center;cursor:pointer
+  /* Email Modal */
+  .modal{
+    position:fixed;inset:0;display:none;align-items:center;justify-content:center;background:rgba(0,0,0,.3);z-index:80;
   }
-  #voiceOrb.idle{box-shadow:0 0 10px rgba(246,191,58,.2)}
-  #voiceOrb.listening{animation:pulse 1.4s ease-in-out infinite}
-  #voiceOrb.speaking{box-shadow:0 0 20px rgba(246,191,58,.5), 0 0 28px rgba(63,209,160,.35)}
-  @keyframes pulse{0%,100%{transform:scale(1)}50%{transform:scale(1.08)}}
-  #listeningIndicator{
-    position:fixed;bottom:190px;left:50%;transform:translateX(-50%) translateY(10px);
-    font-size:13px;color:var(--gold);text-shadow:0 0 8px rgba(246,191,58,.35);opacity:0;transition:opacity .3s, transform .3s;z-index:59
+  .modalCard{
+    width:min(520px,92vw);background:#fff;border:1px solid var(--panelEdge);border-radius:12px;padding:14px
   }
-  #listeningIndicator.visible{opacity:1;transform:translateX(-50%) translateY(0)}
+  .modalCard h4{margin:6px 0 4px}
+  .row{display:flex;gap:8px;flex-wrap:wrap}
+  .in{flex:1;border:1px solid var(--panelEdge);border-radius:10px;padding:.6rem .7rem;font-size:14px}
+  .ghostBtn{border:1px solid var(--line);background:#fff;border-radius:999px;padding:.5rem .9rem;font-weight:800}
+  .ghostBtn.red{border-color:var(--accent);color:var(--accent)}
+  .ghostBtn:active{transform:translateY(1px)}
 
-  /* Always-visible Founder banner */
-  .founderBar{
-    position:fixed;left:12px;right:12px;bottom:10px;z-index:80;
-    display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:center;
-    background:rgba(28,22,10,.9);border:1px solid var(--gold);border-radius:12px;
-    padding:.5rem .75rem;box-shadow:0 12px 28px rgba(0,0,0,.45), 0 0 18px rgba(246,191,58,.25)
-  }
-  .founderBar .text{
-    color:var(--gold);font-weight:800;letter-spacing:.06em;text-align:center
-  }
-
-  /* Footer (sits above founder bar spacing-wise) */
-  .footer{
-    position:fixed;left:50%;transform:translateX(-50%);bottom:52px;
-    font-size:11px;color:rgba(236,248,241,.7);letter-spacing:.12em;text-transform:uppercase;z-index:5
-  }
-
-  /* Safe areas */
-  @supports(padding:max(0px)){
-    #voiceOrb{bottom:calc(122px + env(safe-area-inset-bottom))}
-  }
+  /* Footer */
+  .foot{height:56px;display:grid;place-items:center;font-size:11px;letter-spacing:.12em;color:#555}
 </style>
 </head>
 <body>
+<div class="wrap">
 
-  <!-- Top -->
-  <div class="topbar">
-    <div class="brand">
-      HEROHUD
-      <small>Turn a photo into an estimate. Turn an estimate into a sale.</small>
+  <!-- Topbar -->
+  <header class="topbar">
+    <div class="brand">CARDINAL SYSTEMS <small>ZeroFriction™ Suite</small></div>
+    <div class="brand" style="flex-direction:column;gap:0;align-items:center;">
+      <div style="font-weight:900;letter-spacing:.10em">HEROHUD</div>
+      <small style="margin-top:-2px">Precision Meets Grit • Beta Access</small>
     </div>
-
-    <div class="menu-center">
+    <nav class="menu">
       <button class="pill" id="garageBtn">Garage</button>
-    </div>
-
-    <div class="menu">
-      <button class="pill gold" id="docproBtn" title="Free log export">DOCpro™ Export</button>
-    </div>
-  </div>
+      <span class="sep"></span>
+      <button class="pill red" id="docsBtn" title="Exclusive Beta Access">DOCS • $25 Lifetime</button>
+      <button class="pill ghost" id="proBtn" title="Coming Soon" disabled>Pro Reports</button>
+      <button class="pill ghost" id="coachBtn" title="Coming Soon" disabled>Sales Coach</button>
+    </nav>
+  </header>
 
   <!-- Stage -->
-  <section class="stage" id="stage">
-    <div class="stack">
-      <h1 class="headline">Upload → Analyze → Send</h1>
-      <p class="subline">Field-first estimates with upsell and risk clarity.</p>
+  <main class="stage">
+    <section class="stack">
+      <!-- Banner -->
+      <div class="banner" aria-label="Upload, Estimate, Send">
+        <div class="word">UPLOAD</div>
+        <svg class="chev" viewBox="0 0 32 16" aria-hidden="true"><path d="M0 8h26M18 2l8 6-8 6" fill="none" stroke="var(--accent)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        <div class="word">ESTIMATE</div>
+        <svg class="chev" viewBox="0 0 32 16" aria-hidden="true"><path d="M0 8h26M18 2l8 6-8 6" fill="none" stroke="var(--accent)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        <div class="word">SEND</div>
+      </div>
+      <div class="subline">ZeroFriction™ Beta — Operational factors only (Risk & Duration).</div>
 
-      <div class="btn-row" id="primaryBtns">
-        <button class="btn" id="btnUpload">⬆ Upload</button>
-        <button class="btn" id="btnCamera">📷 Camera</button>
-        <button class="btn" id="btnAnalyze">🔍 Analyze</button>
+      <!-- Controls -->
+      <div class="btnRow">
+        <button class="btn" id="btnUpload">Upload</button>
+        <button class="btn" id="btnCamera">Camera</button>
+        <button class="btn red" id="btnAnalyze">Analyze</button>
       </div>
 
-      <div id="preview">
+      <!-- Preview -->
+      <div class="frame" id="frame">
         <img id="previewImg" alt="preview" />
-        <div id="edgeGlow"></div>
-        <div class="wheel" id="wheel" style="display:none;">
-          <div class="mini-spin"></div><span id="wheelText">Analyzing…</span>
-        </div>
+        <div class="badge" id="busy" style="display:none;"><div class="spin"></div> Analyzing…</div>
       </div>
 
-      <!-- Metrics -->
-      <div id="metrics">
-        <div class="mRow">
-          <div class="mLabel">Close Confidence</div>
-          <div class="mBar"><div class="mVal grad-close" id="mClose"></div></div>
-        </div>
-        <div class="mRow">
-          <div class="mLabel">Upsell Potential</div>
-          <div class="mBar"><div class="mVal grad-upsell" id="mUpsell"></div></div>
-        </div>
+      <!-- Metrics (Limited) -->
+      <div class="metrics" id="metrics">
+        <div class="mHead">Operational Factors (Preview)</div>
         <div class="mRow">
           <div class="mLabel">Risk Factor</div>
           <div class="mBar"><div class="mVal grad-risk" id="mRisk"></div></div>
+          <div class="mPct" id="tRisk">0%</div>
+        </div>
+        <div class="mRow">
+          <div class="mLabel">Duration Estimate</div>
+          <div class="mBar"><div class="mVal grad-dur" id="mDur"></div></div>
+          <div class="mPct" id="tDur">0%</div>
         </div>
       </div>
 
-      <div id="tips"></div>
+      <!-- Readout (Basic) -->
+      <div class="readout" id="readout" style="display:none;">
+        <h4>Estimate (Basic)</h4>
+        <div id="summary" style="color:#222;margin-bottom:8px"></div>
+        <div class="hint">Full ZeroFriction™ analysis (Upsell, Confidence, Tips) unlocks with Pro Access.</div>
+      </div>
 
       <input type="file" id="file" accept="image/*" hidden />
+    </section>
+  </main>
+
+  <!-- Garage Drawer -->
+  <aside class="drawer" id="drawer" aria-hidden="true">
+    <div class="dHead">
+      <div class="dTitle">GARAGE • Tools & Programs</div>
+      <button class="ghostBtn" id="dClose">Close</button>
     </div>
-  </section>
-
-  <!-- Voice orb + indicator -->
-  <div id="voiceOrb" class="idle" title="Tap to talk / Tap to stop">🎙️</div>
-  <div id="listeningIndicator">🎧 Listening…</div>
-
-  <!-- Garage -->
-  <div id="garageDoor">
-    <div class="garageCard">
-      <div class="gHead">
-        <div class="gTitle">CARDINAL GARAGE • Tools & Programs</div>
-        <button class="gClose" id="garageCloseBtn">Close</button>
+    <div class="dRow">
+      <!-- DOCS -->
+      <div class="card">
+        <div style="display:flex;justify-content:space-between;align-items:center">
+          <h5>Docs — Lifetime Beta Pass</h5>
+          <span class="badgeLock" style="border-color:var(--accent);color:var(--accent)">Unlocked</span>
+        </div>
+        <p class="muted">Professional templates, client estimate sheets, and ZeroFriction™ reference docs.</p>
+        <div class="muted" style="font-weight:800;margin:6px 0">• $25 (one-time)</div>
+        <button class="buy" id="buyDocs">Buy Access</button>
       </div>
-      <div class="gBody">
-        <h3 style="margin:6px 0 10px">Hand Tools <span style="font-weight:600;opacity:.8">(Monthly)</span></h3>
-        <div class="gRow">
-          <!-- Keep all previous + NEW flags -->
-          <div class="card glow">
-            <span class="tag">NEW</span><span class="lockedBadge" id="lockHT1">Locked</span>
-            <h4>Lot Size Finder</h4>
-            <p>Measure from satellite or map pin. Quote clean; stop guessing.</p>
-            <div class="price">$10/mo (in bundle)</div>
-            <div class="btn-row"><a class="btn" target="_blank" rel="noopener" href="https://www.paypal.com/ncp/payment/LD5BM638SRCFA">Unlock</a></div>
-          </div>
-          <div class="card glow">
-            <span class="tag">NEW</span><span class="lockedBadge" id="lockHT2">Locked</span>
-            <h4>Before/After Pairer</h4>
-            <p>Snap, pair, and send proof. Your best closer is evidence.</p>
-            <div class="price">$10/mo (in bundle)</div>
-            <div class="btn-row"><a class="btn" target="_blank" rel="noopener" href="https://www.paypal.com/ncp/payment/LD5BM638SRCFA">Unlock</a></div>
-          </div>
-          <div class="card glow">
-            <span class="tag">NEW</span><span class="lockedBadge" id="lockHT3">Locked</span>
-            <h4>Smart Script Snippets</h4>
-            <p>“On my way.” “Estimate ready.” “Materials ETA.” Save time, sound pro.</p>
-            <div class="price">$10/mo (in bundle)</div>
-            <div class="btn-row"><a class="btn" target="_blank" rel="noopener" href="https://www.paypal.com/ncp/payment/LD5BM638SRCFA">Unlock</a></div>
-          </div>
-          <div class="card glow">
-            <span class="tag">NEW</span><span class="lockedBadge" id="lockHT4">Locked</span>
-            <h4>Weather Smart Start</h4>
-            <p>Schedule around the sky. Less rework, happier clients.</p>
-            <div class="price">$10/mo (in bundle)</div>
-            <div class="btn-row"><a class="btn" target="_blank" rel="noopener" href="https://www.paypal.com/ncp/payment/LD5BM638SRCFA">Unlock</a></div>
-          </div>
-          <div class="card glow">
-            <span class="tag">NEW</span><span class="lockedBadge" id="lockHT5">Locked</span>
-            <h4>Quick Quote Splitter</h4>
-            <p>Break one job into neat line items. Fewer objections, faster yes.</p>
-            <div class="price">$10/mo (in bundle)</div>
-            <div class="btn-row"><a class="btn" target="_blank" rel="noopener" href="https://www.paypal.com/ncp/payment/LD5BM638SRCFA">Unlock</a></div>
-          </div>
+
+      <!-- Pro Reports (Coming Soon) -->
+      <div class="card coming">
+        <div style="display:flex;justify-content:space-between;align-items:center">
+          <h5>Pro Reports</h5>
+          <span class="badgeLock">Coming Soon</span>
         </div>
+        <p class="muted">Client-ready exports with ZeroFriction™ confidence bars and structured upsell cues.</p>
+        <button class="ghostBtn" disabled>Notify Me</button>
+      </div>
 
-        <h3 style="margin:16px 0 10px">Power Tools <span style="font-weight:600;opacity:.8">(Pro)</span></h3>
-        <div class="gRow">
-          <div class="card glow" id="cardFG">
-            <span class="tag">Field Guides</span><span class="lockedBadge" id="lockFG">Locked</span>
-            <h4>A–Z Methods • Materials • Standards</h4>
-            <p>Built from jobs that paid out — not theory.</p>
-            <div class="price">$39/mo</div>
-            <div class="btn-row"><a class="btn" id="buyFG" target="_blank" rel="noopener" href="https://www.paypal.com/ncp/payment/AKUYMX3FCMUN4">Unlock</a></div>
-          </div>
-
-          <div class="card glow" id="cardBP">
-            <span class="tag">Best Practices</span><span class="lockedBadge" id="lockBP">Locked</span>
-            <h4>Situational Playbooks</h4>
-            <p>Time, flow, risk — tight execution with no corners cut.</p>
-            <div class="price">$59–89/mo</div>
-            <div class="btn-row"><a class="btn" id="buyBP" target="_blank" rel="noopener" href="https://www.paypal.com/ncp/payment/BHQ9A57DLN24S">Unlock</a></div>
-          </div>
-
-          <div class="card glow" id="cardSU">
-            <span class="tag">Sales University</span><span class="lockedBadge" id="lockSU">Locked</span>
-            <h4>2-Week Intensive (AI Role-Play)</h4>
-            <p>Door-knocks, objections, confident closes. Practice till you own it.</p>
-            <div class="price">$349 (one-time)</div>
-            <div class="btn-row"><a class="btn" id="buySU" target="_blank" rel="noopener" href="https://www.paypal.com/ncp/payment/M3CBPH327ELAJ">Unlock</a></div>
-          </div>
-
-          <div class="card glow" id="cardPR">
-            <span class="tag">Platinum Reports</span><span class="lockedBadge" id="lockPR">Locked</span>
-            <h4>Client-Ready Pro Exports</h4>
-            <p>Upsell hints + confidence bars. Look and sound like a closer.</p>
-            <div class="price">$89/mo</div>
-            <div class="btn-row"><a class="btn" id="buyPR" target="_blank" rel="noopener" href="https://www.paypal.com/ncp/payment/7N7JBS2V2B25Q">Unlock</a></div>
-          </div>
+      <!-- Sales Coach (Coming Soon) -->
+      <div class="card coming">
+        <div style="display:flex;justify-content:space-between;align-items:center">
+          <h5>Sales Coach</h5>
+          <span class="badgeLock">Coming Soon</span>
         </div>
-
-        <h3 style="margin:16px 0 10px">Founders • AR+ Lifetime</h3>
-        <div class="gRow">
-          <div class="card glow" id="cardFN">
-            <span class="tag">Founder</span><span class="lockedBadge" id="lockFN">Invite Only</span>
-            <h4>Trusted Partner • Batch 01 (10 Spots Only)</h4>
-            <p>Lifetime access • Ambassador rights • AR Visualizer (Beta)</p>
-            <div class="price">$399 (one-time)</div>
-            <div class="btn-row">
-              <button class="btn" id="openDeck">Open Black Book</button>
-              <a class="btn gold" target="_blank" rel="noopener" href="https://www.paypal.com/ncp/payment/LD5BM638SRCFA">Join Founder</a>
-            </div>
-          </div>
-        </div>
-
-        <div style="height:8px"></div>
+        <p class="muted">Two-week intensive with live playbooks and objection handlers. Practice till you own it.</p>
+        <button class="ghostBtn" disabled>Notify Me</button>
       </div>
     </div>
-  </div>
+  </aside>
 
-  <!-- Founders Deck (modal) -->
-  <div id="deckModal" style="display:none;position:fixed;inset:0;z-index:120;background:rgba(0,0,0,.75)">
-    <div style="position:absolute;inset:4% 4%;background:var(--panel);border:1px solid var(--stroke);border-radius:16px;display:flex;flex-direction:column">
-      <div style="display:flex;justify-content:space-between;align-items:center;padding:12px 14px;border-bottom:1px solid var(--stroke)">
-        <div style="font-weight:800;letter-spacing:.12em">Founder Black Book — Batch 01 (10 Spots) • $399</div>
-        <div>
-          <button class="btn" id="deckPrint">Print</button>
-          <button class="btn" id="deckExit">Exit</button>
-        </div>
-      </div>
-      <div id="deckBody" style="flex:1;overflow:auto;padding:16px">
-        <h3>Mission</h3>
-        <p>Give every worker — from first job to five-truck crew — the power to quote fast, upsell smart, and deliver clean.</p>
-        <h3>Vision</h3>
-        <p>Field-first. Decisions from reality, not office theory. The tool that pays for itself in a week.</p>
-        <h3>What You Get (Lifetime)</h3>
-        <ul>
-          <li>All Hand Tools & Power Tools unlocked (forever)</li>
-          <li>Platinum Reports with confidence bars + upsell cues</li>
-          <li>AR Visualizer (Beta): overlay scope live through phone/glasses</li>
-          <li>Founder badge, early drops, roadmap voting</li>
-          <li>Direct dev liaison (Jared) + priority feedback loop</li>
-          <li>Phase 2: optional affiliate/commission rights (ambassador)</li>
-        </ul>
-        <h3>Batch Rules</h3>
-        <ul>
-          <li>10 Founders only (Batch 01)</li>
-          <li>Single one-time payment: <b>$299</b></li>
-          <li>No renewals. Lifetime access and upgrades.</li>
-        </ul>
-      </div>
-    </div>
-  </div>
-
-  <!-- Email Modal -->
-  <div id="emailModal" aria-hidden="true" style="display:none;position:fixed;inset:0;z-index:140;background:rgba(0,0,0,.7);align-items:center;justify-content:center">
+  <!-- Email Modal (after 3rd analyze) -->
+  <div class="modal" id="emailModal" aria-hidden="true">
     <div class="modalCard">
-      <h3>Before you unlock</h3>
-      <p>Drop an email so we can send receipts and exports.</p>
-      <div class="modalRow">
-        <input id="emailInput" class="modalInput" type="email" placeholder="you@example.com" />
-        <button class="btn" id="emailSave">Save</button>
-      </div>
-      <p style="font-size:12px;color:var(--textDim);margin-top:8px">Camera and basic exports never require email.</p>
-      <div style="margin-top:8px">
-        <button class="pill" id="emailCancel">Cancel</button>
+      <h4>Stay in the Beta Loop</h4>
+      <p style="margin:4px 0 10px;color:#444">
+        We’re always offering new tools — don’t miss out. Drop your email to get updates (optional).
+      </p>
+      <div class="row">
+        <input class="in" id="emailInput" placeholder="you@example.com" type="email" />
+        <button class="ghostBtn red" id="emailSave">Stay Updated</button>
+        <button class="ghostBtn" id="emailSkip">No Thanks</button>
       </div>
     </div>
   </div>
 
-  <!-- Toast -->
-  <div id="toast">
-    <div class="t-title">Notice</div>
-    <div class="t-body"></div>
-    <div class="t-actions">
-      <button class="btn" id="toastExport">Export Log (.txt)</button>
-    </div>
-  </div>
-
-  <!-- Always-visible Founder Banner -->
-  <div class="founderBar" id="founderBar">
-    <div class="text">⚡ Founder Batch 01 — 10 Spots Only • $299 Lifetime</div>
-    <button class="pill gold" id="founderOpen">📘 Open Black Book</button>
-    <a class="pill gold" id="founderJoin" target="_blank" rel="noopener" href="https://www.paypal.com/ncp/payment/LD5BM638SRCFA">💎 Join Founder</a>
-  </div>
-
-  <!-- Footer (sits above founder bar) -->
-  <div class="footer">Powered by Garage_Mnd</div>
-
-  <!-- Hidden file input -->
-  <input type="file" id="file" accept="image/*" hidden />
+  <!-- Footer -->
+  <footer class="foot">POWERED BY CARDINAL SYSTEMS • ZEROFRICTION™ SUITE • DOCpro™ Integrated</footer>
+</div>
 
 <script>
 (() => {
   /* ========= CONFIG ========= */
   const CONFIG = {
-    API_BASE: "https://jared-hero2-backend.onrender.com",   // your backend
-
-    voices: { jared: "alloy" },
-    emailRequiredForPay: true
+    API_BASE: "https://jared-hero2-backend.onrender.com"
   };
 
   /* ========= ELEMENTS ========= */
   const el = {
-    // Stage
-    preview: qs('#preview'),
-    previewImg: qs('#previewImg'),
-    edgeGlow: qs('#edgeGlow'),
-    wheel: qs('#wheel'),
-    wheelText: qs('#wheelText'),
-    tips: qs('#tips'),
-
-    // Buttons
+    frame: qs('#frame'),
+    img: qs('#previewImg'),
+    busy: qs('#busy'),
     btnUpload: qs('#btnUpload'),
     btnCamera: qs('#btnCamera'),
     btnAnalyze: qs('#btnAnalyze'),
     file: qs('#file'),
-
-    // Metrics
     metrics: qs('#metrics'),
-    mClose: qs('#mClose'),
-    mUpsell: qs('#mUpsell'),
     mRisk: qs('#mRisk'),
-
-    // Voice
-    voiceOrb: qs('#voiceOrb'),
-    listeningIndicator: qs('#listeningIndicator'),
-
-    // Garage
+    mDur: qs('#mDur'),
+    tRisk: qs('#tRisk'),
+    tDur: qs('#tDur'),
+    readout: qs('#readout'),
+    summary: qs('#summary'),
+    // garage
+    drawer: qs('#drawer'),
     garageBtn: qs('#garageBtn'),
-    garageDoor: qs('#garageDoor'),
-    garageCloseBtn: qs('#garageCloseBtn'),
-    buyFG: qs('#buyFG'),
-    buyBP: qs('#buyBP'),
-    buySU: qs('#buySU'),
-    buyPR: qs('#buyPR'),
-    lockFG: qs('#lockFG'),
-    lockBP: qs('#lockBP'),
-    lockSU: qs('#lockSU'),
-    lockPR: qs('#lockPR'),
-    lockFN: qs('#lockFN'),
-    openDeck: qs('#openDeck'),
-
-    // Deck
-    deckModal: qs('#deckModal'),
-    deckExit: qs('#deckExit'),
-    deckPrint: qs('#deckPrint'),
-
-    // Email modal
+    dClose: qs('#dClose'),
+    buyDocs: qs('#buyDocs'),
+    // email
     emailModal: qs('#emailModal'),
     emailInput: qs('#emailInput'),
     emailSave: qs('#emailSave'),
-    emailCancel: qs('#emailCancel'),
-
-    // Toast / DOCpro
-    toast: qs('#toast'),
-    toastExport: qs('#toastExport'),
-    docproBtn: qs('#docproBtn'),
-
-    // Founder banner
-    founderBar: qs('#founderBar'),
-    founderOpen: qs('#founderOpen'),
-    founderJoin: qs('#founderJoin'),
+    emailSkip: qs('#emailSkip'),
+    // menu
+    docsBtn: qs('#docsBtn')
   };
 
   /* ========= STATE ========= */
   const STATE = {
-    email: localStorage.getItem('herohud_email') || "",
-    logs: loadLogs(),
-    analyzing: false,
-    recognition: null,
-    listening: false,
-    camStream: null,
-    camVideo: null,
-    captureBtn: null,
-    summary: "",
-    recommendation: ""
+    analyzes: Number(localStorage.getItem('herohud_analyzes')||0),
+    optedOut: localStorage.getItem('herohud_optout') === 'true',
+    email: localStorage.getItem('herohud_email') || ""
   };
 
   /* ========= UTIL ========= */
   function qs(s){ return document.querySelector(s); }
-  function wait(ms){ return new Promise(r=>setTimeout(r,ms)) }
-  function log(kind, payload){ STATE.logs.entries.push({ t:Date.now(), kind, payload }); localStorage.setItem('herohud_logs', JSON.stringify(STATE.logs)); }
-  function loadLogs(){ const raw=localStorage.getItem('herohud_logs'); return raw?JSON.parse(raw):{ startedAt: Date.now(), entries: [] } }
-  function dateStamp(){ const d=new Date(); const z=n=>String(n).padStart(2,'0'); return `${d.getFullYear()}${z(d.getMonth()+1)}${z(d.getDate())}_${z(d.getHours())}${z(d.getMinutes())}${z(d.getSeconds())}`; }
-  function downloadTxt(filename, text){ const blob=new Blob([text],{type:"text/plain"}); const a=document.createElement("a"); a.href=URL.createObjectURL(blob); a.download=filename; a.click(); 
-
-// ========= TRAINING SYNC =========                                     
-async function syncLogs(){
-  console.log("🔄 syncLogs() called!");
-try{
-    const data = STATE.logs;
-    await fetch(`${CONFIG.API_BASE}/train-collect`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(data)
-    });
-    console.log("Synced logs to backend.");
-  }catch(err){
-    console.warn("Log sync failed:", err);
-  }
-}                          
-async function syncLogs(){
-  try{
-    const data = STATE.logs;
-    await fetch(`${CONFIG.API_BASE}/train-collect`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(data)
-    });
-    console.log("Synced logs to backend.");
-  }catch(err){
-    console.warn("Log sync failed:", err);
-  }
-}
-
-
-  /* ========= TOAST / DOCpro ========= */
-  function toast(title, body){
-    qs('#toast .t-title').textContent = title||'Notice';
-    qs('#toast .t-body').textContent = body||'';
-    el.toast.classList.add('show');
-    setTimeout(()=> el.toast.classList.remove('show'), 5200);
-  }
-  el.toastExport.onclick = ()=> exportLog();
-  el.docproBtn.onclick  = ()=> exportLog();
-
-  function exportLog(){
-    const tipsTxt=[...document.querySelectorAll('.tip')].map(e=>e.textContent.trim()).join("\n");
-    const text = [
-      "HeroHUD Analysis Log",
-      "====================",
-      "",
-      "Summary:",
-      STATE.summary || "",
-      "",
-      "Recommendation:",
-      STATE.recommendation || "",
-      "",
-      "Tips:",
-      tipsTxt || "",
-      "",
-      "Events:",
-      JSON.stringify(STATE.logs, null, 2),
-      ""
-    ].join("\n");
-    downloadTxt(`herohud_analysis_${dateStamp()}.txt`, text);
-    toast("Exported", "DOCpro™ log saved.");
-  }
-
-  /* ========= EMAIL GATE ========= */
-  function needEmail(){ return CONFIG.emailRequiredForPay && !STATE.email; }
-  function openEmail(){ el.emailModal.style.display='flex'; }
-  function closeEmail(){ el.emailModal.style.display='none'; }
-  el.emailSave.onclick = () => {
-    const v = (el.emailInput.value||"").trim();
-    if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v)){ el.emailInput.focus(); return; }
-    STATE.email = v; localStorage.setItem('herohud_email', v);
-    closeEmail(); toast("Saved", "Email captured — exports and receipts enabled.");
-  };
-  el.emailCancel.onclick = () => { closeEmail(); };
+  function setBar(barEl,pct){ barEl.style.width = pct + "%"; }
+  function clamp(n,min,max){ return Math.max(min,Math.min(max,n)); }
+  const emailRE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
   /* ========= GARAGE ========= */
-  el.garageBtn.onclick = ()=> { el.garageDoor.style.display='block'; };
-  el.garageCloseBtn.onclick = ()=> { el.garageDoor.style.display='none'; };
+  el.garageBtn.onclick = ()=> el.drawer.style.display='block';
+  el.dClose.onclick = ()=> el.drawer.style.display='none';
 
-  // Purchases gate (optimistic unlock visuals)
-  hookBuy(el.buyFG,'fg'); hookBuy(el.buyBP,'bp'); hookBuy(el.buySU,'su'); hookBuy(el.buyPR,'pr');
-  function hookBuy(anchor, key){
-    if(!anchor) return;
-    anchor.addEventListener('click', (e)=>{
-      if(needEmail()){
-        e.preventDefault();
-        openEmail();
-      } else {
-        setTimeout(()=> markUnlocked(key), 5000);
-      }
-    });
-  }
-  function markUnlocked(key){
-    const lockMap = { fg: el.lockFG, bp: el.lockBP, su: el.lockSU, pr: el.lockPR, fn: el.lockFN };
-    if(lockMap[key]){ lockMap[key].textContent='Unlocked'; lockMap[key].style.opacity=.4; }
-  }
+  // Docs purchase (placeholder PayPal)
+  el.buyDocs.onclick = ()=> window.open("https://www.paypal.com/ncp/payment/LD5BM638SRCFA","_blank","noopener");
 
-  // Founders deck
-  el.openDeck && (el.openDeck.onclick = ()=> el.deckModal.style.display='block');
-  el.deckExit.onclick = ()=> el.deckModal.style.display='none';
-  el.deckPrint.onclick = ()=> window.print();
+  // Also allow Docs from top menu
+  el.docsBtn.onclick = ()=> el.drawer.style.display='block';
 
-  // Founder gold bar
-  el.founderOpen.onclick = ()=> { el.deckModal.style.display='block'; };
-  // el.founderJoin uses anchor href directly
-
-  /* ========= UPLOAD / CAMERA ========= */
+  /* ========= UPLOAD & CAMERA ========= */
   el.btnUpload.onclick = ()=> el.file.click();
   el.file.onchange = ()=>{
     const f=el.file.files[0]; if(!f) return;
-    const url=URL.createObjectURL(f);
-    showPreviewImage(url);
-    tip("Photo loaded — tap Analyze.", true);
-    log('upload', { name:f.name, size:f.size });
+    const url = URL.createObjectURL(f);
+    showPreview(url);
   };
 
   el.btnCamera.onclick = openCamera;
 
   async function openCamera(){
     try{
-      const stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:{exact:"user"}}}).catch(async()=>navigator.mediaDevices.getUserMedia({video:true}));
-      STATE.camStream=stream;
+      const stream = await navigator.mediaDevices.getUserMedia({ video:{ facingMode:{ exact:"user" }}}).catch(()=>navigator.mediaDevices.getUserMedia({video:true}));
       const v=document.createElement("video");
       v.playsInline=true; v.muted=true; v.srcObject=stream; await v.play();
-      STATE.camVideo=v;
-      showPreviewNode(v);
-      ensureCaptureBtn();
-      tip("Camera online. Capture when ready.", true);
-    }catch(e){ tip("Camera access denied.", true); }
+      showNode(v);
+      // Add capture button
+      const cap=document.createElement("button");
+      cap.textContent="Capture";
+      cap.className="btn";
+      cap.style.position="absolute"; cap.style.right="10px"; cap.style.bottom="10px";
+      el.frame.appendChild(cap);
+      cap.onclick=async()=>{
+        const c=document.createElement("canvas");
+        c.width=v.videoWidth||1280; c.height=v.videoHeight||720;
+        c.getContext("2d").drawImage(v,0,0,c.width,c.height);
+        const blob=await new Promise(r=>c.toBlob(r,'image/jpeg',0.92));
+        stream.getTracks().forEach(t=>t.stop());
+        cap.remove();
+        const url=URL.createObjectURL(blob);
+        showPreview(url);
+      };
+    }catch(e){
+      alert("Camera not available.");
+    }
   }
 
-  function ensureCaptureBtn(){
-    if(STATE.captureBtn) STATE.captureBtn.remove();
-    const b=document.createElement("button");
-    b.textContent="Capture";
-    b.className="btn";
-    b.style.position="absolute"; b.style.right="10px"; b.style.bottom="10px";
-    el.preview.appendChild(b);
-    STATE.captureBtn=b;
-    b.onclick=async()=>{
-      if(!STATE.camVideo) return;
-      const canvas=document.createElement("canvas");
-      canvas.width=STATE.camVideo.videoWidth||1280; canvas.height=STATE.camVideo.videoHeight||720;
-      const g=canvas.getContext("2d"); g.drawImage(STATE.camVideo,0,0,canvas.width,canvas.height);
-      const blob=await new Promise(res=>canvas.toBlob(res,'image/jpeg',0.92));
-      if(STATE.camStream){STATE.camStream.getTracks().forEach(t=>t.stop()); STATE.camStream=null;}
-      STATE.camVideo=null; STATE.captureBtn.remove();
-      const url=URL.createObjectURL(blob);
-      showPreviewImage(url);
-      tip("Captured — tap Analyze.", true);
-      log('camera_capture', {});
-    };
-  }
-
-  function showPreviewImage(url){
+  function showPreview(url){
     const img=document.createElement("img");
     img.id="previewImg"; img.alt="preview"; img.src=url;
-    showPreviewNode(img);
+    showNode(img);
   }
-  function showPreviewNode(node){
-    const old=el.preview.querySelector("img,video");
-    if(old) old.replaceWith(node); else el.preview.prepend(node);
-    el.preview.style.display='block';
-    el.preview.classList.add('glow-on');
-    setTimeout(()=> el.preview.classList.remove('glow-on'), 900);
+  function showNode(node){
+    el.frame.style.display='block';
+    const old=el.frame.querySelector("img,video");
+    if(old) old.replaceWith(node); else el.frame.prepend(node);
   }
- 
-/* ========= ANALYZE ========= */
-el.btnAnalyze.onclick = () => analyzeCore();
 
-async function analyzeCore() {
-  try {
-    if (!el.preview.style.display || el.preview.style.display === 'none') {
-      tip("Upload or capture a photo first.", true);
-      return;
+  /* ========= ANALYZE ========= */
+  el.btnAnalyze.onclick = ()=> analyze();
+
+  async function analyze(){
+    if(!el.frame.style.display || el.frame.style.display==='none'){
+      alert("Upload or capture a photo first."); return;
     }
 
-    STATE.analyzing = true;
-    clearTips();
-    el.metrics.style.display = 'none';
-    el.wheel.style.display = 'flex';
-    el.wheelText.textContent = "Analyzing…";
-    log('analyze_start', {});
+    try{
+      const node = el.frame.querySelector("img,video");
+      if(!node){ alert("No image found."); return; }
 
-    const node = el.preview.querySelector("img,video");
-    if (!node) { tip("No image found.", true); return; }
+      el.busy.style.display='flex';
 
-    let blob;
-    if (node.tagName === 'VIDEO') {
-      const canvas = document.createElement("canvas");
-      canvas.width = node.videoWidth || 1280;
-      canvas.height = node.videoHeight || 720;
-      canvas.getContext("2d").drawImage(node, 0, 0, canvas.width, canvas.height);
-      blob = await new Promise(res => canvas.toBlob(res, 'image/jpeg', 0.92));
-    } else {
-      const resp = await fetch(node.src);
-      blob = await resp.blob();
+      // Build blob
+      let blob;
+      if(node.tagName==='VIDEO'){
+        const c=document.createElement("canvas");
+        c.width=node.videoWidth||1280; c.height=node.videoHeight||720;
+        c.getContext("2d").drawImage(node,0,0,c.width,c.height);
+        blob=await new Promise(r=>c.toBlob(r,'image/jpeg',0.92));
+      }else{
+        const resp=await fetch(node.src); blob=await resp.blob();
+      }
+
+      const fd = new FormData();
+      fd.append("file", blob, "capture.jpg");
+
+      const resp = await fetch(`${CONFIG.API_BASE}/analyze-image`, { method:"POST", body:fd });
+      if(!resp.ok) throw new Error("analyze-image failed");
+      const data = await resp.json();
+
+      const summary = (data.summary||"Analysis complete.").trim();
+
+      // Derive LIMITED metrics: Risk + Duration only
+      const riskPct  = clamp(deriveRisk(summary), 3, 95);
+      const durPct   = clamp(deriveDurationPct(summary), 5, 98);
+      setBar(el.mRisk, riskPct); el.tRisk.textContent = riskPct + "%";
+      setBar(el.mDur,  durPct);  el.tDur.textContent  = durPct  + "%";
+      el.metrics.style.display = 'block';
+
+      // Basic readout (only risk/duration, no tips/upsell)
+      const basicLine = composeBasic(summary);
+      el.summary.textContent = basicLine;
+      el.readout.style.display = 'block';
+
+      // Training ping (optional, non-blocking)
+      try{
+        fetch(`${CONFIG.API_BASE}/train-collect`,{
+          method:"POST",
+          headers:{ "Content-Type":"application/json" },
+          body:JSON.stringify({
+            t:Date.now(),
+            kind:"beta_basic",
+            riskPct, durPct,
+            summary: basicLine
+          })
+        });
+      }catch(_){}
+
+      // Count analyzes & maybe invite email
+      bumpAnalyzeCount();
+      maybeAskEmail();
+
+    }catch(e){
+      console.error(e);
+      alert("Analysis failed. Please try again.");
+    }finally{
+      el.busy.style.display='none';
     }
-
-    // Send to backend
-    const formData = new FormData();
-    formData.append("file", blob, "capture.jpg");
-
-    const resp = await fetch(`${CONFIG.API_BASE}/analyze-image`, {
-      method: "POST",
-      body: formData
-    });
-
-    if (!resp.ok) { throw new Error("analyze-image failed"); }
-    const data = await resp.json();
-
-    const summary = (data.summary || "Analysis complete.").trim();
-    STATE.summary = summary;
-
-    const reco = deriveRecommendation(summary);
-    STATE.recommendation = reco;
-
-    // Metrics
-    const { closePct, upsellPct, riskPct } = scoreFromSummary(summary);
-    setBar(el.mClose, closePct);
-    setBar(el.mUpsell, upsellPct);
-    setBar(el.mRisk, riskPct);
-    el.metrics.style.display = 'block';
-
-// Readout + tips
-speak(summary);
-tip(reco, false);
-showAnalysisTips(summary);
-
-// ✅ Now all data are ready — log and sync them here
-log('analyze_result', { summary, reco, closePct, upsellPct, riskPct });
-syncLogs();
-toast("Analysis Ready", "DOCpro™ can export your log anytime.");
-  } catch(e) {
-    tip("Analysis failed. Please try again.", true);
-    console.error(e);
-    log('analyze_error', { msg: String(e) });
-  } finally {
-    el.wheel.style.display = 'none';
-    STATE.analyzing = false;
   }
-}  // <--- closes analyzeCore() cleanly
 
-
-// ========= Supporting Functions =========
-function deriveRecommendation(summary){
-  const s = (summary||"").replace(/\s+/g,' ').trim();
-  if(!s) return "Proceed with standard prep, edge cleanly, confirm depth.";
-  const first = s.split(/[.;]/).map(x=>x.trim()).filter(Boolean)[0] || s;
-  return first.length>120 ? first.slice(0,118)+"…" : first;
-}
-
-function scoreFromSummary(s){
-  const t=(s||"").toLowerCase();
-  let close=60, upsell=50, risk=30;
-  if(/clean|defined|fresh|crisp|edg(e|ing)/.test(t)) close+=15;
-  if(/overgrown|bare|patchy|erosion|standing water|drain/.test(t)) { risk+=25; close-=10; }
-  if(/mulch|edging|stone|trim|reshape|border/.test(t)) upsell+=20;
-  close=Math.max(5,Math.min(98,close)); 
-  upsell=Math.max(5,Math.min(98,upsell)); 
-  risk=Math.max(3,Math.min(95,risk));
-  return { closePct: close, upsellPct: upsell, riskPct: risk };
-}
-
-function setBar(barEl, pct){ barEl.style.width = pct + "%"; }
-
-function tip(text, small){
-  const div=document.createElement("div");
-  div.className="tip"+(small?" small":"");
-  div.textContent=text;
-  el.tips.appendChild(div);
-  requestAnimationFrame(()=>div.classList.add("show"));
-}
-
-function clearTips(){ el.tips.innerHTML=""; }
-
-function showAnalysisTips(summary){
-  const s=(summary||"").toLowerCase();
-  if(/mulch/.test(s)) tip("Add delivery fee and cleanup charge to maximize margin.", true);
-  if(/trim|edge/.test(s)) tip("Offer quarterly maintenance discount for loyalty.", true);
-  if(/bare|thin/.test(s)) tip("Upsell turf repair or reseed options.", true);
-  if(/water|drain/.test(s)) tip("Flag drainage risk for extra prep labor.", true);
-  if(/stone|border/.test(s)) tip("Use premium edging material for higher perceived value.", true);
-}
-  return { closePct: close, upsellPct: upsell, riskPct: risk };
-}
-
-// ========= UI UTILITIES =========
-function setBar(barEl, pct) {
-  barEl.style.width = pct + "%";
-}
-
-function clearTips() {
-  el.tips.innerHTML = "";
-}
-
-function tip(text, small = false) {
-  const div = document.createElement("div");
-  div.className = "tip" + (small ? " small" : "");
-  div.textContent = text;
-  el.tips.prepend(div);
-  requestAnimationFrame(() => div.classList.add("show"));
-  setTimeout(() => div.classList.remove("show"), 5500);
-}
-
-// ========= VOICE =========
-function speak(text) {
-  if (!("speechSynthesis" in window)) return;
-  const u = new SpeechSynthesisUtterance(text);
-  u.voice = speechSynthesis.getVoices().find(v => v.name.toLowerCase().includes(CONFIG.voices.jared)) || null;
-  speechSynthesis.cancel();
-  speechSynthesis.speak(u);
-}
-
-// ========= INITIALIZE =========
-window.addEventListener("load", () => {
-  tip("Ready — upload or capture a photo to begin.", true);
-  log("init", {});
-  speak("System online. Ready for photo input.");
-
-
-  // ========= VOICE (TTS) =========
-async function speak(text){
-  if(!text) return;
-  log('ak',{text});
-  try{
-    const resp=await fetch(`${CONFIG.API_BASE}/speak`,{
-      method:"POST",
-      headers:{"Content-Type":"application/json"},
-      body:JSON.stringify({voice:CONFIG.voices.jared,text})
-    });
-    if(!resp.ok) throw new Error("TTS failed");
-    const blob=await resp.blob();
-    const url=URL.createObjectURL(blob);
-    const audio=new Audio(url);
-    audio.play();
-    el.voiceOrb.classList.add("speaking");
-    audio.onended=()=>el.voiceOrb.classList.remove("speaking");
-  }catch(err){
-    console.error("TTS error:",err);
-    tip("Speech temporarily unavailable.",true);
+  /* ========= Derivers (Risk/Duration only) ========= */
+  function deriveRisk(s){
+    const t=(s||"").toLowerCase();
+    let r=30;
+    if(/overgrown|dense|thick|ivy|vines|brush|debris|rock|uneven|steep|slope/.test(t)) r+=25;
+    if(/water|drain|standing|mud|erosion|washout|sink|rut/.test(t)) r+=20;
+    if(/wires|utility|gas|line|sprinkler|fence|pet|poop/.test(t)) r+=10;
+    if(/clean|clear|simple|flat|open|trimmed|fresh/.test(t)) r-=10;
+    return Math.round(clamp(r,3,95));
   }
-}
+  // We convert qualitative duration to a 0–100 bar (not actual minutes)
+  function deriveDurationPct(s){
+    const t=(s||"").toLowerCase();
+    let d=40;
+    if(/large|wide|long|many|multiple|extensive/.test(t)) d+=25;
+    if(/edging|reshape|bed|stone|mulch|haul|remove|root/.test(t)) d+=20;
+    if(/tight|small|simple|minor|light/.test(t)) d-=12;
+    return Math.round(clamp(d,5,98));
+  }
+  function composeBasic(s){
+    // Extract a tight one-liner implying duration + risk
+    const risk = deriveRisk(s);
+    let durLabel="~moderate duration";
+    const dur=deriveDurationPct(s);
+    if(dur<30) durLabel="~short duration";
+    else if(dur>70) durLabel="~long duration";
+    return `Predicted duration: ${durLabel}. Risk level: ${risk >= 60 ? "High" : risk >= 35 ? "Moderate" : "Low" }.`;
+  }
 
-// ========= VOICE ORB =========
-el.voiceOrb.onclick=()=>{ STATE.listening?stopListening():startListening(); };
-
-function startListening(){
-  if(!('webkitSpeechRecognition' in window)){ tip("Voice input not supported.", true); return; }
-  STATE.recognition=new webkitSpeechRecognition();
-  STATE.recognition.lang="en-US";
-  STATE.recognition.interimResults=false;
-  STATE.recognition.onstart=()=>{
-    STATE.listening=true;
-    el.voiceOrb.classList.add("listening");
-    el.listeningIndicator.classList.add("visible");
+  /* ========= EMAIL AFTER 3RD ========= */
+  function bumpAnalyzeCount(){
+    STATE.analyzes++; localStorage.setItem('herohud_analyzes', String(STATE.analyzes));
+  }
+  function maybeAskEmail(){
+    if(STATE.optedOut) return;
+    if(STATE.email) return;
+    if(STATE.analyzes >= 3){
+      el.emailModal.style.display='flex';
+    }
+  }
+  el.emailSave.onclick = ()=>{
+    const v=(el.emailInput.value||"").trim();
+    if(!emailRE.test(v)){ el.emailInput.focus(); return; }
+    STATE.email=v; localStorage.setItem('herohud_email', v);
+    el.emailModal.style.display='none';
+    // optional backend ping
+    try{
+      fetch(`${CONFIG.API_BASE}/train-collect`,{
+        method:"POST",
+        headers:{ "Content-Type":"application/json" },
+        body:JSON.stringify({ t:Date.now(), kind:"email_capture", email:v })
+      });
+    }catch(_){}
   };
-  STATE.recognition.onresult=(e)=>{
-    const transcript=e.results[0][0].transcript.trim();
-    log('voice_input',{transcript});
-    tip(`You said: “${transcript}”`,true);
-    handleVoiceCommand(transcript.toLowerCase());
+  el.emailSkip.onclick = ()=>{
+    STATE.optedOut=true; localStorage.setItem('herohud_optout','true');
+    el.emailModal.style.display='none';
   };
-  STATE.recognition.onerror=()=>stopListening();
-  STATE.recognition.onend=()=>stopListening();
-  STATE.recognition.start();
-}
 
-function stopListening(){
-  if(STATE.recognition) STATE.recognition.stop();
-  STATE.listening=false;
-  el.voiceOrb.classList.remove("listening");
-  el.listeningIndicator.classList.remove("visible");
-}
+  /* ========= INIT ========= */
+  window.addEventListener("load", ()=>{
+    // greet quietly, no TTS, no tips
+  });
 
-function handleVoiceCommand(cmd){
-  if(cmd.includes("upload")) el.btnUpload.click();
-  else if(cmd.includes("camera")) el.btnCamera.click();
-  else if(cmd.includes("analyze")) el.btnAnalyze.click();
-  else if(cmd.includes("garage")) el.garageBtn.click();
-  else if(cmd.includes("export")) el.docproBtn.click();
-  else tip("Say 'upload', 'camera', or 'analyze' to start.", true);
-}
-
-// ========= INIT =========
-window.addEventListener("load",()=>{
-  tip("Ready — upload or capture a photo to begin.",true);
-  log("init",{});
-  speak("System online. Ready for photo input.");
-
-// ========= Supporting Functions =========
-function deriveRecommendation(summary) {
-  const s = (summary || "").replace(/\s+/g, " ").trim();
-  if (!s) return "Proceed with standard prep, edge cleanly, confirm depth.";
-  const first = s.split(/[.;]/).map(x => x.trim()).filter(Boolean)[0] || s;
-  return first.length > 120 ? first.slice(0, 118) + "…" : first;
-}
-
-function scoreFromSummary(s) {
-  const t = (s || "").toLowerCase();
-  let close = 60, upsell = 50, risk = 30;
-
-  if (/clean|defined|fresh|crisp|edg(e|ing)/.test(t)) close += 15;
-  if (/overgrown|bare|patchy|erosion|standing water|drain/.test(t)) {
-    risk += 25;
-    close -= 10;
-  }
-  if (/mulch|edging|stone|trim|reshape|border/.test(t)) upsell += 20;
-
-  close = Math.max(5, Math.min(98, close));
-  upsell = Math.max(5, Math.min(98, upsell));
-  risk = Math.max(3, Math.min(95, risk));
-
-  return { closePct: close, upsellPct: upsell, riskPct: risk };
-}
-
-function showAnalysisTips(summary) {
-  const s = (summary || "").toLowerCase();
-  if (/mulch/.test(s)) tip("Add delivery fee and cleanup charge to maximize margin.", true);
-  if (/trim|edge/.test(s)) tip("Offer quarterly maintenance discount for loyalty.", true);
-  if (/bare|thin/.test(s)) tip("Upsell turf repair or reseed options.", true);
-  if (/water|drain/.test(s)) tip("Flag drainage risk for extra prep labor.", true);
-  if (/stone|border/.test(s)) tip("Use premium edging material for higher perceived value.", true);
-}
-
-// ========= UI UTILITIES =========
-function setBar(barEl, pct) {
-  barEl.style.width = pct + "%";
-}
-
-// ========= UI UTILITIES =========
-function setBar(barEl, pct) {
-  barEl.style.width = pct + "%";
-}
-
-function clearTips() {
-  el.tips.innerHTML = "";
-}
-
-// ========= VOICE (Jared TTS) =========
-async function speak(text) {
-  if (!text) return;
-  log('ak', { text });
-
-  try {
-    const resp = await fetch(`${CONFIG.API_BASE}/speak`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        voice: CONFIG.voices.jared,
-        text
-      })
-    });
-
-    if (!resp.ok) throw new Error("TTS failed");
-
-    const blob = await resp.blob();
-    const url = URL.createObjectURL(blob);
-    const audio = new Audio(url);
-
-    // Visual cue while speaking
-    el.voiceOrb?.classList.add("speaking");
-
-    // Play Jared's voice
-    audio.play();
-
-    // Remove speaking indicator when done
-    audio.onended = () => el.voiceOrb?.classList.remove("speaking");
-
-  } catch (err) {
-    console.error("TTS error:", err);
-    tip("Speech temporarily unavailable.", true);
-  }
-}
-
-// ========= INITIALIZE =========
-window.addEventListener("load", async () => {
-  try {
-    tip("Ready — upload or capture a photo to begin.", true);
-    log("init", { status: "ok" });
-    await speak("System online. Ready for photo input.");
-  } catch (err) {
-    console.error("Initialization error:", err);
-    tip("Initialization error — please refresh.", true);
-  }
-  
+})();
 </script>
 </body>
 </html>
