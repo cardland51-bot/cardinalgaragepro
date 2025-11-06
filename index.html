@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Cardinal Garage • Choose Your Portal</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+      background: #ffffff;
+      color: #111;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+    }
+    .wrap {
+      text-align: center;
+      padding: 24px;
+    }
+    h1 { margin-bottom: 8px; }
+    p { margin-top: 0; margin-bottom: 20px; color: #555; }
+    .buttons {
+      display: flex;
+      gap: 14px;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+    a { text-decoration: none; }
+    .btn {
+      padding: 0.8rem 1.4rem;
+      border-radius: 10px;
+      border: 1px solid #C41E3A;
+      background: #C41E3A;
+      color: #fff;
+      font-weight: 700;
+      cursor: pointer;
+      min-width: 150px;
+      display: inline-block;
+    }
+    .btn.secondary {
+      background: #ffffff;
+      color: #C41E3A;
+    }
+    .note {
+      margin-top: 14px;
+      font-size: 0.8rem;
+      color: #777;
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <h1>Cardinal Garage</h1>
+    <p>Select your portal.</p>
+    <div class="buttons">
+      <!-- Uses your exact filenames -->
+      <a href="procalculator.html"><div class="btn">Pro Portal</div></a>
+      <a href="homeowner.html"><div class="btn secondary">Homeowner (Beta)</div></a>
+    </div>
+    <div class="note">Straight to tools. No logins. No friction.</div>
+  </div>
+</body>
+</html>
