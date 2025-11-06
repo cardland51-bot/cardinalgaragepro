@@ -383,7 +383,7 @@
     if(old) old.replaceWith(node); else el.frame.prepend(node);
   }
 
- /* ========= ANALYZE (Simplified, Price-Focused) ========= */
+/* ========= ANALYZE (Simplified, Price-Focused) ========= */
 el.btnAnalyze.onclick = ()=> analyze();
 
 async function analyze(){
@@ -415,6 +415,63 @@ async function analyze(){
     const resp = await fetch(`${CONFIG.API_BASE}/analyze`, { method:"POST", body:fd });
     if(!resp.ok) throw new Error("analysis failed");
     const data = await resp.json();
+
+    // Parse text (expected AI output)
+    const text = (data.text||"").trim();
+    el.metrics.style.display = 'none';
+
+    // Extract estimate + risk + upsell heuristics
+    const price = extractPrice(text);
+    const risk = deriveRisk(text);
+    const upsell = Math.round(price * (risk >= 60 ? 0.4 : 0.25));
+
+    // Display clean readout
+    const resultLine = `💰 Estimated Price: $${price}  |  ⚠️ Risk: ${risk >= 60 ? "High" : risk >= 35 ? "Medium" : "Low"}  |  💡 Upsell Potential: +$${upsell}`;
+    el.summary.textContent = resultLine;
+    el.readout.style.display = 'block';
+
+    // Add replay + export controls
+    addResultControls(resultLine);
+
+  }catch(e){
+    console.error(e);
+    alert("Analysis failed. Please try again.");
+  }finally{
+    el.busy.style.display='none';
+  }
+}
+
+// Extract numeric price from AI text
+function extractPrice(txt){
+  const match = txt.match(/\$?(\d{2,5})/);
+  if(match) return Number(match[1]);
+  return 125; // fallback default
+}
+
+// Add stop/replay + export buttons inside readout
+function addResultControls(summary){
+  const wrap = document.createElement("div");
+  wrap.style.marginTop = "8px";
+  wrap.innerHTML = `
+    <button class="ghostBtn" id="btnReplay">↻ Replay</button>
+    <button class="ghostBtn red" id="btnExport">Export .TXT</button>
+  `;
+  el.readout.appendChild(wrap);
+
+  document.getElementById("btnReplay").onclick = ()=> analyze();
+  document.getElementById("btnExport").onclick = ()=>{
+    const ok = confirm("Download this estimate as .txt?");
+    if(!ok) return;
+    const blob = new Blob([summary + '\n'], { type:'text/plain' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    const stamp = new Date().toISOString().slice(0,19).replace(/[:T]/g,'-');
+    a.href = url; a.download = `ZeroFriction_Estimate_${stamp}.txt`;
+    document.body.appendChild(a);
+    a.click(); a.remove(); URL.revokeObjectURL(url);
+  };
+}
+
 
     // Parse text (expected AI output)
     const text = (data.text||"").trim();
