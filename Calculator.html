@@ -732,7 +732,7 @@ async function analyzeCore() {
     const formData = new FormData();
     formData.append("file", blob, "capture.jpg");
 
-    const resp = await fetch(`${CONFIG.API_BASE}/analyze-image`, {
+    const resp = await fetch(`${CONFIG.API_BASE}/analyze`, {
       method: "POST",
       body: formData
     });
@@ -1018,3 +1018,4 @@ window.addEventListener("load", async () => {
 </script>
 </body>
 </html>
+
