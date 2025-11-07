@@ -79,6 +79,25 @@ function wireUpload() {
 
     setNote("Photo loaded. Click Analyze Now to run your backend logic.");
     logEvent("photo_selected", { name: file.name, size: file.size });
+
+fetch("https://cardinalgarageprobe1.onrender.com/inference", {
+  method: "POST",
+  headers: { "Content-Type": "application/json" },
+  body: JSON.stringify({
+    mode: "landscaping",     // or "mowing", depending on your UI
+    photoSummary: "front yard with shrubs",  // (you can fill this from AI later)
+    inputs: { areaSqFt: 1200, shrubCount: 8, bedSize: "medium" },
+    notes: "customer wants fresh mulch"
+  })
+})
+.then(res => res.json())
+.then(data => {
+  console.log("AI result:", data);
+  // here you display data.price, data.summary, etc.
+})
+.catch(err => console.error("Inference error:", err));
+
+    
   });
 }
 
@@ -385,6 +404,7 @@ async function logEvent(event, payload) {
     // silent fail
   }
 }
+
 
 
 
