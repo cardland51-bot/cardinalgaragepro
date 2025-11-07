@@ -1,6 +1,6 @@
 // ========= CONFIG =========
 const CONFIG = {
-  API_BASE: "https://jared-hero2-backend.onrender.com", // your backend (no change needed)
+  API_BASE: "https://jared-hero2-backend.onrender.com", // your backend
   ROUTES: {
     inference: "/inference",
     speak: "/speak",
@@ -54,11 +54,33 @@ const el = {
   modalClose: document.getElementById("modalClose")
 };
 
+// ========= STATE =========
 const STATE = {
   lastSummary: "",
   lastPayload: null,
   hasImage: false
 };
+
+// ========= UPLOAD / PREVIEW =========
+function wireUpload() {
+  if (!el.btnUpload || !el.fileInput) return;
+
+  el.btnUpload.addEventListener("click", () => el.fileInput.click());
+
+  el.fileInput.addEventListener("change", () => {
+    const file = el.fileInput.files[0];
+    if (!file) return;
+
+    const url = URL.createObjectURL(file);
+    el.previewImage.src = url;
+    el.previewImage.classList.remove("hidden");
+    el.previewPlaceholder.classList.add("hidden");
+    STATE.hasImage = true;
+
+    setNote("Photo loaded. Click Analyze Now to run your backend logic.");
+    logEvent("photo_selected", { name: file.name, size: file.size });
+  });
+}
 
 // ========= INIT =========
 window.addEventListener("DOMContentLoaded", () => {
@@ -70,11 +92,11 @@ window.addEventListener("DOMContentLoaded", () => {
   logEvent("page_load", { page: "pro_calculator" });
 });
 
-// ========= ANALYZE BUTTON =========
+// ========= ANALYZE =========
 function wireAnalyze() {
+  if (!el.btnAnalyze) return;
   el.btnAnalyze.addEventListener("click", async () => {
-    const mode = "landscaping"; // or detect from widget later
-
+    const mode = "landscaping";
     const payload = {
       mode,
       service: mode,
@@ -82,7 +104,7 @@ function wireAnalyze() {
         areaSqFt: numOrNull(document.querySelector('#mowArea')?.value),
         shrubCount: numOrNull(document.querySelector('#landShrubs')?.value),
         bedSize: document.querySelector('#landBeds')?.value || "",
-        material: document.querySelector('#landMaterial')?.value || "",
+        material: document.querySelector('#landMaterial')?.value || ""
       },
       notes: "",
       photoSummary: STATE.hasImage ? "Photo uploaded for analysis." : "No photo yet",
@@ -91,16 +113,13 @@ function wireAnalyze() {
 
     setNote("Analyzing via /inference…");
     setLoading(true);
-
     try {
       const res = await fetch(CONFIG.API_BASE + CONFIG.ROUTES.inference, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload)
       });
-
       if (!res.ok) throw new Error("Inference failed");
-
       const data = await res.json();
       applyInferenceResult(data, "analyze_click");
     } catch (err) {
@@ -118,7 +137,6 @@ function applyInferenceResult(data, source) {
   const price = normalizePrice(data.price);
   const upsellText = data.upsell || "—";
   const summary = (data.summary || "").toString().trim() || buildFallbackSummary(price, upsellText);
-
   const closePct = clampPct(data.closePct ?? 0);
   const upsellPct = clampPct(data.upsellPct ?? 0);
   const riskPct = clampPct(data.riskPct ?? 0);
@@ -135,32 +153,12 @@ function applyInferenceResult(data, source) {
   STATE.lastPayload = { price, upsellText, closePct, upsellPct, riskPct };
 
   setNote("Live result shown. Backend fully controls these numbers.");
-
-  logEvent("inference_result", {
-    source,
-    raw: data,
-    mapped: STATE.lastPayload
-  });
+  logEvent("inference_result", { source, raw: data, mapped: STATE.lastPayload });
 }
 
-function normalizePrice(p) {
-  if (p === null || p === undefined) return null;
-  if (typeof p === "number" && isFinite(p)) return Math.round(p);
-  const s = String(p).replace(/[^\d.]/g, "");
-  const n = Number(s);
-  return isFinite(n) ? Math.round(n) : null;
-}
-
-function buildFallbackSummary(price, upsell) {
-  if (price && upsell && upsell !== "—") {
-    return `Estimate around $${price}. Upsell potential ${upsell}. Customize this logic in your backend.`;
-  }
-  if (price) return `Estimate around $${price}.`;
-  return "Backend responded. Configure your /inference payload for richer output.";
-}
-
-// ========= SPEAK (Jared voice via backend /speak) =========
+// ========= SPEAK =========
 function wireSpeak() {
+  if (!el.btnSpeak) return;
   el.btnSpeak.addEventListener("click", async () => {
     const text = STATE.lastSummary || "No estimate yet. Upload a photo or run a calculator first.";
     try {
@@ -173,7 +171,6 @@ function wireSpeak() {
 }
 
 async function speakViaBackend(text) {
-  // Only call if you have /speak implemented. Otherwise this fails gracefully.
   logEvent("speak_request", { text });
   const res = await fetch(CONFIG.API_BASE + CONFIG.ROUTES.speak, {
     method: "POST",
@@ -187,13 +184,11 @@ async function speakViaBackend(text) {
   await audio.play();
 }
 
-// ========= WIDGETS (Mowing + Landscaping) =========
+// ========= WIDGETS =========
 function wireWidgets() {
-  // Collapsible toggles
   document.querySelectorAll(".widget-header").forEach(btn => {
     btn.addEventListener("click", () => {
       const targetSel = btn.getAttribute("data-target");
-      if (!targetSel) return;
       const body = document.querySelector(targetSel);
       if (!body) return;
       const open = body.classList.contains("open");
@@ -202,60 +197,55 @@ function wireWidgets() {
     });
   });
 
-  // Mystery toggles
   el.mysteryBtns.forEach(btn => {
-    btn.addEventListener("click", () => {
-      btn.classList.toggle("active");
+    btn.addEventListener("click", () => btn.classList.toggle("active"));
+  });
+
+  if (el.btnMowEstimate) {
+    el.btnMowEstimate.addEventListener("click", async () => {
+      const body = {
+        type: "mowing",
+        inputs: {
+          areaSqFt: numOrNull(document.getElementById("mowArea").value),
+          terrain: valOrNull(document.getElementById("mowTerrain").value),
+          access: valOrNull(document.getElementById("mowAccess").value),
+          visit: valOrNull(document.getElementById("mowVisit").value)
+        },
+        meta: { source: "mowing_widget" }
+      };
+      await runWidgetInference(body, "mowing_widget");
     });
-  });
+  }
 
-  // Mowing estimate
-  el.btnMowEstimate.addEventListener("click", async () => {
-    const body = {
-      type: "mowing",
-      inputs: {
-        areaSqFt: numOrNull(document.getElementById("mowArea").value),
-        terrain: valOrNull(document.getElementById("mowTerrain").value),
-        access: valOrNull(document.getElementById("mowAccess").value),
-        visit: valOrNull(document.getElementById("mowVisit").value)
-      },
-      meta: { source: "mowing_widget" }
-    };
-
-    await runWidgetInference(body, "mowing_widget");
-  });
-
-  // Landscaping estimate
-  el.btnLandEstimate.addEventListener("click", async () => {
-    const flags = [];
-    el.mysteryBtns.forEach(btn => {
-      if (btn.classList.contains("active")) {
-        const f = btn.getAttribute("data-flag");
-        if (f) flags.push(f);
-      }
+  if (el.btnLandEstimate) {
+    el.btnLandEstimate.addEventListener("click", async () => {
+      const flags = [];
+      el.mysteryBtns.forEach(btn => {
+        if (btn.classList.contains("active")) {
+          const f = btn.getAttribute("data-flag");
+          if (f) flags.push(f);
+        }
+      });
+      const body = {
+        type: "landscaping",
+        inputs: {
+          beds: numOrNull(document.getElementById("landBeds").value),
+          material: valOrNull(document.getElementById("landMaterial").value),
+          shrubs: numOrNull(document.getElementById("landShrubs").value),
+          detail: valOrNull(document.getElementById("landDetail").value),
+          flags
+        },
+        meta: { source: "landscaping_widget" }
+      };
+      await runWidgetInference(body, "landscaping_widget");
     });
-
-    const body = {
-      type: "landscaping",
-      inputs: {
-        beds: numOrNull(document.getElementById("landBeds").value),
-        material: valOrNull(document.getElementById("landMaterial").value),
-        shrubs: numOrNull(document.getElementById("landShrubs").value),
-        detail: valOrNull(document.getElementById("landDetail").value),
-        flags
-      },
-      meta: { source: "landscaping_widget" }
-    };
-
-    await runWidgetInference(body, "landscaping_widget");
-  });
+  }
 }
 
 async function runWidgetInference(payload, source) {
   setNote("Sending to /inference…");
   setLoading(true);
   logEvent("widget_inference_start", { source, payload });
-
   try {
     const res = await fetch(CONFIG.API_BASE + CONFIG.ROUTES.inference, {
       method: "POST",
@@ -278,7 +268,6 @@ async function runWidgetInference(payload, source) {
 function wireGarage() {
   if (el.btnGarage) {
     el.btnGarage.addEventListener("click", () => {
-      // just toggle the garage widget open
       if (!el.garageBody) return;
       const open = el.garageBody.classList.contains("open");
       document.querySelectorAll(".widget-body").forEach(b => b.classList.remove("open"));
@@ -289,29 +278,21 @@ function wireGarage() {
 
   if (el.btnFounder) {
     el.btnFounder.addEventListener("click", () => {
-      showModal(
-        "Founder’s Black Book",
-        "Reserved capsule for your lifetime partners. Link your live checkout or deck here when ready."
-      );
+      showModal("Founder’s Black Book", "Reserved capsule for lifetime partners.");
       logEvent("founder_modal_open", {});
     });
   }
 
   if (el.btnContact) {
     el.btnContact.addEventListener("click", () => {
-      showModal(
-        "Contact Cardinal Garage Pro",
-        "Set this button to your email, form, or CRM intake. For now, it’s a placeholder so you never forget the hook."
-      );
+      showModal("Contact Cardinal Garage Pro", "Hook up your CRM or contact form here.");
       logEvent("contact_click", {});
     });
   }
 
-  if (el.modalClose) {
-    el.modalClose.addEventListener("click", hideModal);
-  }
+  if (el.modalClose) el.modalClose.addEventListener("click", hideModal);
   if (el.modalBackdrop) {
-    el.modalBackdrop.addEventListener("click", (e) => {
+    el.modalBackdrop.addEventListener("click", e => {
       if (e.target === el.modalBackdrop) hideModal();
     });
   }
@@ -358,8 +339,7 @@ function setNote(msg) {
   el.systemNote.textContent = msg;
   if (noteTimer) clearTimeout(noteTimer);
   noteTimer = setTimeout(() => {
-    el.systemNote.textContent =
-      "Tip: This console sends clean JSON to your backend. All pricing logic lives on your side.";
+    el.systemNote.textContent = "Tip: Backend fully controls pricing and output.";
   }, 5000);
 }
 
@@ -370,7 +350,6 @@ function setLoading(isLoading) {
   el.btnAnalyze.textContent = isLoading ? "Working…" : "🔍 Analyze Now";
 }
 
-// ========= TRAIN-COLLECT LOGGING =========
 async function logEvent(event, payload) {
   try {
     await fetch(CONFIG.API_BASE + CONFIG.ROUTES.train, {
@@ -382,47 +361,8 @@ async function logEvent(event, payload) {
         payload: payload || {},
         source: "pro_calculator_frontend"
       })
-    }).catch(() => {});
+    });
   } catch {
-    // non-fatal
+    // silent fail
   }
 }
-
-
-function setLoading(isLoading) {
-  el.btnAnalyze.disabled = isLoading;
-  el.btnMowEstimate && (el.btnMowEstimate.disabled = isLoading);
-  el.btnLandEstimate && (el.btnLandEstimate.disabled = isLoading);
-  el.btnAnalyze.textContent = isLoading ? "Working…" : "🔍 Analyze Now";
-}
-
-// ========= TRAIN-COLLECT LOGGING =========
-async function logEvent(event, payload) {
-  try {
-    await fetch(CONFIG.API_BASE + CONFIG.ROUTES.train, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        event,
-        t: Date.now(),
-        payload: payload || {},
-        source: "pro_calculator_frontend"
-      })
-    }).catch(() => {});
-  } catch {
-    // non-fatal
-  }
-}
-// ========= INITIALIZE EVERYTHING ON LOAD =========
-window.addEventListener("load", () => {
-  try {
-    if (typeof wireUpload === "function") wireUpload();
-    if (typeof wireAnalyze === "function") wireAnalyze();
-  } catch (err) {
-    console.warn("Init error:", err);
-  }
-});
-
-
-
-
