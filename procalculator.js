@@ -1,6 +1,6 @@
 // ========= CONFIG =========
 const CONFIG = {
-  API_BASE: "https://cardinalgarageprobe1.onrender.com", // your backend
+  API_BASE: "https://cardinalgarageprobe1.onrender.com", // backend
   ROUTES: {
     inference: "/inference",
     speak: "/speak",
@@ -77,27 +77,8 @@ function wireUpload() {
     el.previewPlaceholder.classList.add("hidden");
     STATE.hasImage = true;
 
-    setNote("Photo loaded. Click Analyze Now to run your backend logic.");
+    setNote("Photo loaded. Click Analyze to run AI.");
     logEvent("photo_selected", { name: file.name, size: file.size });
-
-fetch("https://cardinalgarageprobe1.onrender.com/inference", {
-  method: "POST",
-  headers: { "Content-Type": "application/json" },
-  body: JSON.stringify({
-    mode: "landscaping",     // or "mowing", depending on your UI
-    photoSummary: "front yard with shrubs",  // (you can fill this from AI later)
-    inputs: { areaSqFt: 1200, shrubCount: 8, bedSize: "medium" },
-    notes: "customer wants fresh mulch"
-  })
-})
-.then(res => res.json())
-.then(data => {
-  console.log("AI result:", data);
-  // here you display data.price, data.summary, etc.
-})
-.catch(err => console.error("Inference error:", err));
-
-    
   });
 }
 
@@ -115,6 +96,9 @@ window.addEventListener("DOMContentLoaded", () => {
 function wireAnalyze() {
   if (!el.btnAnalyze) return;
   el.btnAnalyze.addEventListener("click", async () => {
+    // If photo exists, use AI photo analysis
+    if (STATE.hasImage) return analyzePhoto();
+
     const mode = "landscaping";
     const payload = {
       mode,
@@ -149,19 +133,9 @@ function wireAnalyze() {
       setLoading(false);
     }
   });
-  
-// ========= PRICE NORMALIZATION =========
-function normalizePrice(p) {
-  if (p === null || p === undefined) return null;
-  if (typeof p === "number" && isFinite(p)) return Math.round(p);
-  const s = String(p).replace(/[^\d.]/g, "");
-  const n = Number(s);
-  return isFinite(n) ? Math.round(n) : null;
 }
 
-
 // ========= PHOTO ANALYSIS =========
-// ========= PHOTO ANALYZE =========
 async function analyzePhoto() {
   const photoFile = el.fileInput?.files?.[0];
   if (!photoFile) {
@@ -181,47 +155,26 @@ async function analyzePhoto() {
       method: "POST",
       body: formData
     });
-    if (!resp.ok) throw new Error("AI inference failed");
 
+    if (!resp.ok) throw new Error("AI inference failed");
     const data = await resp.json();
+
     applyInferenceResult(data, "photo_analyze");
     setNote("Photo analyzed successfully.");
+    console.log("✅ AI photo analysis result:", data);
   } catch (err) {
-    console.error(err);
+    console.error("❌ AI photo analysis failed:", err);
     setNote("Photo analysis unavailable — using fallback estimate.");
   } finally {
     setLoading(false);
   }
 }
 
-if (el.btnAnalyze) {
-  el.btnAnalyze.addEventListener("click", () => {
-    if (STATE.hasImage) analyzePhoto();
-  });
-}
-
-
-// ========= UPLOAD HANDLER =========
-el.photoInput.onchange = () => {
-  const photoFile = el.photoInput.files[0];
-  if (!photoFile) return;
-
-  // Optional message while analyzing
-  tip("Analyzing photo… please wait.");
-
-  // Call the async analysis function
-  analyzePhoto(photoFile, userNotes);
-};
-
-
-// ========= FALLBACK SUMMARY (if no photo or error) =========
-
-
 // ========= APPLY RESULT =========
 function applyInferenceResult(data, source) {
   const price = normalizePrice(data.price);
   const upsellText = data.upsell || "—";
-  const summary = (data.summary || "").toString().trim() || buildFallbackSummary(price, upsellText);
+  const summary = (data.summary || "").toString().trim() || `Estimate ready: $${price || "—"}.`;
   const closePct = clampPct(data.closePct ?? 0);
   const upsellPct = clampPct(data.upsellPct ?? 0);
   const riskPct = clampPct(data.riskPct ?? 0);
@@ -394,6 +347,14 @@ function hideModal() {
 }
 
 // ========= HELPERS =========
+function normalizePrice(p) {
+  if (p === null || p === undefined) return null;
+  if (typeof p === "number" && isFinite(p)) return Math.round(p);
+  const s = String(p).replace(/[^\d.]/g, "");
+  const n = Number(s);
+  return isFinite(n) ? Math.round(n) : null;
+}
+
 function setBar(barEl, labelEl, pct) {
   const v = clampPct(pct);
   if (barEl) barEl.style.width = v + "%";
@@ -451,11 +412,3 @@ async function logEvent(event, payload) {
     // silent fail
   }
 }
-
-
-
-
-
-
-
-
