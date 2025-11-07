@@ -95,9 +95,12 @@ window.addEventListener("DOMContentLoaded", () => {
 // ========= ANALYZE =========
 function wireAnalyze() {
   if (!el.btnAnalyze) return;
+
   el.btnAnalyze.addEventListener("click", async () => {
-    // If photo exists, use AI photo analysis
-    if (STATE.hasImage) return analyzePhoto();
+    // If there's a photo, go straight to photo AI
+    if (STATE.hasImage) {
+      return analyzePhoto();
+    }
 
     const mode = "landscaping";
     const payload = {
@@ -113,6 +116,33 @@ function wireAnalyze() {
       photoSummary: STATE.hasImage ? "Photo uploaded for analysis." : "No photo yet",
       meta: { source: "pro_calculator_console" }
     };
+
+    setNote("Analyzing via /inference…");
+    setLoading(true);
+
+    try {
+      const res = await fetch(CONFIG.API_BASE + CONFIG.ROUTES.inference, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload)
+      });
+
+      if (!res.ok) throw new Error("Inference failed");
+
+      const data = await res.json();
+      applyInferenceResult(data, "analyze_click");
+
+    } catch (err) {
+      console.error(err);
+      setNote("Analysis failed. Check backend or network.");
+      logEvent("analyze_error", { error: String(err) });
+
+    } finally {
+      setLoading(false);
+    }
+  }); 
+}     
+
 
     setNote("Analyzing via /inference…");
     setLoading(true);
@@ -412,3 +442,4 @@ async function logEvent(event, payload) {
     // silent fail
   }
 }
+
