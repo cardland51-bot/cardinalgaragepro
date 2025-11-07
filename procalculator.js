@@ -145,26 +145,27 @@ function wireAnalyze() {
 
 
 
-    setNote("Analyzing via /inference…");
-    setLoading(true);
-    try {
-      const res = await fetch(CONFIG.API_BASE + CONFIG.ROUTES.inference, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload)
-      });
-      if (!res.ok) throw new Error("Inference failed");
-      const data = await res.json();
-      applyInferenceResult(data, "analyze_click");
-    } catch (err) {
-      console.error(err);
-      setNote("Analysis failed. Check backend or network.");
-      logEvent("analyze_error", { error: String(err) });
-    } finally {
-      setLoading(false);
-    }
-  });
-}
+(async () => {
+  setNote("Analyzing via /inference…");
+  setLoading(true);
+  try {
+    const res = await fetch(CONFIG.API_BASE + CONFIG.ROUTES.inference, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload)
+    });
+    if (!res.ok) throw new Error("Inference failed");
+    const data = await res.json();
+    applyInferenceResult(data, "analyze_click");
+  } catch (err) {
+    console.error(err);
+    setNote("Analysis failed. Check backend or network.");
+    logEvent("analyze_error", { error: String(err) });
+  } finally {
+    setLoading(false);
+  }
+})();
+
 
 // ========= PHOTO ANALYSIS =========
 async function analyzePhoto() {
@@ -447,6 +448,7 @@ async function logEvent(event, payload) {
     // silent fail
   }
 }
+
 
 
 
