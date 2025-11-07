@@ -1,6 +1,6 @@
 // ========= CONFIG =========
 const CONFIG = {
-  API_BASE: "http://localhost:5500", // your backend
+  API_BASE: "https://cardinalgarageprobe1.onrender.com", // your backend
   ROUTES: {
     inference: "/inference",
     speak: "/speak",
@@ -385,6 +385,7 @@ async function logEvent(event, payload) {
     // silent fail
   }
 }
+
 
 
 
