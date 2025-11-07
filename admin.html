@@ -1,0 +1,619 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+<title>JARED • HERO2 — Admin / Training Dashboard</title>
+<style>
+  :root{
+    --bg:#0b1411; --panel:#0f1d18; --soft:#13231d; --line:#1e372f;
+    --mint:#74f7cd; --mint2:#35cfa0; --text:#eafff6; --dim:#bfeee0; --warn:#ffcf6b; --err:#ff7d7d;
+  }
+  *{box-sizing:border-box} html,body{height:100%;margin:0;background:linear-gradient(#0b1411,#09110e);}
+  body{color:var(--text);font:14px/1.5 system-ui,Segoe UI,Roboto,Helvetica,Arial,sans-serif;overflow:hidden}
+  .app{display:grid;grid-template-columns:320px 1fr;grid-template-rows:auto 1fr;grid-template-areas:"top top" "left right";height:100%}
+  header{grid-area:top;display:flex;align-items:center;gap:14px;padding:12px 16px;border-bottom:1px solid var(--line);background:rgba(10,20,16,.6);backdrop-filter:blur(6px);position:sticky;top:0;z-index:3}
+  header .title{font-weight:700;letter-spacing:.3px}
+  header .tag{opacity:.8}
+  .left{grid-area:left;overflow:auto;border-right:1px solid var(--line);padding:14px;background:linear-gradient(180deg,var(--panel),var(--soft))}
+  .right{grid-area:right;overflow:auto;padding:14px;display:grid;gap:12px;grid-template-rows:360px auto}
+  .card{background:rgba(12,26,21,.8);border:1px solid var(--line);border-radius:14px;padding:12px 12px}
+  .card h3{margin:0 0 10px 0;font-size:13px;letter-spacing:.5px;color:var(--mint)}
+  .row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+  .col{display:flex;flex-direction:column;gap:6px}
+  .label{font-size:12px;color:var(--dim)}
+  input,select,textarea,button{border-radius:10px;border:1px solid var(--line);background:#0c1915;color:var(--text);padding:8px 10px}
+  textarea{min-height:96px;resize:vertical}
+  button{cursor:pointer}
+  button.primary{background:linear-gradient(180deg,#0f2d25,#0a231d);border-color:#2e6e5b}
+  button.mint{background:linear-gradient(180deg,var(--mint2),#17a67c);border-color:#13906c;color:#04251c;font-weight:700}
+  .pill{padding:6px 9px;border-radius:999px;border:1px solid var(--line);background:#0b1915}
+  .dot{width:10px;height:10px;border-radius:50%}
+  .ok{background:radial-gradient(closest-side,#16d497,#0b7b56)}
+  .bad{background:radial-gradient(closest-side,#ff6f6f,#a12222)}
+  .warn{background:radial-gradient(closest-side,#ffd467,#a77714)}
+  .grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+  .grid-2{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}
+  .grid-3{display:grid;grid-template-columns:2fr 1fr 1fr;gap:12px}
+  .flex{display:flex;gap:8px;align-items:center}
+  .grow{flex:1}
+  .kv{display:grid;grid-template-columns:120px 1fr;align-items:center;gap:6px}
+  .drop{border:1px dashed #2b5a4b;border-radius:12px;padding:14px;text-align:center;background:#0b1a16}
+  .drop.drag{outline:2px dashed var(--mint)}
+  .mono{font-family:ui-monospace,SFMono-Regular,Consolas,Menlo,monospace}
+  .logs{height:200px;overflow:auto;background:#07110e;border-radius:10px;border:1px solid var(--line);padding:8px}
+  .tbl{width:100%;border-collapse:collapse}
+  .tbl th,.tbl td{border-bottom:1px solid #123027;padding:6px 6px;text-align:left;font-size:12px}
+  .small{font-size:12px;opacity:.9}
+  .hint{color:var(--dim);font-size:12px}
+  .badge{border:1px solid #2b5a4b;background:#0f231d;padding:3px 6px;border-radius:999px;font-size:11px}
+  .chartWrap{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px}
+  canvas{background:linear-gradient(180deg,#0b1411,#0a1915);border:1px solid var(--line);border-radius:10px}
+  .footer{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-top:8px}
+  .switch{position:relative;width:42px;height:22px;background:#15362e;border-radius:999px;border:1px solid #2a5a4b;cursor:pointer}
+  .switch input{display:none}
+  .knob{position:absolute;top:2px;left:2px;width:18px;height:18px;background:#eafff6;border-radius:50%;transition:.2s}
+  .switch input:checked + .knob{left:22px;background:#baffea}
+  .hr{height:1px;background:#14362d;margin:8px 0}
+  .rightTop{display:grid;grid-template-columns:2fr 1fr;gap:12px}
+  @media (max-width:1100px){
+    .app{grid-template-columns:1fr;grid-template-rows:auto auto 1fr;grid-template-areas:"top" "left" "right"}
+    .left{max-height:42vh}
+  }
+</style>
+</head>
+<body>
+<div class="app">
+  <header>
+    <div class="dot ok" id="healthDot" title="health"></div>
+    <div class="title">JARED • HERO2 — Admin / Training Dashboard</div>
+    <span class="tag badge">Upload → Ingest → Tune → Test</span>
+    <div class="grow"></div>
+    <label class="flex small">
+      Safe Mode
+      <span class="switch" title="When ON, no network calls; results are simulated.">
+        <input type="checkbox" id="safeMode">
+        <span class="knob"></span>
+      </span>
+    </label>
+    <button class="pill" id="saveAll">Save</button>
+    <button class="pill" id="exportConfig">Export Config</button>
+    <button class="mint" id="importConfigBtn">Import</button>
+    <input type="file" id="importConfigFile" accept=".json" hidden>
+  </header>
+
+  <!-- LEFT: CONFIG / CONTROLS -->
+  <aside class="left">
+    <div class="card">
+      <h3>Connection</h3>
+      <div class="kv"><div class="label">API Base</div><input id="apiBase" placeholder="https://jared-hero2-backend.onrender.com"></div>
+      <div class="kv"><div class="label">Port (local)</div><input id="port" placeholder="3001"></div>
+      <div class="kv"><div class="label">Health Path</div><input id="healthPath" value="/healthz"></div>
+      <div class="row" style="margin-top:8px">
+        <button id="btnPing" class="primary">Ping Backend</button>
+        <button id="btnVersion" class="pill">Get Version</button>
+        <span id="connStatus" class="badge">idle</span>
+      </div>
+      <div class="hr"></div>
+      <div class="grid-2">
+        <div class="col">
+          <div class="label">OpenAI Key (masked)</div>
+          <input id="openaiKey" placeholder="••••-sk" />
+        </div>
+        <div class="col">
+          <div class="label">Project ID</div>
+          <input id="projectId" placeholder="jared-hero2" />
+        </div>
+      </div>
+      <div class="hint">Keys are stored locally in your browser only (localStorage). This page never exposes keys in logs.</div>
+    </div>
+
+    <div class="card">
+      <h3>Prompt & Style</h3>
+      <div class="col">
+        <div class="label">System Prompt</div>
+        <textarea id="systemPrompt" placeholder="Be concise, price-first, utilitarian, minimal greeting..."></textarea>
+      </div>
+      <div class="grid-3">
+        <div class="col">
+          <div class="label">Tone (0=Dry–10=Friendly)</div>
+          <input type="range" id="tone" min="0" max="10" value="3">
+        </div>
+        <div class="col">
+          <div class="label">Temperature</div>
+          <input type="range" id="temperature" min="0" max="2" step="0.1" value="0.4">
+        </div>
+        <div class="col">
+          <div class="label">top_p</div>
+          <input type="range" id="topP" min="0" max="1" step="0.05" value="0.9">
+        </div>
+      </div>
+      <div class="grid-2">
+        <div class="col">
+          <div class="label">Banned Phrases (comma-sep)</div>
+          <input id="banned" placeholder="apologies, as an AI, manifesto">
+        </div>
+        <div class="col">
+          <div class="label">Lexicon (keyword:replacement; …)</div>
+          <input id="lexicon" placeholder="yard:property; mulch:cover">
+        </div>
+      </div>
+      <div class="row" style="margin-top:6px">
+        <button id="saveStyle" class="pill">Save Style</button>
+        <button id="pushStyle" class="primary">Push to Backend (/style)</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3>Voice</h3>
+      <div class="grid-2">
+        <div class="col">
+          <div class="label">Voice ID</div>
+          <input id="voiceId" value="alloy">
+        </div>
+        <div class="col">
+          <div class="label">Speed</div>
+          <input type="range" id="voiceRate" min="0.5" max="2" step="0.05" value="1">
+        </div>
+      </div>
+      <div class="grid-2">
+        <div class="col">
+          <div class="label">Pitch</div>
+          <input type="range" id="voicePitch" min="-12" max="12" step="1" value="0">
+        </div>
+        <div class="col">
+          <div class="label">Test Text</div>
+          <input id="voiceText" placeholder="Quick test phrase">
+        </div>
+      </div>
+      <div class="row" style="margin-top:6px">
+        <button id="btnVoiceTest" class="primary">Send to /speak</button>
+        <button id="btnSaveVoice" class="pill">Save Voice</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3>Greetings & Training Snippets</h3>
+      <div class="col">
+        <div class="label">New Snippet</div>
+        <textarea id="snippetText" placeholder="[greeting|policy|sales-tip] Your text…"></textarea>
+        <div class="row">
+          <select id="snippetType">
+            <option>greeting</option>
+            <option>policy</option>
+            <option>sales-tip</option>
+            <option>risk-note</option>
+          </select>
+          <button id="addSnippet" class="primary">Add</button>
+        </div>
+      </div>
+      <div id="snippetList" class="logs mono" style="height:140px"></div>
+      <div class="row" style="margin-top:6px">
+        <button id="pushSnippets" class="pill">Push to /train/snippets</button>
+        <button id="clearSnippets" class="pill">Clear</button>
+      </div>
+    </div>
+  </aside>
+
+  <!-- RIGHT: CHARTS / INGEST / LOGS -->
+  <main class="right">
+    <div class="rightTop">
+      <div class="card">
+        <h3>Ingest — Drag & Drop / Select</h3>
+        <div id="drop" class="drop">
+          <div class="label">Drop files here (CSV / JSON / TXT) or</div>
+          <div class="row" style="justify-content:center;margin-top:6px">
+            <button id="pickFiles" class="pill">Choose Files</button>
+            <input type="file" id="fileInput" multiple accept=".csv,.json,.txt" hidden>
+          </div>
+        </div>
+        <div class="hr"></div>
+        <div class="grid-2">
+          <div class="col">
+            <div class="label">Preview</div>
+            <textarea id="preview" class="mono" placeholder="First 2KB preview…"></textarea>
+          </div>
+          <div class="col">
+            <div class="label">Ingest Options</div>
+            <div class="kv"><div class="label">Dataset Name</div><input id="dataset" placeholder="sales_oct"></div>
+            <div class="kv"><div class="label">Upsert</div>
+              <select id="ingestMode"><option value="upsert">upsert</option><option value="append">append</option><option value="replace">replace</option></select>
+            </div>
+            <div class="kv"><div class="label">Send To</div>
+              <input id="ingestPath" value="/ingest">
+            </div>
+            <div class="row"><button id="sendIngest" class="mint">Send</button><span class="hint">Sends preview payload (full file stream optional below).</span></div>
+          </div>
+        </div>
+        <div class="footer">
+          <div class="small">Parsed Rows: <span id="rowsCount">0</span> • Bytes: <span id="bytesCount">0</span></div>
+          <div class="row">
+            <label class="small"><input type="checkbox" id="streamFull"> Stream full file (multipart)</label>
+            <button id="clearPreview" class="pill">Clear</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <h3>Traffic & Health</h3>
+        <div class="chartWrap">
+          <canvas id="chartReqs" width="300" height="120"></canvas>
+          <canvas id="chartErrs" width="300" height="120"></canvas>
+          <canvas id="chartIngest" width="300" height="120"></canvas>
+        </div>
+        <div class="footer">
+          <div class="small">Req/min, Errors/min, Ingest volume</div>
+          <div class="row">
+            <button id="resetCharts" class="pill">Reset Charts</button>
+            <span class="badge" id="uptime">uptime: 00:00</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3>Network Console</h3>
+      <table class="tbl mono" id="netTable">
+        <thead><tr><th>Time</th><th>Method</th><th>Path</th><th>ms</th><th>Status</th><th>Note</th></tr></thead>
+        <tbody></tbody>
+      </table>
+      <div class="footer">
+        <div class="row">
+          <button id="netClear" class="pill">Clear</button>
+          <button id="netExport" class="pill">Export</button>
+        </div>
+        <div class="row">
+          <input id="quickPath" placeholder="/echo" class="mono">
+          <select id="quickMethod"><option>GET</option><option>POST</option><option>PUT</option><option>DELETE</option></select>
+          <button id="quickSend" class="primary">Send</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3>Event Log</h3>
+      <div class="row">
+        <span class="badge">local only</span>
+        <div class="grow"></div>
+        <button id="logExport" class="pill">Export</button>
+        <button id="logClear" class="pill">Clear</button>
+      </div>
+      <div id="logBox" class="logs mono"></div>
+    </div>
+  </main>
+</div>
+
+<script>
+(() => {
+  // ======= STATE & UTIL =======
+  const $ = sel => document.querySelector(sel);
+  const $$ = sel => Array.from(document.querySelectorAll(sel));
+  const S = {
+    safe:false,
+    charts:{reqs:[],errs:[],ing:[]},
+    start:Date.now(),
+    previewBytes:0, previewRows:0, previewText:'',
+    snippets:[],
+    log:[],
+  };
+  const LS_KEY='hero2_admin_cfg_v2';
+
+  function loadCfg(){
+    try{
+      const raw = localStorage.getItem(LS_KEY);
+      if(!raw) return;
+      const c = JSON.parse(raw);
+      $('#apiBase').value = c.apiBase||'';
+      $('#port').value = c.port||'3001';
+      $('#healthPath').value = c.healthPath||'/healthz';
+      $('#openaiKey').value = c.openaiKey||'';
+      $('#projectId').value = c.projectId||'';
+      $('#systemPrompt').value = c.systemPrompt||'';
+      $('#tone').value = c.tone??3;
+      $('#temperature').value = c.temperature??0.4;
+      $('#topP').value = c.topP??0.9;
+      $('#banned').value = c.banned||'';
+      $('#lexicon').value = c.lexicon||'';
+      $('#voiceId').value = c.voiceId||'alloy';
+      $('#voiceRate').value = c.voiceRate??1;
+      $('#voicePitch').value = c.voicePitch??0;
+      $('#voiceText').value = c.voiceText||'';
+      $('#dataset').value = c.dataset||'';
+      $('#ingestPath').value = c.ingestPath||'/ingest';
+      $('#ingestMode').value = c.ingestMode||'upsert';
+      $('#streamFull').checked = !!c.streamFull;
+      S.snippets = c.snippets||[];
+      renderSnippets();
+    }catch(e){}
+  }
+  function saveCfg(){
+    const c = {
+      apiBase:$('#apiBase').value.trim(),
+      port:$('#port').value.trim(),
+      healthPath:$('#healthPath').value.trim(),
+      openaiKey:$('#openaiKey').value.trim(),
+      projectId:$('#projectId').value.trim(),
+      systemPrompt:$('#systemPrompt').value,
+      tone:+$('#tone').value,
+      temperature:+$('#temperature').value,
+      topP:+$('#topP').value,
+      banned:$('#banned').value.trim(),
+      lexicon:$('#lexicon').value.trim(),
+      voiceId:$('#voiceId').value.trim(),
+      voiceRate:+$('#voiceRate').value,
+      voicePitch:+$('#voicePitch').value,
+      voiceText:$('#voiceText').value,
+      dataset:$('#dataset').value.trim(),
+      ingestPath:$('#ingestPath').value.trim(),
+      ingestMode:$('#ingestMode').value,
+      streamFull:$('#streamFull').checked,
+      snippets:S.snippets
+    };
+    localStorage.setItem(LS_KEY, JSON.stringify(c));
+    toast('Saved.');
+  }
+  function toast(msg){
+    logEvent('toast', msg);
+  }
+  function logEvent(type, data){
+    const ts = new Date().toISOString().replace('T',' ').replace('Z','');
+    const line = `[${ts}] ${type}: ${typeof data==='string'?data:JSON.stringify(data)}`;
+    S.log.unshift(line);
+    $('#logBox').textContent = S.log.slice(0,400).join('\n');
+  }
+  function apiUrl(path){
+    const base = $('#apiBase').value.trim();
+    if(!base) return `http://localhost:${$('#port').value.trim()||'3001'}${path}`;
+    return `${base}${path}`;
+  }
+
+  // ======= CHARTS (vanilla canvas) =======
+  function pushChart(arr,val,max=60){arr.push(val); if(arr.length>max) arr.shift();}
+  function drawLine(canvas, arr, color='#74f7cd'){
+    const ctx=canvas.getContext('2d');
+    const w=canvas.width,h=canvas.height;
+    ctx.clearRect(0,0,w,h);
+    // grid
+    ctx.globalAlpha=.18; ctx.strokeStyle='#2a4d41';
+    for(let i=0;i<6;i++){ctx.beginPath();ctx.moveTo(0,(h/5)*i);ctx.lineTo(w,(h/5)*i);ctx.stroke();}
+    ctx.globalAlpha=1;
+    const max = Math.max(1, ...arr, 1);
+    ctx.beginPath(); ctx.strokeStyle=color; ctx.lineWidth=2;
+    arr.forEach((v,i)=>{
+      const x= i/(arr.length-1||1) * (w-10) + 5;
+      const y= h - (v/max)*(h-10) - 5;
+      if(i===0) ctx.moveTo(x,y); else ctx.lineTo(x,y);
+    });
+    ctx.stroke();
+  }
+  function redrawCharts(){
+    drawLine($('#chartReqs'), S.charts.reqs);
+    drawLine($('#chartErrs'), S.charts.errs, '#ff7d7d');
+    drawLine($('#chartIngest'), S.charts.ing, '#ffd467');
+  }
+  setInterval(()=>{
+    // idle decay
+    pushChart(S.charts.reqs, Math.max(0,(S.charts.reqs.at(-1)||0)-0.2));
+    pushChart(S.charts.errs, Math.max(0,(S.charts.errs.at(-1)||0)-0.05));
+    pushChart(S.charts.ing, Math.max(0,(S.charts.ing.at(-1)||0)-0.1));
+    redrawCharts();
+    const sec = Math.floor((Date.now()-S.start)/1000);
+    const mm=String(Math.floor(sec/60)).padStart(2,'0'), ss=String(sec%60).padStart(2,'0');
+    $('#uptime').textContent = `uptime: ${mm}:${ss}`;
+  }, 1000);
+
+  // ======= NETWORK CONSOLE =======
+  function addNetRow(method, path, ms, status, note){
+    const tr=document.createElement('tr');
+    const t = new Date().toLocaleTimeString();
+    tr.innerHTML = `<td>${t}</td><td>${method}</td><td class="mono">${path}</td><td>${ms}</td><td>${status||''}</td><td>${note||''}</td>`;
+    $('#netTable tbody').prepend(tr);
+    if($('#netTable tbody').children.length>400) $('#netTable tbody').lastElementChild.remove();
+  }
+  async function call(method, path, body, note){
+    const full = apiUrl(path);
+    const t0=performance.now();
+    if($('#safeMode').checked){
+      await new Promise(r=>setTimeout(r, 120));
+      addNetRow(method,path,Math.round(performance.now()-t0),'SIM','safe mode');
+      logEvent('net(sim)', {method,path,note});
+      pushChart(S.charts.reqs,(S.charts.reqs.at(-1)||0)+1);
+      return {ok:true, sim:true};
+    }
+    try{
+      const res = await fetch(full, {
+        method,
+        headers: body? {'Content-Type':'application/json'} : undefined,
+        body: body? JSON.stringify(body): undefined
+      });
+      const ms=Math.round(performance.now()-t0);
+      addNetRow(method,path,ms,res.status,note);
+      pushChart(S.charts.reqs,(S.charts.reqs.at(-1)||0)+1);
+      if(!res.ok) { pushChart(S.charts.errs,(S.charts.errs.at(-1)||0)+1); }
+      let json=null;
+      try{ json = await res.json(); }catch(_){}
+      logEvent('net', {method,path,status:res.status,ms,resp:json});
+      return {ok:res.ok,status:res.status,json};
+    }catch(e){
+      const ms=Math.round(performance.now()-t0);
+      addNetRow(method,path,ms,'ERR',String(e));
+      pushChart(S.charts.errs,(S.charts.errs.at(-1)||0)+1);
+      logEvent('net(err)', {method,path,error:String(e)});
+      return {ok:false,error:e};
+    }
+  }
+
+  // ======= PING / VERSION =======
+  $('#btnPing').onclick = async ()=>{
+    $('#connStatus').textContent='ping…';
+    const r = await call('GET', $('#healthPath').value.trim()||'/healthz', null, 'ping');
+    $('#connStatus').textContent = r.ok? 'healthy' : 'down';
+    $('#healthDot').className = 'dot ' + (r.ok?'ok':'bad');
+  };
+  $('#btnVersion').onclick = async ()=>{
+    const r = await call('GET','/version',null,'version');
+    toast(r.ok? ('version: '+JSON.stringify(r.json)) : 'version failed');
+  };
+
+  // ======= STYLE / VOICE / SNIPPETS =======
+  $('#saveStyle').onclick = saveCfg;
+  $('#pushStyle').onclick = async ()=>{
+    const body = {
+      system: $('#systemPrompt').value,
+      tone: +$('#tone').value,
+      temperature: +$('#temperature').value,
+      top_p: +$('#topP').value,
+      banned: $('#banned').value.split(',').map(s=>s.trim()).filter(Boolean),
+      lexicon: parseLex($('#lexicon').value)
+    };
+    const r = await call('POST','/style',body,'push style');
+    toast(r.ok? 'Style updated.' : 'Style failed.');
+  };
+  function parseLex(s){
+    // "a:b; c:d"
+    const out={};
+    s.split(';').forEach(pair=>{
+      const [k,v]=(pair||'').split(':').map(x=>x?.trim()).filter(Boolean);
+      if(k&&v) out[k]=v;
+    });
+    return out;
+  }
+
+  $('#btnSaveVoice').onclick = saveCfg;
+  $('#btnVoiceTest').onclick = async ()=>{
+    const body = {
+      voice: $('#voiceId').value.trim()||'alloy',
+      rate: +$('#voiceRate').value,
+      pitch: +$('#voicePitch').value,
+      text: $('#voiceText').value||'Testing one two.',
+    };
+    const r = await call('POST','/speak',body,'voice test');
+    toast(r.ok? 'Voice test sent.' : 'Voice test failed.');
+  };
+
+  function renderSnippets(){
+    const box = $('#snippetList');
+    box.textContent = S.snippets.map((s,i)=>`${i+1}. [${s.type}] ${s.text}`).join('\n');
+  }
+  $('#addSnippet').onclick = ()=>{
+    const text = $('#snippetText').value.trim();
+    if(!text) return;
+    const type = $('#snippetType').value;
+    S.snippets.unshift({type,text,date:Date.now()});
+    $('#snippetText').value='';
+    renderSnippets(); saveCfg();
+  };
+  $('#clearSnippets').onclick = ()=>{ S.snippets=[]; renderSnippets(); saveCfg(); };
+  $('#pushSnippets').onclick = async ()=>{
+    const r = await call('POST','/train/snippets',{snippets:S.snippets},'push snippets');
+    toast(r.ok? 'Snippets pushed.' : 'Push failed.');
+  };
+
+  // ======= INGEST =======
+  const drop = $('#drop');
+  const fileInput = $('#fileInput');
+  $('#pickFiles').onclick = ()=> fileInput.click();
+  fileInput.onchange = ()=> handleFiles(fileInput.files);
+
+  ;['dragenter','dragover'].forEach(ev=> drop.addEventListener(ev, e=>{e.preventDefault(); drop.classList.add('drag');}));
+  ;['dragleave','dragend','drop'].forEach(ev=> drop.addEventListener(ev, e=>{e.preventDefault(); drop.classList.remove('drag');}));
+
+  drop.addEventListener('drop', e=> handleFiles(e.dataTransfer.files));
+
+  async function handleFiles(files){
+    if(!files || !files.length) return;
+    S.previewBytes=0; S.previewRows=0; S.previewText='';
+    const first = files[0];
+    const buf = await first.arrayBuffer();
+    const bytes = new Uint8Array(buf);
+    S.previewBytes = bytes.length;
+    const head = bytes.slice(0, Math.min(2048, bytes.length));
+    const text = new TextDecoder().decode(head);
+    S.previewText = text;
+    $('#preview').value = text;
+    $('#bytesCount').textContent = S.previewBytes.toLocaleString();
+    // quick row guess for CSV
+    if(first.name.toLowerCase().endsWith('.csv')){
+      S.previewRows = text.split(/\r?\n/).filter(l=>l.trim()).length-1;
+    } else if(first.name.toLowerCase().endsWith('.json')){
+      try{
+        const json = JSON.parse(text);
+        S.previewRows = Array.isArray(json)? json.length : (typeof json==='object'? 1: 0);
+      }catch{ S.previewRows = 0; }
+    } else {
+      S.previewRows = text.split(/\r?\n/).filter(Boolean).length;
+    }
+    $('#rowsCount').textContent = Math.max(0,S.previewRows);
+    pushChart(S.charts.ing,(S.charts.ing.at(-1)||0)+ Math.max(1,Math.round(S.previewBytes/4096)));
+    logEvent('ingest_preview',{name:first.name, bytes:S.previewBytes, rows:S.previewRows});
+  }
+
+  $('#clearPreview').onclick = ()=>{
+    $('#preview').value=''; S.previewBytes=0; S.previewRows=0; S.previewText='';
+    $('#rowsCount').textContent='0'; $('#bytesCount').textContent='0';
+  };
+
+  $('#sendIngest').onclick = async ()=>{
+    const ds = $('#dataset').value.trim()||'default';
+    const mode = $('#ingestMode').value;
+    const path = $('#ingestPath').value.trim()||'/ingest';
+    const body = {dataset:ds, mode, text: $('#preview').value};
+    const r = await call('POST', path, body, 'ingest preview');
+    toast(r.ok? 'Ingest queued.' : 'Ingest failed.');
+  };
+
+  // ======= QUICK SEND =======
+  $('#quickSend').onclick = async ()=>{
+    const method = $('#quickMethod').value;
+    const path = $('#quickPath').value.trim()||'/echo';
+    const r = await call(method,path,null,'quick');
+    toast(r.ok? 'OK' : 'Failed');
+  };
+
+  // ======= EXPORT / IMPORT =======
+  $('#saveAll').onclick = saveCfg;
+  $('#exportConfig').onclick = ()=>{
+    saveCfg();
+    const data = localStorage.getItem(LS_KEY)||'{}';
+    const blob = new Blob([data],{type:'application/json'});
+    const a = Object.assign(document.createElement('a'), {href:URL.createObjectURL(blob), download:'hero2_admin_config.json'});
+    a.click(); URL.revokeObjectURL(a.href);
+  };
+  $('#importConfigBtn').onclick = ()=> $('#importConfigFile').click();
+  $('#importConfigFile').onchange = async (e)=>{
+    const f=e.target.files?.[0]; if(!f) return;
+    const text = await f.text();
+    try{
+      localStorage.setItem(LS_KEY, text);
+      loadCfg();
+      toast('Config imported.');
+    }catch{ toast('Import failed.'); }
+  };
+
+  // ======= LOG EXPORT / CLEAR =======
+  $('#logExport').onclick = ()=>{
+    const blob = new Blob([S.log.join('\n')],{type:'text/plain'});
+    const a = Object.assign(document.createElement('a'), {href:URL.createObjectURL(blob), download:'hero2_admin_log.txt'});
+    a.click(); URL.revokeObjectURL(a.href);
+  };
+  $('#logClear').onclick = ()=>{ S.log.length=0; $('#logBox').textContent=''; };
+
+  $('#netExport').onclick = ()=>{
+    const rows=[...document.querySelectorAll('#netTable tbody tr')].map(tr=>[...tr.children].map(td=>td.textContent));
+    const csv='time,method,path,ms,status,note\n'+rows.map(r=>r.map(v=>`"${(v||'').replaceAll('"','""')}"`).join(',')).join('\n');
+    const blob = new Blob([csv],{type:'text/csv'});
+    const a = Object.assign(document.createElement('a'), {href:URL.createObjectURL(blob), download:'hero2_net.csv'});
+    a.click(); URL.revokeObjectURL(a.href);
+  };
+  $('#netClear').onclick = ()=> { $('#netTable tbody').innerHTML=''; };
+
+  // ======= SAFE MODE =======
+  $('#safeMode').onchange = ()=> { S.safe = $('#safeMode').checked; toast(S.safe?'Safe mode ON':'Safe mode OFF'); };
+
+  // ======= INIT =======
+  loadCfg();
+  toast('Dashboard ready.');
+})();
+</script>
+</body>
+</html>
