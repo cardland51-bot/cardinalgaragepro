@@ -419,5 +419,15 @@ async function logEvent(event, payload) {
     // non-fatal
   }
 }
+// ========= INITIALIZE EVERYTHING ON LOAD =========
+window.addEventListener("load", () => {
+  try {
+    if (typeof wireUpload === "function") wireUpload();
+    if (typeof wireAnalyze === "function") wireAnalyze();
+  } catch (err) {
+    console.warn("Init error:", err);
+  }
+});
+
 
 
