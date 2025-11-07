@@ -93,12 +93,11 @@ window.addEventListener("DOMContentLoaded", () => {
 });
 
 // ========= ANALYZE =========
-// ========= ANALYZE =========
 function wireAnalyze() {
   if (!el.btnAnalyze) return;
 
   el.btnAnalyze.addEventListener("click", async () => {
-    // If there's a photo, go straight to photo AI
+    // If there's a photo, switch to photo analysis
     if (STATE.hasImage) {
       return analyzePhoto();
     }
@@ -133,14 +132,16 @@ function wireAnalyze() {
       applyInferenceResult(data, "analyze_click");
 
     } catch (err) {
-      console.error(err);
+      console.error("❌ Analyze error:", err);
       setNote("Analysis failed. Check backend or network.");
       logEvent("analyze_error", { error: String(err) });
+
     } finally {
       setLoading(false);
     }
   });
 }
+
 
 
 
@@ -192,13 +193,16 @@ async function analyzePhoto() {
     applyInferenceResult(data, "photo_analyze");
     setNote("Photo analyzed successfully.");
     console.log("✅ AI photo analysis result:", data);
+
   } catch (err) {
     console.error("❌ AI photo analysis failed:", err);
     setNote("Photo analysis unavailable — using fallback estimate.");
   } finally {
     setLoading(false);
   }
-} // ✅ this closes analyzePhoto() cleanly
+}
+
+
 
 
 // ========= APPLY RESULT =========
@@ -443,6 +447,7 @@ async function logEvent(event, payload) {
     // silent fail
   }
 }
+
 
 
 
