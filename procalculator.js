@@ -70,31 +70,24 @@ window.addEventListener("DOMContentLoaded", () => {
   logEvent("page_load", { page: "pro_calculator" });
 });
 
-// ========= UPLOAD / PREVIEW =========
-function wireUpload() {
-  el.btnUpload.addEventListener("click", () => el.fileInput.click());
-
-  el.fileInput.addEventListener("change", () => {
-    const file = el.fileInput.files[0];
-    if (!file) return;
-
-    const url = URL.createObjectURL(file);
-    el.previewImage.src = url;
-    el.previewImage.classList.remove("hidden");
-    el.previewPlaceholder.classList.add("hidden");
-    STATE.hasImage = true;
-
-    setNote("Photo loaded. Click Analyze Now to run your backend logic.");
-    logEvent("photo_selected", { name: file.name, size: file.size });
-  });
-}
-
 // ========= ANALYZE BUTTON =========
 function wireAnalyze() {
   el.btnAnalyze.addEventListener("click", async () => {
-    // Right now: sends JSON to /inference.
-    // If you later add a real /analyze with file upload, you can swap here.
-    const body = buildInferenceBodyFromState();
+    const mode = "landscaping"; // or detect from widget later
+
+    const payload = {
+      mode,
+      service: mode,
+      inputs: {
+        areaSqFt: numOrNull(document.querySelector('#mowArea')?.value),
+        shrubCount: numOrNull(document.querySelector('#landShrubs')?.value),
+        bedSize: document.querySelector('#landBeds')?.value || "",
+        material: document.querySelector('#landMaterial')?.value || "",
+      },
+      notes: "",
+      photoSummary: STATE.hasImage ? "Photo uploaded for analysis." : "No photo yet",
+      meta: { source: "pro_calculator_console" }
+    };
 
     setNote("Analyzing via /inference…");
     setLoading(true);
@@ -103,7 +96,7 @@ function wireAnalyze() {
       const res = await fetch(CONFIG.API_BASE + CONFIG.ROUTES.inference, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(body)
+        body: JSON.stringify(payload)
       });
 
       if (!res.ok) throw new Error("Inference failed");
@@ -118,17 +111,6 @@ function wireAnalyze() {
       setLoading(false);
     }
   });
-}
-
-function buildInferenceBodyFromState() {
-  // Minimal, safe payload your backend can extend.
-  return {
-    type: STATE.hasImage ? "photo" : "generic",
-    meta: {
-      hasImage: STATE.hasImage,
-      source: "pro_calculator_console"
-    }
-  };
 }
 
 // ========= APPLY RESULT =========
@@ -405,3 +387,4 @@ async function logEvent(event, payload) {
     // non-fatal
   }
 }
+
