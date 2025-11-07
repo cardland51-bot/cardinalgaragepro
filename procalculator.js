@@ -149,7 +149,7 @@ function wireAnalyze() {
       setLoading(false);
     }
   });
-}
+  
 // ========= PRICE NORMALIZATION =========
 function normalizePrice(p) {
   if (p === null || p === undefined) return null;
@@ -160,29 +160,51 @@ function normalizePrice(p) {
 }
 
 // ========= PHOTO ANALYSIS =========
-if (photoFile) {
+// ========= PHOTO ANALYSIS =========
+async function analyzePhoto(photoFile, userNotes) {
   try {
+    // Build the form data to send to your backend
     const formData = new FormData();
-    formData.append("image", photoFile);
-    formData.append("mode", "landscaping"); // or "mowing" etc.
+    formData.append("image", photoFile);                 // actual photo
+    formData.append("mode", "landscaping");              // or "mowing"
     formData.append("notes", userNotes || "");
 
+    // Send it to your backend /inference route
     const resp = await fetch(`${CONFIG.API_BASE}/inference`, {
       method: "POST",
       body: formData
     });
 
+    // If backend fails, throw an error
     if (!resp.ok) throw new Error("AI inference failed");
+
+    // Read backend JSON (price, upsell, risk, etc.)
     const data = await resp.json();
 
-    // Apply results directly
+    // Apply results directly to the calculator
     applyResult(data);
-    return; // stop here if success
+
+    // Optional confirmation in console
+    console.log("✅ AI photo analysis result:", data);
+
   } catch (err) {
-    console.error("AI photo analysis failed:", err);
+    console.error("❌ AI photo analysis failed:", err);
     tip("AI photo analysis unavailable, using fallback estimate.", true);
   }
 }
+
+// ========= UPLOAD HANDLER =========
+el.photoInput.onchange = () => {
+  const photoFile = el.photoInput.files[0];
+  if (!photoFile) return;
+
+  // Optional message while analyzing
+  tip("Analyzing photo… please wait.");
+
+  // Call the async analysis function
+  analyzePhoto(photoFile, userNotes);
+};
+
 
 // ========= FALLBACK SUMMARY (if no photo or error) =========
 
@@ -421,6 +443,7 @@ async function logEvent(event, payload) {
     // silent fail
   }
 }
+
 
 
 
