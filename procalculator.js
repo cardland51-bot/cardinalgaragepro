@@ -159,16 +159,33 @@ function normalizePrice(p) {
   return isFinite(n) ? Math.round(n) : null;
 }
 
-// ========= FALLBACK SUMMARY (safe default) =========
-function buildFallbackSummary(result) {
-  if (!result) return "No data returned from the backend.";
+// ========= PHOTO ANALYSIS =========
+if (photoFile) {
+  try {
+    const formData = new FormData();
+    formData.append("image", photoFile);
+    formData.append("mode", "landscaping"); // or "mowing" etc.
+    formData.append("notes", userNotes || "");
 
-  const price = result.price || "—";
-  const upsell = result.upsell ? `${result.upsell}% upsell signal.` : "";
-  const risk = result.risk ? `Risk rating ${result.risk}/10.` : "";
+    const resp = await fetch(`${CONFIG.API_BASE}/inference`, {
+      method: "POST",
+      body: formData
+    });
 
-  return `Estimate: $${price}. ${upsell} ${risk}`.trim();
+    if (!resp.ok) throw new Error("AI inference failed");
+    const data = await resp.json();
+
+    // Apply results directly
+    applyResult(data);
+    return; // stop here if success
+  } catch (err) {
+    console.error("AI photo analysis failed:", err);
+    tip("AI photo analysis unavailable, using fallback estimate.", true);
+  }
 }
+
+// ========= FALLBACK SUMMARY (if no photo or error) =========
+
 
 // ========= APPLY RESULT =========
 function applyInferenceResult(data, source) {
@@ -404,6 +421,7 @@ async function logEvent(event, payload) {
     // silent fail
   }
 }
+
 
 
 
