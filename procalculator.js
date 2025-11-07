@@ -143,8 +143,6 @@ function wireAnalyze() {
 }
 
 
-
-
 (async () => {
   setNote("Analyzing via /inference…");
   setLoading(true);
@@ -448,6 +446,7 @@ async function logEvent(event, payload) {
     // silent fail
   }
 }
+
 
 
 
