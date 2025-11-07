@@ -388,12 +388,6 @@ async function logEvent(event, payload) {
   }
 }
 
-  if (noteTimer) clearTimeout(noteTimer);
-  noteTimer = setTimeout(() => {
-    el.systemNote.textContent =
-      "Tip: This console sends clean JSON to your backend. All pricing logic lives on your side.";
-  }, 5000);
-}
 
 function setLoading(isLoading) {
   el.btnAnalyze.disabled = isLoading;
@@ -428,6 +422,7 @@ window.addEventListener("load", () => {
     console.warn("Init error:", err);
   }
 });
+
 
 
 
